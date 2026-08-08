@@ -716,21 +716,15 @@ PORTFOLIO ACCORDION
 
 @media (max-width: 900px) {
     .portfolio-expand-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-    }
-}
-
-@media (max-width: 480px) {
-    .portfolio-expand-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr);
         gap: 8px;
     }
 }
 
-@media (max-width: 320px) {
+@media (max-width: 360px) {
     .portfolio-expand-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
     }
 }
 
@@ -750,6 +744,21 @@ PORTFOLIO ACCORDION
     display: block;
     cursor: zoom-in;
     transition: opacity 0.2s;
+}
+
+@media (max-width: 900px) {
+    .portfolio-expand-item img,
+    .portfolio-thumb {
+        height: 80px;
+    }
+}
+
+@media (max-width: 480px) {
+    .portfolio-expand-item img,
+    .portfolio-thumb {
+        height: 70px;
+        border-radius: 6px;
+    }
 }
 
 .portfolio-thumb:hover {

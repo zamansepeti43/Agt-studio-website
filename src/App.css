@@ -711,15 +711,24 @@ PORTFOLIO ACCORDION
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 14px;
+    width: 100%;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
     .portfolio-expand-grid {
         grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
     }
 }
 
 @media (max-width: 480px) {
+    .portfolio-expand-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+}
+
+@media (max-width: 320px) {
     .portfolio-expand-grid {
         grid-template-columns: 1fr;
     }
@@ -731,13 +740,20 @@ PORTFOLIO ACCORDION
     gap:6px;
 }
 
-.portfolio-expand-item img{
-    width:100%;
-    height:110px;
-    object-fit:cover;
-    border-radius:8px;
-    border:1px solid rgba(255,255,255,.06);
-    display:block;
+.portfolio-expand-item img,
+.portfolio-thumb {
+    width: 100%;
+    height: 110px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,.06);
+    display: block;
+    cursor: zoom-in;
+    transition: opacity 0.2s;
+}
+
+.portfolio-thumb:hover {
+    opacity: 0.85;
 }
 
 .portfolio-expand-item strong{
@@ -750,6 +766,59 @@ PORTFOLIO ACCORDION
     color:#777;
     margin:0;
     line-height:1.5;
+}
+
+/*=========================
+LIGHTBOX
+=========================*/
+
+.portfolio-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: rgba(0, 0, 0, 0.88);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+    cursor: zoom-out;
+}
+
+.portfolio-lightbox img {
+    max-width: 90vw;
+    max-height: 88vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 10px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+    cursor: default;
+    display: block;
+}
+
+.portfolio-lightbox-close {
+    position: fixed;
+    top: 16px;
+    right: 20px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    font-size: 22px;
+    line-height: 1;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    z-index: 100000;
+}
+
+.portfolio-lightbox-close:hover {
+    background: rgba(255,255,255,0.25);
 }
 
 .portfolio-expand-placeholder{

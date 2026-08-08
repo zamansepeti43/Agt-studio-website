@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 
 interface PortfolioItem {
@@ -24,6 +24,7 @@ const normalize = (cat: string) =>
 export default function Portfolio() {
   const [items, setItems] = useState<PortfolioItem[]>([]);
   const [openKey, setOpenKey] = useState<string | null>(null);
+  const [lightbox, setLightbox] = useState<{ url: string; title: string } | null>(null);
 
   useEffect(() => {
     supabase
@@ -36,7 +37,22 @@ export default function Portfolio() {
       });
   }, []);
 
-  // Show only categories that have items; if DB is empty show all 6 as fallback
+  const closeLightbox = useCallback(() => {
+    setLightbox(null);
+    document.body.style.overflow = '';
+  }, []);
+
+  const openLightbox = useCallback((url: string, title: string) => {
+    setLightbox({ url, title });
+    document.body.style.overflow = 'hidden';
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeLightbox(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [closeLightbox]);
+
   const populatedKeys = new Set(items.map((i) => normalize(i.category)));
   const displayCats = items.length === 0
     ? CATEGORY_DEFS
@@ -59,15 +75,11 @@ export default function Portfolio() {
               className={`card portfolio-accordion${isOpen ? ' portfolio-accordion--open' : ''}`}
               onClick={() => toggle(cat.key)}
             >
-              {/* Chevron — top-right corner */}
               <span className="portfolio-chevron">{isOpen ? '▲' : '▼'}</span>
-
-              {/* Original card layout preserved when closed */}
               <div className="card-icon">{cat.icon}</div>
               <h3>{cat.title}</h3>
               <p>{cat.description}</p>
 
-              {/* Expanded section — click inside won't toggle card */}
               {isOpen && (
                 <div
                   className="portfolio-expand"
@@ -80,7 +92,12 @@ export default function Portfolio() {
                       {catItems.map((item) => (
                         <div key={item.id} className="portfolio-expand-item">
                           {item.image_url ? (
-                            <img src={item.image_url} alt={item.title} />
+                            <img
+                              src={item.image_url}
+                              alt={item.title}
+                              onClick={(e) => { e.stopPropagation(); openLightbox(item.image_url!, item.title); }}
+                              className="portfolio-thumb"
+                            />
                           ) : (
                             <div className="portfolio-expand-placeholder">{cat.icon}</div>
                           )}
@@ -96,6 +113,18 @@ export default function Portfolio() {
           );
         })}
       </div>
+
+      {/* Lightbox */}
+      {lightbox && (
+        <div className="portfolio-lightbox" onClick={closeLightbox}>
+          <button className="portfolio-lightbox-close" onClick={closeLightbox} aria-label="Kapat">✕</button>
+          <img
+            src={lightbox.url}
+            alt={lightbox.title}
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </section>
   );
 }

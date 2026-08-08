@@ -385,9 +385,17 @@ CARDS
     }
 }
 
+@media (max-width: 900px) {
+    .cards {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+    }
+}
+
 @media (max-width: 480px) {
     .cards {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
     }
 }
 
@@ -405,6 +413,19 @@ CARDS
     border-radius: 22px;
     padding: 35px;
     transition: 0.35s;
+    min-width: 0;
+}
+
+@media (max-width: 900px) {
+    .card {
+        padding: 20px 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .card {
+        padding: 16px 10px;
+    }
 }
 
 .card:hover {
@@ -414,15 +435,50 @@ CARDS
 }
 
 .card h3 {
-    margin-bottom: 18px;
+    margin-bottom: 12px;
     color: #d4af37;
     text-align: center;
+    font-size: 18px;
+    line-height: 1.2;
+}
+
+@media (max-width: 900px) {
+    .card h3 {
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .card h3 {
+        font-size: 12px;
+    }
 }
 
 .card p {
     color: #cfcfcf;
-    line-height: 1.7;
+    line-height: 1.5;
     text-align: center;
+    font-size: 14px;
+}
+
+@media (max-width: 900px) {
+    .card p {
+        font-size: 12px;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+}
+
+@media (max-width: 480px) {
+    .card p {
+        font-size: 11px;
+        line-height: 1.3;
+        -webkit-line-clamp: 2;
+    }
 }
 
 /* Services grid — last row centered via flexbox */
@@ -692,9 +748,31 @@ PORTFOLIO SECTION
         font-size: 34px;
         margin-bottom: 40px;
     }
-    .portfolio-section .card {
-        flex: 0 1 100%;
+}
+
+@media (max-width: 900px) {
+    .portfolio-section .cards {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        width: 100%;
         max-width: 100%;
+        justify-items: stretch;
+    }
+    .portfolio-section .card {
+        flex: none;
+        max-width: none;
+        width: 100%;
+        padding: 20px 12px;
+    }
+}
+
+@media (max-width: 600px) {
+    .portfolio-section .cards {
+        gap: 8px;
+    }
+    .portfolio-section .card {
+        padding: 16px 10px;
     }
 }
 
@@ -881,14 +959,26 @@ LIGHTBOX
     font-size:28px;
 }
 
-.portfolio-grid{
+.portfolio-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+    width: 100%;
+    box-sizing: border-box;
+}
 
-    display:grid;
+@media (max-width: 900px) {
+    .portfolio-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+    }
+}
 
-    grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
-
-    gap:30px;
-
+@media (max-width: 480px) {
+    .portfolio-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+    }
 }
 
 .portfolio-item{
@@ -1054,9 +1144,31 @@ PRICING SECTION
         font-size: 34px;
         margin-bottom: 40px;
     }
-    .pricing-section .cards .card {
-        flex: 0 1 100%;
+}
+
+@media (max-width: 900px) {
+    .pricing-section .cards {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        width: 100%;
         max-width: 100%;
+        justify-items: stretch;
+    }
+    .pricing-section .cards .card {
+        flex: none;
+        max-width: none;
+        width: 100%;
+        padding: 20px 12px;
+    }
+}
+
+@media (max-width: 600px) {
+    .pricing-section .cards {
+        gap: 8px;
+    }
+    .pricing-section .cards .card {
+        padding: 16px 10px;
     }
 }
 

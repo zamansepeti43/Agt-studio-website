@@ -441,6 +441,25 @@ CARDS
     width: auto;
 }
 
+/* Services 3-column grid on mobile */
+@media (max-width: 900px) {
+    #services .cards {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        width: 100%;
+        max-width: 100%;
+        padding: 0 8px;
+        box-sizing: border-box;
+    }
+    #services .cards .card {
+        flex: none;
+        max-width: none;
+        width: 100%;
+        padding: 20px 12px;
+    }
+}
+
 /* About & Contact single-card centering */
 #about .card,
 #contact .card {

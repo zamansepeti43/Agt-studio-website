@@ -336,9 +336,11 @@ transform:translateY(0px);
 SECTION
 =========================*/
 
-.section{
+.section {
     padding: 110px max(20px, (100% - 1200px) / 2);
     max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 .section-title{
@@ -735,19 +737,6 @@ PORTFOLIO SECTION
     .portfolio-section {
         padding: 90px 4%;
     }
-    .portfolio-section .card {
-        flex: 0 1 calc(50% - 15px);
-    }
-}
-
-@media (max-width: 600px) {
-    .portfolio-section {
-        padding: 70px 5%;
-    }
-    .portfolio-section h2 {
-        font-size: 34px;
-        margin-bottom: 40px;
-    }
 }
 
 @media (max-width: 900px) {
@@ -757,6 +746,9 @@ PORTFOLIO SECTION
         gap: 12px;
         width: 100%;
         max-width: 100%;
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
         justify-items: stretch;
     }
     .portfolio-section .card {
@@ -764,10 +756,18 @@ PORTFOLIO SECTION
         max-width: none;
         width: 100%;
         padding: 20px 12px;
+        margin: 0;
     }
 }
 
 @media (max-width: 600px) {
+    .portfolio-section {
+        padding: 70px 20px;
+    }
+    .portfolio-section h2 {
+        font-size: 34px;
+        margin-bottom: 40px;
+    }
     .portfolio-section .cards {
         gap: 8px;
     }
@@ -1030,6 +1030,20 @@ ABOUT
 
 }
 
+@media (max-width: 900px) {
+    .about-box {
+        font-size: 16px;
+        line-height: 1.8;
+    }
+}
+
+@media (max-width: 600px) {
+    .about-box {
+        font-size: 14px;
+        line-height: 1.6;
+    }
+}
+
 
 /*=========================
 PRICING
@@ -1089,6 +1103,25 @@ CONTACT
 
 }
 
+@media (max-width: 900px) {
+    .contact-box p {
+        font-size: 16px;
+        margin: 16px 0;
+    }
+}
+
+@media (max-width: 600px) {
+    .contact-box {
+        max-width: 100%;
+        padding: 0 16px;
+        box-sizing: border-box;
+    }
+    .contact-box p {
+        font-size: 14px;
+        margin: 12px 0;
+    }
+}
+
 
 /*=========================
 PRICING SECTION
@@ -1131,19 +1164,6 @@ PRICING SECTION
     .pricing-section {
         padding: 90px 4%;
     }
-    .pricing-section .cards .card {
-        flex: 0 1 calc(50% - 15px);
-    }
-}
-
-@media (max-width: 600px) {
-    .pricing-section {
-        padding: 70px 5%;
-    }
-    .pricing-section h2 {
-        font-size: 34px;
-        margin-bottom: 40px;
-    }
 }
 
 @media (max-width: 900px) {
@@ -1153,6 +1173,9 @@ PRICING SECTION
         gap: 12px;
         width: 100%;
         max-width: 100%;
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
         justify-items: stretch;
     }
     .pricing-section .cards .card {
@@ -1160,10 +1183,18 @@ PRICING SECTION
         max-width: none;
         width: 100%;
         padding: 20px 12px;
+        margin: 0;
     }
 }
 
 @media (max-width: 600px) {
+    .pricing-section {
+        padding: 70px 20px;
+    }
+    .pricing-section h2 {
+        font-size: 34px;
+        margin-bottom: 40px;
+    }
     .pricing-section .cards {
         gap: 8px;
     }
@@ -1205,6 +1236,34 @@ FOOTER
 
     color:#cfcfcf;
 
+}
+
+@media (max-width: 900px) {
+    .footer {
+        margin-top: 100px;
+        padding: 50px 20px;
+    }
+    .footer h3 {
+        font-size: 16px;
+    }
+    .footer p {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 600px) {
+    .footer {
+        margin-top: 80px;
+        padding: 40px 16px;
+    }
+    .footer h3 {
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+    .footer p {
+        font-size: 12px;
+        margin: 6px 0;
+    }
 }
 
 
@@ -1331,99 +1390,148 @@ SCROLL FIX
 RESPONSIVE
 =========================*/
 
-@media(max-width:900px){
-
-.header{
-
-padding:0 20px;
-
+@media (max-width: 900px) {
+    .header {
+        padding: 0 20px;
+        height: 75px;
+    }
+    .desktop-nav {
+        display: none;
+    }
+    .contact-button {
+        display: none;
+    }
+    .brand-text {
+        font-size: 24px;
+    }
+    .header-logo {
+        width: 48px;
+        height: 48px;
+    }
+    .hero-logo {
+        width: 280px;
+    }
+    .animated-title {
+        font-size: 38px;
+        padding: 0 20px;
+        line-height: 1.3;
+    }
+    .animated-subtitle {
+        font-size: 18px;
+        padding: 0 20px;
+        line-height: 1.4;
+    }
+    .hero-line {
+        width: 180px;
+    }
+    .section {
+        padding: 80px 20px;
+    }
+    .section-title {
+        font-size: 32px;
+        margin-bottom: 40px;
+    }
+    .sidebar {
+        width: 290px;
+    }
+    .whatsapp-floating {
+        right: 16px;
+        bottom: 16px;
+        padding: 6px 8px;
+    }
+    .whatsapp-icon {
+        font-size: 36px;
+    }
+    .whatsapp-text {
+        font-size: 10px;
+    }
 }
 
-.desktop-nav{
-
-display:none;
-
+@media (max-width: 600px) {
+    .header {
+        padding: 0 16px;
+        height: 70px;
+    }
+    .brand-text {
+        font-size: 20px;
+    }
+    .header-logo {
+        width: 44px;
+        height: 44px;
+    }
+    .hero-logo {
+        width: 240px;
+    }
+    .animated-title {
+        font-size: 32px;
+        padding: 0 16px;
+    }
+    .animated-subtitle {
+        font-size: 16px;
+        padding: 0 16px;
+    }
+    .hero-line {
+        width: 150px;
+    }
+    .section {
+        padding: 70px 16px;
+    }
+    .section-title {
+        font-size: 28px;
+        margin-bottom: 32px;
+    }
+    .sidebar {
+        width: 270px;
+    }
+    .whatsapp-floating {
+        right: 12px;
+        bottom: 12px;
+        padding: 5px 7px;
+    }
+    .whatsapp-icon {
+        font-size: 32px;
+    }
+    .whatsapp-text {
+        font-size: 9px;
+    }
 }
 
-.contact-button{
-
-display:none;
-
-}
-
-.brand-text{
-
-font-size:24px;
-
-}
-
-.header-logo{
-
-width:48px;
-
-height:48px;
-
-}
-
-.hero-logo{
-
-width:280px;
-
-}
-
-.animated-title{
-
-font-size:38px;
-
-padding:0 20px;
-
-}
-
-.animated-subtitle{
-
-font-size:18px;
-
-padding:0 20px;
-
-}
-
-.hero-line{
-
-width:180px;
-
-}
-
-.section{
-
-padding:90px 25px;
-
-}
-
-.section-title{
-
-font-size:34px;
-
-}
-
-.sidebar{
-
-width:290px;
-
-}
-
-.whatsapp-floating {
-    right: 16px;
-    bottom: 16px;
-    padding: 6px 8px;
-}
-
-.whatsapp-icon {
-    font-size: 36px;
-}
-
-.whatsapp-text {
-    font-size: 10px;
-}
+@media (max-width: 480px) {
+    .header {
+        padding: 0 12px;
+        height: 65px;
+    }
+    .brand-text {
+        font-size: 18px;
+    }
+    .header-logo {
+        width: 40px;
+        height: 40px;
+    }
+    .hero-logo {
+        width: 200px;
+    }
+    .animated-title {
+        font-size: 28px;
+        padding: 0 12px;
+    }
+    .animated-subtitle {
+        font-size: 14px;
+        padding: 0 12px;
+    }
+    .hero-line {
+        width: 120px;
+    }
+    .section {
+        padding: 60px 12px;
+    }
+    .section-title {
+        font-size: 26px;
+        margin-bottom: 28px;
+    }
+    .sidebar {
+        width: 250px;
+    }
 }
 
 

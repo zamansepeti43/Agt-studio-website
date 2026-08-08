@@ -454,6 +454,13 @@ CARDS
     margin-top: 10px;
 }
 
+/* Reduce padding on open portfolio accordion on mobile */
+@media (max-width: 600px) {
+    .card.portfolio-accordion--open {
+        padding: 20px 12px;
+    }
+}
+
 
 /*=========================
 SIDEBAR
@@ -712,26 +719,22 @@ PORTFOLIO ACCORDION
     grid-template-columns: repeat(3, 1fr);
     gap: 14px;
     width: 100%;
+    box-sizing: border-box;
 }
 
 @media (max-width: 900px) {
     .portfolio-expand-grid {
         grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-    }
-}
-
-@media (max-width: 360px) {
-    .portfolio-expand-grid {
-        grid-template-columns: repeat(2, 1fr);
         gap: 6px;
     }
 }
 
-.portfolio-expand-item{
-    display:flex;
-    flex-direction:column;
-    gap:6px;
+.portfolio-expand-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0; /* prevents grid blowout */
+    overflow: hidden;
 }
 
 .portfolio-expand-item img,
@@ -749,20 +752,30 @@ PORTFOLIO ACCORDION
 @media (max-width: 900px) {
     .portfolio-expand-item img,
     .portfolio-thumb {
-        height: 80px;
+        height: 72px;
+        border-radius: 5px;
     }
 }
 
 @media (max-width: 480px) {
     .portfolio-expand-item img,
     .portfolio-thumb {
-        height: 70px;
-        border-radius: 6px;
+        height: 60px;
+        border-radius: 4px;
     }
 }
 
 .portfolio-thumb:hover {
     opacity: 0.85;
+}
+
+@media (max-width: 900px) {
+    .portfolio-expand-item strong {
+        font-size: 10px;
+    }
+    .portfolio-expand-item p {
+        display: none; /* too narrow for description text on mobile */
+    }
 }
 
 .portfolio-expand-item strong{

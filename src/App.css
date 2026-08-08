@@ -711,20 +711,23 @@ PORTFOLIO ACCORDION
     width: 100%;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
 .portfolio-expand-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 14px;
     width: 100%;
     box-sizing: border-box;
+    overflow: hidden;
 }
 
 @media (max-width: 900px) {
     .portfolio-expand-grid {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 6px;
     }
 }
@@ -733,8 +736,34 @@ PORTFOLIO ACCORDION
     display: flex;
     flex-direction: column;
     gap: 4px;
-    min-width: 0; /* prevents grid blowout */
+    min-width: 0;
     overflow: hidden;
+    box-sizing: border-box;
+}
+
+.portfolio-expand-item strong {
+    font-size: 12px;
+    color: #e0e0e0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+}
+
+.portfolio-expand-item p {
+    font-size: 11px;
+    color: #777;
+    margin: 0;
+    line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+    .portfolio-expand-item strong {
+        font-size: 10px;
+    }
+    .portfolio-expand-item p {
+        display: none;
+    }
 }
 
 .portfolio-expand-item img,
@@ -767,27 +796,6 @@ PORTFOLIO ACCORDION
 
 .portfolio-thumb:hover {
     opacity: 0.85;
-}
-
-@media (max-width: 900px) {
-    .portfolio-expand-item strong {
-        font-size: 10px;
-    }
-    .portfolio-expand-item p {
-        display: none; /* too narrow for description text on mobile */
-    }
-}
-
-.portfolio-expand-item strong{
-    font-size:12px;
-    color:#e0e0e0;
-}
-
-.portfolio-expand-item p{
-    font-size:11px;
-    color:#777;
-    margin:0;
-    line-height:1.5;
 }
 
 /*=========================

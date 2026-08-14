@@ -9,6 +9,7 @@ import ServicesManager from './pages/ServicesManager';
 import JobsManager from './pages/JobsManager';
 import PackagesManager from './pages/PackagesManager';
 import PortfolioManager from './pages/PortfolioManager';
+import ProjectRequests from './pages/ProjectRequests';
 import SiteSettings from './pages/SiteSettings';
 
 export default function AdminApp() {
@@ -17,13 +18,14 @@ export default function AdminApp() {
       <Route path="login" element={<AdminLogin />} />
       <Route element={<AdminGuard><AdminLayout /></AdminGuard>}>
         <Route index element={<Dashboard />} />
-        <Route path="sections"  element={<SectionManager />} />
-        <Route path="services"  element={<ServicesManager />} />
-        <Route path="jobs"      element={<JobsManager />} />
-        <Route path="packages"  element={<PackagesManager />} />
+        <Route path="sections" element={<SectionManager />} />
+        <Route path="services" element={<ServicesManager />} />
+        <Route path="jobs" element={<JobsManager />} />
+        <Route path="packages" element={<PackagesManager />} />
         <Route path="portfolio" element={<PortfolioManager />} />
-        <Route path="settings"  element={<SiteSettings />} />
-        <Route path="*"         element={<Navigate to="/admin" replace />} />
+        <Route path="requests" element={<ProjectRequests />} />
+        <Route path="settings" element={<SiteSettings />} />
+        <Route path="*" element={<Navigate to="/admin" replace />} />
       </Route>
     </Routes>
   );

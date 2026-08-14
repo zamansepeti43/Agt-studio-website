@@ -1,9 +1,13 @@
+import ProjectRequestForm from "./ProjectRequestForm";
+
 export default function Contact() {
   return (
     <section className="section" id="contact">
       <h2 className="section-title">İletişim</h2>
 
-      <div className="card">
+      <ProjectRequestForm />
+
+      <div className="card contact-details-card">
         <p>📧 E-posta: agtstudyo@gmail.com</p>
 
         <br />
@@ -26,7 +30,7 @@ export default function Contact() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          İletişime Geç
+          WhatsApp'tan Ulaşın
         </a>
       </div>
     </section>

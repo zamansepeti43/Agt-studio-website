@@ -9,8 +9,13 @@ import About from "./components/About";
 import Pricing from "./components/Pricing";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
+import PrivacyPolicy from "./components/PrivacyPolicy";
 
 function App() {
+  if (window.location.pathname === "/privacy") {
+    return <PrivacyPolicy />;
+  }
+
   return (
     <>
       <Header />

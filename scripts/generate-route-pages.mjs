@@ -173,7 +173,7 @@ for (const route of routes) {
   const url = `https://agt-studio.vercel.app${route.path}`;
   let html = base;
 
-  html = html.replace(/<title>[\\s\\S]*?<\\/title>/, `<title>${esc(route.title)}</title>`);
+  html = html.replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(route.title)}</title>`);
   html = setMeta(html, /<meta name="description" content="[^"]*"\s*\/>/, `<meta name="description" content="${esc(route.description)}"/>`);
   html = setMeta(html, /<meta name="keywords" content="[^"]*"\s*\/>/, `<meta name="keywords" content="${esc(route.keywords)}"/>`);
   html = setMeta(html, /<link rel="canonical" href="[^"]*"\s*\/>/, `<link rel="canonical" href="${esc(url)}"/>`);
@@ -209,9 +209,9 @@ for (const route of routes) {
     }
   };
 
-  html = html.replace("</head>", `<script id="agt-route-schema" type="application/ld+json">${JSON.stringify(schema).replaceAll("</", "<\\/")}</script></head>`);
+  html = html.replace("</head>", `<script id="agt-route-schema" type="application/ld+json">${JSON.stringify(schema).replaceAll("</", "<\/")}</script></head>`);
 
-  const outDir = path.join(dist, route.path.replace(/^\\//, ""));
+  const outDir = path.join(dist, route.path.replace(/^\//, ""));
   fs.mkdirSync(outDir, { recursive: true });
   fs.writeFileSync(path.join(outDir, "index.html"), html, "utf8");
 }

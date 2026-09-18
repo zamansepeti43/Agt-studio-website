@@ -33,6 +33,24 @@ function pinterestImageUrl(listing, title, price) {
   return `https://agt-studio.vercel.app/api/pinterest/image?${params.toString()}`;
 }
 
+
+async function ensureDefaultBoard() {
+  const listed = await pinterestFetch('/boards?page_size=250');
+  const existing = (listed?.items || []).find(
+    (board) => String(board.name || '').toLowerCase() === 'agt studio digital products'
+  );
+  if (existing?.id) return existing;
+
+  return pinterestFetch('/boards', {
+    method: 'POST',
+    body: JSON.stringify({
+      name: 'AGT Studio Digital Products',
+      description: 'AGT Studio digital products, tools and resources.',
+      privacy: 'PUBLIC',
+    }),
+  });
+}
+
 function formatPrice(listing) {
   const amount = listing.price?.amount;
   if (typeof amount !== 'number') return '';
@@ -155,7 +173,7 @@ export default async function handler(req, res) {
           const pin = await pinterestFetch('/pins', {
             method: 'POST',
             body: JSON.stringify({
-              board_id: item.board_id,
+              board_id: boardId,
               title: item.pin_title || item.etsy_title,
               description: item.pin_description || item.etsy_title,
               link: item.etsy_url,

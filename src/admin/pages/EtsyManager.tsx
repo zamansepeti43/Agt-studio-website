@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 
+// Etsy connection UI — OAuth is handled server-side.
 type EtsyStatus = {
   connected: boolean;
   shopUserId?: number | null;

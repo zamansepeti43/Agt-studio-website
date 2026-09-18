@@ -1,4 +1,4 @@
-import { etsyApiFetch } from '../etsy/_lib.js';
+import { etsyApiFetch, getEtsyAccessToken } from '../etsy/_lib.js';
 import { pinterestFetch, supabaseRest } from './_lib.js';
 
 function isAuthorized(req) {
@@ -54,9 +54,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const shop = await etsyApiFetch(
-      `/users/${(await import('../etsy/_lib.js')).getEtsyAccessToken ? (await (await import('../etsy/_lib.js')).getEtsyAccessToken()).shopUserId : ''}/shops`
-    );
+    const { shopUserId } = await getEtsyAccessToken();
+    const shop = await etsyApiFetch(`/users/${shopUserId}/shops`);
     if (!shop?.shop_id) throw new Error('Etsy shop ID alınamadı.');
 
     const query = new URLSearchParams({

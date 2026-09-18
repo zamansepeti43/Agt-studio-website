@@ -1,27 +1,2 @@
-export default function About() {
-  return (
-    <section className="section" id="about">
-      <h2 className="section-title">Hakkımızda</h2>
-
-      <div className="card">
-        <p>
-          AGT Studio, markaların dijital dünyada güçlü bir yer edinmesine
-          yardımcı olmak amacıyla kurulmuştur.
-        </p>
-
-        <br />
-
-        <p>
-          Logo tasarımı, sosyal medya tasarımı, menü tasarımı, web tasarımı ve
-          yapay zekâ çözümleri alanlarında profesyonel hizmet sunuyoruz.
-        </p>
-
-        <br />
-
-        <p>
-          Hedefimiz, fikirlerinizi güçlü markalara dönüştürmektir.
-        </p>
-      </div>
-    </section>
-  );
-}
+import { useLanguage } from "../i18n/LanguageContext";
+export default function About(){const {language,t}=useLanguage();return <section className="section" id="about"><h2 className="section-title">{t("aboutTitle")}</h2><div className="card">{language==="tr"?<><p>AGT Studio, markaların dijital dünyada güçlü bir yer edinmesine yardımcı olmak amacıyla kurulmuştur.</p><br/><p>Logo tasarımı, sosyal medya tasarımı, menü tasarımı, web tasarımı ve yapay zekâ çözümleri alanlarında profesyonel hizmet sunuyoruz.</p><br/><p>Hedefimiz, fikirlerinizi güçlü markalara dönüştürmektir.</p></>:<><p>AGT Studio was founded to help brands build a strong presence in the digital world.</p><br/><p>We provide professional services in logo design, social media design, menu design, web design and AI solutions.</p><br/><p>Our goal is to turn your ideas into strong brands.</p></>}</div></section>;}

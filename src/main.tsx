@@ -5,6 +5,7 @@ import './index.css'
 import App from './App.tsx'
 import AdminApp from './admin/AdminApp.tsx'
 import ServicePage from './components/ServicePage.tsx'
+import { LanguageProvider } from './i18n/LanguageContext'
 
 const servicePaths = [
   '/logo-tasarimi',
@@ -17,7 +18,8 @@ const servicePaths = [
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter>
+    <LanguageProvider>
+      <BrowserRouter>
       <Routes>
         <Route path="/admin/*" element={<AdminApp />} />
         {servicePaths.map((path) => (
@@ -26,5 +28,6 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/*" element={<App />} />
       </Routes>
     </BrowserRouter>
+    </LanguageProvider>
   </StrictMode>,
 )

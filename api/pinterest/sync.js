@@ -166,8 +166,27 @@ export default async function handler(req, res) {
         'pinterest_automation?select=*&status=eq.ready&order=created_at.asc&limit=100'
       );
 
+      let fallbackBoard = null;
+      if ((queued || []).some((item) => !item.board_id && item.generated_image_url)) {
+        fallbackBoard = await ensureDefaultBoard();
+      }
+
       for (const item of queued || []) {
-        if (!item.board_id || !item.generated_image_url) continue;
+        if (!item.generated_image_url) continue;
+
+        const boardId = item.board_id || fallbackBoard?.id;
+        if (!boardId) continue;
+
+        if (!item.board_id && fallbackBoard?.id) {
+          await supabaseRest(`pinterest_automation?id=eq.${encodeURIComponent(item.id)}`, {
+            method: 'PATCH',
+            headers: { Prefer: 'return=minimal' },
+            body: JSON.stringify({
+              board_id: fallbackBoard.id,
+              board_name: fallbackBoard.name || 'AGT Studio Digital Products',
+            }),
+          });
+        }
 
         try {
           const pin = await pinterestFetch('/pins', {

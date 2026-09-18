@@ -34,23 +34,6 @@ function pinterestImageUrl(listing, title, price) {
 }
 
 
-async function ensureDefaultBoard() {
-  const listed = await pinterestFetch('/boards?page_size=250');
-  const existing = (listed?.items || []).find(
-    (board) => String(board.name || '').toLowerCase() === 'agt studio digital products'
-  );
-  if (existing?.id) return existing;
-
-  return pinterestFetch('/boards', {
-    method: 'POST',
-    body: JSON.stringify({
-      name: 'AGT Studio Digital Products',
-      description: 'AGT Studio digital products, tools and resources.',
-      privacy: 'PUBLIC',
-    }),
-  });
-}
-
 function formatPrice(listing) {
   const amount = listing.price?.amount;
   if (typeof amount !== 'number') return '';
@@ -166,27 +149,11 @@ export default async function handler(req, res) {
         'pinterest_automation?select=*&status=eq.ready&order=created_at.asc&limit=100'
       );
 
-      let fallbackBoard = null;
-      if ((queued || []).some((item) => !item.board_id && item.generated_image_url)) {
-        fallbackBoard = await ensureDefaultBoard();
-      }
-
       for (const item of queued || []) {
-        if (!item.generated_image_url) continue;
-
-        const boardId = item.board_id || fallbackBoard?.id;
-        if (!boardId) continue;
-
-        if (!item.board_id && fallbackBoard?.id) {
-          await supabaseRest(`pinterest_automation?id=eq.${encodeURIComponent(item.id)}`, {
-            method: 'PATCH',
-            headers: { Prefer: 'return=minimal' },
-            body: JSON.stringify({
-              board_id: fallbackBoard.id,
-              board_name: fallbackBoard.name || 'AGT Studio Digital Products',
-            }),
-          });
-        }
+        // Ürün için pano kuralı tanımlanmadan Pin yayınlama.
+        // Kullanıcı eksik panoları oluşturduğunda board rules üzerinden eşleştirilir.
+        const boardId = item.board_id;
+        if (!boardId || !item.generated_image_url) continue;
 
         try {
           const pin = await pinterestFetch('/pins', {
@@ -199,6 +166,7 @@ export default async function handler(req, res) {
               media_source: {
                 source_type: 'image_url',
                 url: item.generated_image_url,
+                is_standard: true,
               },
             }),
           });

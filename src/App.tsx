@@ -9,6 +9,7 @@ import About from "./components/About";
 import Pricing from "./components/Pricing";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
+import EtsyStore from "./components/EtsyStore";
 import PrivacyPolicy from "./components/PrivacyPolicy";
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
       <Hero />
       <Services />
       <Portfolio />
+      <EtsyStore />
       <About />
       <Pricing />
       <Contact />

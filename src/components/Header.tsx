@@ -1,6 +1,6 @@
 import {
   FaInstagram, FaTiktok, FaWhatsapp, FaEnvelope, FaHome, FaPalette,
-  FaImage, FaInfoCircle, FaPhone, FaShoppingBag, FaGlobe,
+  FaImage, FaInfoCircle, FaPhone, FaShoppingBag, FaGlobe, FaBars,
 } from "react-icons/fa";
 import { useState } from "react";
 import circleLogo from "../assets/favicon.png";
@@ -15,16 +15,20 @@ export default function Header() {
   return (
     <>
       <header className="header">
-        <div className="brand" onClick={() => setOpen(true)}>
+        <button className="mobile-menu-button" onClick={() => setOpen(true)} aria-label="Open menu">
+          <FaBars />
+        </button>
+
+        <a className="brand" href="#hero" aria-label="AGT Studio">
           <img src={circleLogo} className="header-logo" alt="AGT Studio" />
           <div className="brand-text"><span className="gold">AGT</span><span className="white">STUDIO</span></div>
-        </div>
+        </a>
 
         <nav className="desktop-nav">
           <a href="#hero">{t("home")}</a>
+          <a href="#etsy">{t("etsy")}</a>
           <a href="#services">{t("services")}</a>
           <a href="#portfolio">{t("portfolio")}</a>
-          <a href="#etsy">{t("etsy")}</a>
           <a href="#about">{t("about")}</a>
           <a href="#contact">{t("contact")}</a>
         </nav>
@@ -33,7 +37,7 @@ export default function Header() {
           <button className="language-button" onClick={toggleLanguage} aria-label={language === "tr" ? "Switch to English" : "Türkçeye geç"}>
             <FaGlobe /> {language === "tr" ? "EN" : "TR"}
           </button>
-          <button className="contact-button" onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}>{t("contact")}</button>
+          <a className="contact-button" href="#contact">{t("contact")}</a>
         </div>
       </header>
 
@@ -47,9 +51,9 @@ export default function Header() {
 
         <div className="socials">
           <a href="#hero" onClick={closeMenu}><FaHome />{t("home")}</a>
+          <a href="#etsy" onClick={closeMenu}><FaShoppingBag />{t("etsy")}</a>
           <a href="#services" onClick={closeMenu}><FaPalette />{t("services")}</a>
           <a href="#portfolio" onClick={closeMenu}><FaImage />{t("portfolio")}</a>
-          <a href="#etsy" onClick={closeMenu}><FaShoppingBag />{t("etsy")}</a>
           <a href="#about" onClick={closeMenu}><FaInfoCircle />{t("about")}</a>
           <a href="#contact" onClick={closeMenu}><FaPhone />{t("contact")}</a>
           <hr />

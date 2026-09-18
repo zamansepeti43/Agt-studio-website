@@ -1,17 +1,17 @@
 import { etsyApiFetch, getEtsyAccessToken, requireAdminRequest } from './_lib.js';
 
 const SEO_TITLES = {
-  4574820715: 'Barbershop Management Software | Appointment, CRM & Inventory | Windows App',
+  4574820715: 'Barbershop Management Software | Appointment, Crm & Inventory | Windows App',
   4577542450: 'Etsy Product Idea Finder | Digital Product Research Tool | Etsy Seller Tool',
   4574138529: 'Pressure Washing Business Spreadsheet | Pricing Calculator | Job Tracker & Profit Dashboard',
   4573839919: 'Etsy Profit Calculator | Etsy Fee Calculator | Pricing Spreadsheet | Profit Tracker',
   4573718071: 'Etsy Product Research Tool | Digital Product Ideas | Competitor Analysis Spreadsheet',
-  4575285227: 'Etsy Seller Customer Support Tool | AI Reply Prompts | Buyer Response Templates | Excel',
+  4575285227: 'Etsy Seller Customer Support Tool | Ai Reply Prompts | Buyer Response Templates | Excel',
   4574114283: 'Bakery Pricing Calculator | Recipe Cost Spreadsheet | Profit Calculator | Order Tracker',
-  4576154195: 'AI API Finder Pro | Free AI APIs | AI Developer Tool | Android App',
-  4576139109: 'Android APK Builder | ZIP to APK | HTML to APK | No Code App Maker',
-  4576174491: 'AI API Finder | Free AI APIs | AI Developer Tool | Android App',
-  4576184560: 'Android APK Builder | ZIP to APK | HTML to APK | Windows Software',
+  4576154195: 'Ai Api Finder Pro | Free Ai Apis | Ai Developer Tool | Android App',
+  4576139109: 'Android Apk Builder | Zip to Apk | Html to Apk | No Code App Maker',
+  4576174491: 'Ai Api Finder | Free Ai Apis | Ai Developer Tool | Android App',
+  4576184560: 'Android Apk Builder | Zip to Apk | Html to Apk | Windows Software',
 };
 
 export default async function handler(req, res) {

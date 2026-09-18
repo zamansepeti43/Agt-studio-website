@@ -1,78 +1,18 @@
 import { Link, useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import { useLanguage } from "../i18n/LanguageContext";
 
-const services = {
-  "/logo-tasarimi": {
-    title: "Logo Tasarımı",
-    description: "Markanızı profesyonel ve akılda kalıcı bir görsel kimlikle buluşturan özgün logo tasarımları.",
-    keywords: "logo tasarımı, profesyonel logo, marka logosu, işletme logo tasarımı",
-    points: ["Özgün ve markaya özel konsept", "Dijital ve baskı kullanımına uygun dosyalar", "Sosyal medya ve kurumsal kullanım uyumu", "Revizyon süreci ve teslim sonrası destek"],
-  },
-  "/sosyal-medya-tasarimi": {
-    title: "Sosyal Medya Tasarımı",
-    description: "Instagram ve diğer sosyal medya kanalları için markanızın kimliğini yansıtan profesyonel görsel içerikler.",
-    keywords: "sosyal medya tasarımı, Instagram tasarım, sosyal medya post tasarımı",
-    points: ["Post ve story tasarımları", "Kampanya ve duyuru görselleri", "Marka bütünlüğünü koruyan tasarım dili", "Dijital platformlara uygun ölçü ve formatlar"],
-  },
-  "/web-tasarim": {
-    title: "Web Tasarım",
-    description: "İşletmenizi profesyonel şekilde temsil eden, mobil uyumlu ve dönüşüm odaklı web siteleri.",
-    keywords: "web tasarım, kurumsal web tasarım, mobil uyumlu web sitesi",
-    points: ["Mobil ve masaüstü uyumlu arayüz", "Modern ve hızlı kullanıcı deneyimi", "SEO temellerine uygun yapı", "İletişim ve WhatsApp dönüşüm odaklı yapı"],
-  },
-  "/menu-tasarimi": {
-    title: "Menü Tasarımı",
-    description: "Restoran, kafe ve işletmeler için okunaklı, şık ve marka kimliğine uygun menü tasarımları.",
-    keywords: "menü tasarımı, restoran menü tasarımı, kafe menü tasarımı",
-    points: ["Basılı ve dijital menü seçenekleri", "QR menü kullanımına uygun tasarım", "Fiyat ve ürün bilgilerinde güçlü hiyerarşi", "Markanıza özel renk ve tipografi"],
-  },
-  "/kartvizit-tasarimi": {
-    title: "Kartvizit Tasarımı",
-    description: "İşletmeniz ve kişisel markanız için profesyonel, sade ve baskıya hazır kartvizit tasarımları.",
-    keywords: "kartvizit tasarımı, profesyonel kartvizit, kurumsal kartvizit",
-    points: ["Kurumsal kimlikle uyumlu tasarım", "Baskıya hazır dosya teslimi", "Sade veya premium tasarım seçenekleri", "QR kod ve dijital iletişim bilgileri"],
-  },
-  "/yapay-zeka-cozumleri": {
-    title: "Yapay Zekâ Çözümleri",
-    description: "İşletmeler için içerik, tasarım ve dijital süreçlerde yapay zekâ destekli pratik çözümler.",
-    keywords: "yapay zekâ çözümleri, AI çözümleri, işletmeler için yapay zekâ",
-    points: ["İçerik üretim süreçleri", "Yapay zekâ destekli tasarım fikirleri", "Tekrarlayan işlerde otomasyon yaklaşımı", "İşletmeye özel AI kullanım senaryoları"],
-  },
-} as const;
+const services:Record<string,any>={
+"/logo-tasarimi":{title:{tr:"Logo Tasarımı",en:"Logo Design"},description:{tr:"Markanızı profesyonel ve akılda kalıcı bir görsel kimlikle buluşturan özgün logo tasarımları.",en:"Original logo designs that give your brand a professional and memorable visual identity."},keywords:{tr:"logo tasarımı, profesyonel logo, marka logosu, işletme logo tasarımı",en:"logo design, professional logo, brand logo, business logo design"},points:[{tr:"Özgün ve markaya özel konsept",en:"Original, brand-specific concept"},{tr:"Dijital ve baskı kullanımına uygun dosyalar",en:"Files suitable for digital and print use"},{tr:"Sosyal medya ve kurumsal kullanım uyumu",en:"Suitable for social media and corporate use"},{tr:"Revizyon süreci ve teslim sonrası destek",en:"Revision process and post-delivery support"}]},
+"/sosyal-medya-tasarimi":{title:{tr:"Sosyal Medya Tasarımı",en:"Social Media Design"},description:{tr:"Instagram ve diğer sosyal medya kanalları için markanızın kimliğini yansıtan profesyonel görsel içerikler.",en:"Professional visual content reflecting your brand identity for Instagram and other social channels."},keywords:{tr:"sosyal medya tasarımı, Instagram tasarım, sosyal medya post tasarımı",en:"social media design, Instagram design, social media post design"},points:[{tr:"Post ve story tasarımları",en:"Post and story designs"},{tr:"Kampanya ve duyuru görselleri",en:"Campaign and announcement visuals"},{tr:"Marka bütünlüğünü koruyan tasarım dili",en:"A consistent brand design language"},{tr:"Dijital platformlara uygun ölçü ve formatlar",en:"Formats and dimensions optimized for digital platforms"}]},
+"/web-tasarim":{title:{tr:"Web Tasarım",en:"Web Design"},description:{tr:"İşletmenizi profesyonel şekilde temsil eden, mobil uyumlu ve dönüşüm odaklı web siteleri.",en:"Mobile-friendly, conversion-focused websites that represent your business professionally."},keywords:{tr:"web tasarım, kurumsal web tasarım, mobil uyumlu web sitesi",en:"web design, corporate web design, mobile-friendly website"},points:[{tr:"Mobil ve masaüstü uyumlu arayüz",en:"Mobile and desktop responsive interface"},{tr:"Modern ve hızlı kullanıcı deneyimi",en:"Modern and fast user experience"},{tr:"SEO temellerine uygun yapı",en:"SEO-friendly foundation"},{tr:"İletişim ve WhatsApp dönüşüm odaklı yapı",en:"Contact and WhatsApp conversion-focused structure"}]},
+"/menu-tasarimi":{title:{tr:"Menü Tasarımı",en:"Menu Design"},description:{tr:"Restoran, kafe ve işletmeler için okunaklı, şık ve marka kimliğine uygun menü tasarımları.",en:"Readable, stylish menu designs aligned with the identity of restaurants, cafés and businesses."},keywords:{tr:"menü tasarımı, restoran menü tasarımı, kafe menü tasarımı",en:"menu design, restaurant menu design, café menu design"},points:[{tr:"Basılı ve dijital menü seçenekleri",en:"Print and digital menu options"},{tr:"QR menü kullanımına uygun tasarım",en:"Design suitable for QR menus"},{tr:"Fiyat ve ürün bilgilerinde güçlü hiyerarşi",en:"Clear hierarchy for pricing and product information"},{tr:"Markanıza özel renk ve tipografi",en:"Brand-specific colors and typography"}]},
+"/kartvizit-tasarimi":{title:{tr:"Kartvizit Tasarımı",en:"Business Card Design"},description:{tr:"İşletmeniz ve kişisel markanız için profesyonel, sade ve baskıya hazır kartvizit tasarımları.",en:"Professional, clean and print-ready business card designs for your business or personal brand."},keywords:{tr:"kartvizit tasarımı, profesyonel kartvizit, kurumsal kartvizit",en:"business card design, professional business card, corporate business card"},points:[{tr:"Kurumsal kimlikle uyumlu tasarım",en:"Design aligned with your corporate identity"},{tr:"Baskıya hazır dosya teslimi",en:"Print-ready file delivery"},{tr:"Sade veya premium tasarım seçenekleri",en:"Clean or premium design options"},{tr:"QR kod ve dijital iletişim bilgileri",en:"QR code and digital contact details"}]},
+"/yapay-zeka-cozumleri":{title:{tr:"Yapay Zekâ Çözümleri",en:"AI Solutions"},description:{tr:"İşletmeler için içerik, tasarım ve dijital süreçlerde yapay zekâ destekli pratik çözümler.",en:"Practical AI-powered solutions for business content, design and digital processes."},keywords:{tr:"yapay zekâ çözümleri, AI çözümleri, işletmeler için yapay zekâ",en:"AI solutions, artificial intelligence solutions, AI for businesses"},points:[{tr:"İçerik üretim süreçleri",en:"Content production workflows"},{tr:"Yapay zekâ destekli tasarım fikirleri",en:"AI-assisted design ideas"},{tr:"Tekrarlayan işlerde otomasyon yaklaşımı",en:"Automation approach for repetitive tasks"},{tr:"İşletmeye özel AI kullanım senaryoları",en:"Business-specific AI use cases"}]}
+};
 
-type ServiceKey = keyof typeof services;
-
-export default function ServicePage() {
-  const { pathname } = useLocation();
-  const service = services[pathname as ServiceKey] ?? services["/logo-tasarimi"];
-
-  useEffect(() => {
-    document.title = `${service.title} | AGT Studio`;
-    const description = document.querySelector('meta[name="description"]');
-    if (description) description.setAttribute("content", service.description);
-    const canonical = document.querySelector('link[rel="canonical"]');
-    if (canonical) canonical.setAttribute("href", `https://agt-studio.vercel.app${pathname}`);
-  }, [pathname, service]);
-
-  return (
-    <main style={{ minHeight: "100vh", background: "#080808", color: "#fff", padding: "100px 24px 60px" }}>
-      <div style={{ maxWidth: 980, margin: "0 auto" }}>
-        <Link to="/" style={{ color: "#d4af37", textDecoration: "none" }}>← AGT Studio Ana Sayfa</Link>
-        <section style={{ padding: "70px 0 40px" }}>
-          <p style={{ color: "#d4af37", letterSpacing: 2, textTransform: "uppercase" }}>AGT Studio</p>
-          <h1 style={{ fontSize: "clamp(38px, 7vw, 72px)", lineHeight: 1.05, margin: "14px 0 22px" }}>{service.title}</h1>
-          <p style={{ maxWidth: 760, fontSize: 20, lineHeight: 1.7, color: "#cfcfcf" }}>{service.description}</p>
-          <a href="https://wa.me/905343767308" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", marginTop: 28, padding: "14px 24px", borderRadius: 10, background: "#d4af37", color: "#080808", fontWeight: 700, textDecoration: "none" }}>Teklif Al / WhatsApp</a>
-        </section>
-        <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 18, marginTop: 30 }}>
-          {service.points.map((point) => <article key={point} style={{ border: "1px solid #292929", borderRadius: 14, padding: 24, background: "#111" }}><h2 style={{ fontSize: 18, marginTop: 0 }}>✓ {point}</h2><p style={{ color: "#aaa", lineHeight: 1.6 }}>İhtiyacınıza göre planlanan, markanızın kullanım alanlarına uygun profesyonel tasarım yaklaşımı.</p></article>)}
-        </section>
-        <section style={{ marginTop: 60, padding: 30, borderRadius: 16, background: "#111", border: "1px solid #292929" }}>
-          <h2>Neden AGT Studio?</h2>
-          <p style={{ color: "#bbb", lineHeight: 1.8 }}>AGT Studio, tasarımın yalnızca güzel görünmesini değil, işletmenizin dijitalde daha profesyonel görünmesini ve müşteriye güven vermesini hedefler. Projenin ihtiyacına göre sade, modern ve kullanışlı çözümler üretiriz.</p>
-          <p style={{ color: "#777", marginBottom: 0 }}>Anahtar hizmetler: {service.keywords}</p>
-        </section>
-      </div>
-    </main>
-  );
+export default function ServicePage(){
+ const {pathname}=useLocation();const {language,t}=useLanguage();const service=services[pathname]||services["/logo-tasarimi"];const title=service.title[language],description=service.description[language],keywords=service.keywords[language];
+ useEffect(()=>{document.title=title+" | AGT Studio";const d=document.querySelector('meta[name="description"]');if(d)d.setAttribute("content",description);const c=document.querySelector('link[rel="canonical"]');if(c)c.setAttribute("href","https://agt-studio.vercel.app"+pathname)},[pathname,title,description]);
+ return <main style={{minHeight:"100vh",background:"#080808",color:"#fff",padding:"100px 24px 60px"}}><div style={{maxWidth:980,margin:"0 auto"}}><Link to="/" style={{color:"#d4af37",textDecoration:"none"}}>{t("backHome")}</Link><section style={{padding:"70px 0 40px"}}><p style={{color:"#d4af37",letterSpacing:2,textTransform:"uppercase"}}>AGT Studio</p><h1 style={{fontSize:"clamp(38px,7vw,72px)",lineHeight:1.05,margin:"14px 0 22px"}}>{title}</h1><p style={{maxWidth:760,fontSize:20,lineHeight:1.7,color:"#cfcfcf"}}>{description}</p><a href="https://wa.me/905343767308" target="_blank" rel="noopener noreferrer" style={{display:"inline-block",marginTop:28,padding:"14px 24px",borderRadius:10,background:"#d4af37",color:"#080808",fontWeight:700,textDecoration:"none"}}>{t("serviceOffer")}</a></section><section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:18,marginTop:30}}>{service.points.map((point:any)=><article key={point.en} style={{border:"1px solid #292929",borderRadius:14,padding:24,background:"#111"}}><h2 style={{fontSize:18,marginTop:0}}>✓ {point[language]}</h2><p style={{color:"#aaa",lineHeight:1.6}}>{language==="tr"?"İhtiyacınıza göre planlanan, markanızın kullanım alanlarına uygun profesyonel tasarım yaklaşımı.":"A professional design approach planned around your needs and brand use cases."}</p></article>)}</section><section style={{marginTop:60,padding:30,borderRadius:16,background:"#111",border:"1px solid #292929"}}><h2>{t("why")}</h2><p style={{color:"#bbb",lineHeight:1.8}}>{language==="tr"?"AGT Studio, tasarımın yalnızca güzel görünmesini değil, işletmenizin dijitalde daha profesyonel görünmesini ve müşteriye güven vermesini hedefler. Projenin ihtiyacına göre sade, modern ve kullanışlı çözümler üretiriz.":"AGT Studio focuses on more than visual appeal: we aim to help your business look professional online and build customer trust. We create clean, modern and practical solutions based on your project needs."}</p><p style={{color:"#777",marginBottom:0}}>{t("keys")}: {keywords}</p></section></div></main>;
 }

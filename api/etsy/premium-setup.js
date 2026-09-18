@@ -67,10 +67,12 @@ export default async function handler(req, res) {
       if (!sectionTitle) continue;
       const sectionId = sectionMap.get(sectionTitle.toLowerCase());
       if (!sectionId || Number(listing.shop_section_id) === sectionId) continue;
-      await etsyApiFetch(`/listings/${listing.listing_id}`, {
-        method: 'PUT',
+
+      // Etsy Open API v3 updateListing is PATCH and is scoped to the shop.
+      await etsyApiFetch(`/shops/${shopId}/listings/${listing.listing_id}`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ section_id: String(sectionId) }).toString(),
+        body: new URLSearchParams({ shop_section_id: String(sectionId) }).toString(),
       });
       assigned.push({ listing_id: listing.listing_id, section: sectionTitle });
     }

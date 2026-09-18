@@ -14,7 +14,7 @@ type EtsyShop = {
 type EtsyProfile = { user_id?: number; primary_email?: string; first_name?: string; last_name?: string; image_url_75x75?: string; };
 type EtsyListing = { listing_id: number; title: string; state: string; price?: { amount?: number; divisor?: number; currency_code?: string }; quantity?: number; url?: string; };
 
-const fieldStyle = { width: '100%', boxSizing: 'border-box' as const, padding: '11px 12px', borderRadius: 10, border: '1px solid var(--admin-border, #e5e7eb)', background: 'var(--admin-card-bg, #fff)', color: 'inherit' };
+const fieldStyle = { width: '100%', boxSizing: 'border-box' as const, padding: '11px 12px', borderRadius: 10, border: '1px solid var(--admin-border, #e5e7eb)', background: '#161b22', color: 'inherit' };
 const labelStyle = { display: 'block', fontWeight: 700, marginBottom: 7, fontSize: 13 };
 
 export default function EtsyManager() {
@@ -86,7 +86,7 @@ export default function EtsyManager() {
         {status?.connected && <button type="button" onClick={loadData} disabled={dataLoading}>{dataLoading ? 'Yükleniyor...' : '↻ Yenile'}</button>}
       </div>
       <div style={{ maxWidth: 1100 }}>
-        <div style={{ background: 'var(--admin-card-bg, #fff)', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 24 }}>
+        <div style={{ background: '#161b22', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
             <div><h2 style={{ margin: 0 }}>Etsy Bağlantısı</h2><p style={{ marginTop: 8 }}>{status?.connected ? 'Etsy mağazan AGT Studio’ya bağlı ve API erişimi aktif.' : 'Henüz Etsy mağazası bağlanmadı.'}</p></div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
@@ -107,7 +107,7 @@ export default function EtsyManager() {
             <div><small>Değerlendirme</small><h3>{shop?.review_count != null ? String(shop.review_count) + ' (' + Number(shop.review_average || 0).toFixed(1) + ')' : '—'}</h3></div>
           </div>
 
-          <div style={{ marginTop: 20, background: 'var(--admin-card-bg, #fff)', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 24 }}>
+          <div style={{ marginTop: 20, background: '#161b22', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 24 }}>
             <h2 style={{ marginTop: 0 }}>👤 Etsy Profili</h2>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
               {profile?.image_url_75x75 && <img src={profile.image_url_75x75} alt="" width="75" height="75" style={{ borderRadius: '50%', objectFit: 'cover' }} />}
@@ -116,7 +116,7 @@ export default function EtsyManager() {
             <p style={{ marginBottom: 0, marginTop: 12, fontSize: 13, opacity: .7 }}>Profil verileri Etsy API üzerinden okunuyor. Bu panelde güvenli olarak mağaza alanlarını düzenleyebiliyoruz.</p>
           </div>
 
-          <div style={{ marginTop: 20, background: 'var(--admin-card-bg, #fff)', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 24 }}>
+          <div style={{ marginTop: 20, background: '#161b22', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 24 }}>
             <h2 style={{ marginTop: 0 }}>🏪 Mağaza Ana Sayfası</h2>
             <div style={{ display: 'grid', gap: 16 }}>
               <div><label style={labelStyle}>Mağaza başlığı</label><input style={fieldStyle} value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} /></div>
@@ -128,7 +128,7 @@ export default function EtsyManager() {
             <p style={{ marginBottom: 0, marginTop: 14, fontSize: 12, opacity: .65 }}>Kaydet butonu gerçek Etsy API'sine PUT gönderir; mevcut alanları değiştirmeden yalnızca bu dört alanı günceller.</p>
           </div>
 
-          <div style={{ marginTop: 20, background: 'var(--admin-card-bg, #fff)', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 24 }}>
+          <div style={{ marginTop: 20, background: '#161b22', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 24 }}>
             <h2 style={{ marginTop: 0 }}>Aktif İlanlar</h2>
             {dataLoading && <p>İlanlar Etsy’den getiriliyor...</p>}
             {!dataLoading && listings.length === 0 && <p>Aktif ilan bulunamadı.</p>}

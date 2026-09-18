@@ -78,6 +78,25 @@ export default function EtsyManager() {
     finally { setSaving(false); }
   };
 
+  const optimizeSeoTitles = async () => {
+    setSaving(true); setError(''); setSaved('');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('Yönetici oturumu bulunamadı. Lütfen tekrar giriş yapın.');
+      const res = await fetch('/api/etsy/seo-title-setup', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'SEO başlıkları güncellenemedi.');
+      setSaved(data.message || 'Etsy ilan başlıkları güncellendi.');
+      await loadData();
+      setTimeout(() => setSaved(''), 5000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'SEO başlıkları güncellenemedi.');
+    } finally { setSaving(false); }
+  };
+
   const saveShop = async () => {
     setSaving(true); setError(''); setSaved('');
     try {

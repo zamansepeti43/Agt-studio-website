@@ -8,6 +8,7 @@ import {
   FaImage,
   FaInfoCircle,
   FaPhone,
+  FaShoppingBag,
 } from "react-icons/fa";
 
 import { useState } from "react";
@@ -38,6 +39,7 @@ export default function Header() {
           <a href="#hero">Ana Sayfa</a>
           <a href="#services">Hizmetler</a>
           <a href="#portfolio">Portföy</a>
+          <a href="#etsy">Etsy Mağazamız</a>
           <a href="#about">Hakkımızda</a>
           <a href="#contact">İletişim</a>
         </nav>
@@ -79,6 +81,11 @@ export default function Header() {
           <a href="#portfolio" onClick={closeMenu}>
             <FaImage />
             Portföy
+          </a>
+
+          <a href="#etsy" onClick={closeMenu}>
+            <FaShoppingBag />
+            Etsy Mağazamız
           </a>
 
           <a href="#about" onClick={closeMenu}>

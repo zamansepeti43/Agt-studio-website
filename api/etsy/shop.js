@@ -1,4 +1,4 @@
-import { etsyApiFetch } from './_lib.js';
+import { etsyApiFetch, getEtsyAccessToken } from './_lib.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -6,7 +6,7 @@ export default async function handler(req, res) {
     return;
   }
   try {
-    const { shopUserId } = await import('./_lib.js').then(m => m.getEtsyAccessToken());
+    const { shopUserId } = await getEtsyAccessToken();
     const shop = await etsyApiFetch(`/users/${shopUserId}/shops`);
     res.setHeader('Cache-Control', 'no-store');
     res.status(200).json(shop);

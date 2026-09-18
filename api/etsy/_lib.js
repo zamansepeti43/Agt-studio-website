@@ -3,7 +3,7 @@ import crypto from 'node:crypto';
 const ETSY_OAUTH_TOKEN_URL = 'https://api.etsy.com/v3/public/oauth/token';
 const ETSY_API_BASE_URL = 'https://api.etsy.com/v3/application';
 
-export const ETSY_SCOPES = ['listings_r', 'listings_w', 'shops_r', 'shops_w'];
+export const ETSY_SCOPES = ['listings_r', 'listings_w', 'shops_r', 'shops_w', 'profile_r', 'profile_w'];
 
 export function getConfig() {
   const keystring = process.env.ETSY_KEYSTRING;

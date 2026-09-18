@@ -1,5 +1,19 @@
 import { etsyApiFetch, getEtsyAccessToken, requireAdminRequest } from './_lib.js';
 
+const SEO_PRICES = {
+  4574820715: 399,
+  4577542450: 199,
+  4574138529: 249,
+  4573839919: 199,
+  4573718071: 179,
+  4575285227: 149,
+  4574114283: 249,
+  4576154195: 199,
+  4576139109: 149,
+  4576174491: 129,
+  4576184560: 149,
+};
+
 const SEO_TITLES = {
   4574820715: 'Barbershop Management Software | Appointment, Crm & Inventory | Windows App',
   4577542450: 'Etsy Product Idea Finder | Product Radar Android App | 259,200 Concepts',
@@ -37,18 +51,33 @@ export default async function handler(req, res) {
         skipped.push({ listing_id: listing.listing_id, reason: 'Bu ilan için SEO başlığı tanımlı değil.' });
         continue;
       }
-      if (String(listing.title) === newTitle) {
-        skipped.push({ listing_id: listing.listing_id, reason: 'Başlık zaten güncel.' });
+      const newPrice = SEO_PRICES[Number(listing.listing_id)];
+      const titleChanged = String(listing.title) !== newTitle;
+      const currentPrice = Number(listing.price?.amount) / Number(listing.price?.divisor || 100);
+      const priceChanged = Number.isFinite(newPrice) && Math.abs(currentPrice - newPrice) > 0.001;
+
+      if (!titleChanged && !priceChanged) {
+        skipped.push({ listing_id: listing.listing_id, reason: 'Başlık ve fiyat zaten güncel.' });
         continue;
       }
+
+      const payload = {};
+      if (titleChanged) payload.title = newTitle;
+      if (priceChanged) payload.price = String(newPrice);
 
       await etsyApiFetch(`/shops/${shopId}/listings/${listing.listing_id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ title: newTitle }).toString(),
+        body: new URLSearchParams(payload).toString(),
       });
 
-      changed.push({ listing_id: Number(listing.listing_id), old_title: listing.title, new_title: newTitle });
+      changed.push({
+        listing_id: Number(listing.listing_id),
+        old_title: listing.title,
+        new_title: titleChanged ? newTitle : listing.title,
+        old_price: Number.isFinite(currentPrice) ? currentPrice : null,
+        new_price: priceChanged ? newPrice : currentPrice,
+      });
     }
 
     res.setHeader('Cache-Control', 'no-store');
@@ -56,7 +85,7 @@ export default async function handler(req, res) {
       ok: true,
       changed,
       skipped,
-      message: `${changed.length} Etsy ilan başlığı güncellendi.`,
+      message: `${changed.length} Etsy ilanı başlık/fiyat güncellemesi uygulandı.`,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Etsy SEO title setup failed';

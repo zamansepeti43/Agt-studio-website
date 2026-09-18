@@ -2,7 +2,7 @@ import logo from "../assets/agt-logo.png";
 import { useLanguage } from "../i18n/LanguageContext";
 
 export default function Hero() {
-  const { language, t } = useLanguage();
+  const { t } = useLanguage();
 
   return (
     <section id="hero" className="hero">

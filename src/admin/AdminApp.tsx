@@ -11,6 +11,7 @@ import PackagesManager from './pages/PackagesManager';
 import PortfolioManager from './pages/PortfolioManager';
 import ProjectRequests from './pages/ProjectRequests';
 import SiteSettings from './pages/SiteSettings';
+import EtsyManager from './pages/EtsyManager';
 
 export default function AdminApp() {
   return (
@@ -25,6 +26,7 @@ export default function AdminApp() {
         <Route path="portfolio" element={<PortfolioManager />} />
         <Route path="requests" element={<ProjectRequests />} />
         <Route path="settings" element={<SiteSettings />} />
+        <Route path="etsy" element={<EtsyManager />} />
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Route>
     </Routes>

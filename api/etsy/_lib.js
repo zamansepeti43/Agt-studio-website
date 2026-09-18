@@ -1,3 +1,5 @@
+import crypto from 'node:crypto';
+
 const ETSY_OAUTH_TOKEN_URL = 'https://api.etsy.com/v3/public/oauth/token';
 
 export const ETSY_SCOPES = ['listings_r', 'listings_w', 'shops_r', 'shops_w'];

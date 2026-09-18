@@ -119,9 +119,10 @@ export default async function handler(req, res) {
       resolvedRules = (rules || []).map((rule) => resolveBoardRule(rule, pinterestBoards));
 
       for (const rule of resolvedRules) {
-        if (rule.board_id && rule.board_id !== rules.find((r) => r.board_name === rule.board_name)?.board_id) {
+        const original = (rules || []).find((item) => item.id === rule.id);
+        if (rule.board_id && rule.board_id !== original?.board_id) {
           await supabaseRest(
-            `pinterest_board_rules?board_name=eq.${encodeURIComponent(rule.board_name)}`,
+            `pinterest_board_rules?id=eq.${encodeURIComponent(rule.id)}`,
             {
               method: 'PATCH',
               headers: { Prefer: 'return=minimal' },

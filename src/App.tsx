@@ -20,13 +20,15 @@ function App() {
   return (
     <>
       <Header />
-      <Hero />
-      <Services />
-      <Portfolio />
-      <EtsyStore />
-      <About />
-      <Pricing />
-      <Contact />
+      <main>
+        <Hero />
+        <EtsyStore />
+        <Services />
+        <Portfolio />
+        <About />
+        <Pricing />
+        <Contact />
+      </main>
       <Footer />
 
       <a
@@ -34,10 +36,9 @@ function App() {
         href="https://wa.me/905343767308"
         target="_blank"
         rel="noopener noreferrer"
+        aria-label="WhatsApp"
       >
-        <span className="whatsapp-icon">
-          <FaWhatsapp />
-        </span>
+        <span className="whatsapp-icon"><FaWhatsapp /></span>
         <span className="whatsapp-text">Bize Ulaşın</span>
       </a>
     </>

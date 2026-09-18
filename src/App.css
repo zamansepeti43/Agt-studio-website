@@ -1708,3 +1708,8 @@ transition:.35s;
         transparent
     );
 }
+.header-actions{display:flex;align-items:center;gap:12px;}
+.language-button,.language-menu-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;background:rgba(212,175,55,.08);color:#fff;border:1px solid #d4af37;border-radius:22px;padding:10px 14px;font-weight:700;cursor:pointer;}
+.language-button:hover,.language-menu-button:hover{background:#d4af37;color:#000;}
+.language-menu-button{width:100%;margin-bottom:10px;}
+@media(max-width:900px){.header-actions{gap:8px}.language-button{padding:9px 12px;font-size:12px}.contact-button{display:none!important;}}

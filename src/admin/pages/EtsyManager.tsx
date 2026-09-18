@@ -170,7 +170,11 @@ export default function EtsyManager() {
           </div>
 
           <div style={{ marginTop: 20, background: '#0d1117', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 24 }}>
-            <h2 style={{ marginTop: 0 }}>Aktif İlanlar</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+              <h2 style={{ marginTop: 0, marginBottom: 0 }}>Aktif İlanlar</h2>
+              <button type="button" onClick={optimizeSeoTitles} disabled={saving}>🚀 SEO Başlıklarını Optimize Et</button>
+            </div>
+            <p style={{ marginTop: 10, fontSize: 13, opacity: .75 }}>Reklam verdiğin 11 aktif ilanın başlıklarını optimize eder. Yalnızca başlık değişir; fiyat, açıklama, etiket ve görseller korunur.</p>
             {dataLoading && <p>İlanlar Etsy’den getiriliyor...</p>}
             {!dataLoading && listings.length === 0 && <p>Aktif ilan bulunamadı.</p>}
             {!dataLoading && listings.map((listing) => { const p = listing.price?.amount != null && listing.price?.divisor ? listing.price.amount / listing.price.divisor : null; return <div key={listing.listing_id} style={{ display: 'flex', justifyContent: 'space-between', gap: 14, padding: 14, borderBottom: '1px solid var(--admin-border, #e5e7eb)' }}><div><strong>{listing.title}</strong><div style={{ fontSize: 13, opacity: .7 }}>ID: {listing.listing_id} · Stok: {listing.quantity ?? '—'}</div></div><strong>{p != null ? p.toFixed(2) + ' ' + (listing.price?.currency_code || '') : '—'}</strong></div>; })}

@@ -105,7 +105,7 @@ export default function EtsyStore() {
       <div className="etsy-store-header">
         <div>
           <p className="etsy-eyebrow"><span>—</span> TREND <span>—</span></p>
-          <h2 className="etsy-store-title">{t("etsyTitle")}</h2>
+          <h2 className="etsy-store-title"><span>{t("etsyTitleLead")}</span> <span className="accent">{t("etsyTitleAccent")}</span> <span>{t("etsyTitleTrail")}</span></h2>
           <p className="etsy-store-subtitle">{t("etsySubtitle")}</p>
         </div>
       </div>

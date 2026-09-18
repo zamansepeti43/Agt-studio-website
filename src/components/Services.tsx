@@ -1,71 +1,11 @@
 import { Link } from "react-router-dom";
-
+import { useLanguage } from "../i18n/LanguageContext";
 const services = [
-  {
-    icon: "🎨",
-    title: "Logo Tasarımı",
-    text: "Markanız için özgün, profesyonel ve akılda kalıcı logo tasarımları.",
-    href: "/logo-tasarimi",
-  },
-  {
-    icon: "📱",
-    title: "Sosyal Medya Tasarımı",
-    text: "Instagram, TikTok ve diğer platformlar için marka odaklı görsel içerikler.",
-    href: "/sosyal-medya-tasarimi",
-  },
-  {
-    icon: "🌐",
-    title: "Web Tasarımı",
-    text: "Modern, hızlı, mobil uyumlu ve işletmenizi profesyonel gösteren web siteleri.",
-    href: "/web-tasarim",
-  },
-  {
-    icon: "🍽️",
-    title: "Menü Tasarımı",
-    text: "Restoran ve kafeler için basılı, dijital ve QR menü tasarımları.",
-    href: "/menu-tasarimi",
-  },
-  {
-    icon: "💼",
-    title: "Kartvizit Tasarımı",
-    text: "Kurumsal kimliğinize uygun, baskıya hazır profesyonel kartvizitler.",
-    href: "/kartvizit-tasarimi",
-  },
-  {
-    icon: "🤖",
-    title: "Yapay Zekâ Çözümleri",
-    text: "İçerik, tasarım ve dijital süreçlerde işletmelere yapay zekâ destekli çözümler.",
-    href: "/yapay-zeka-cozumleri",
-  },
+  {icon:"🎨", title:{tr:"Logo Tasarımı",en:"Logo Design"}, text:{tr:"Markanız için özgün, profesyonel ve akılda kalıcı logo tasarımları.",en:"Original, professional and memorable logo designs for your brand."}, href:"/logo-tasarimi"},
+  {icon:"📱", title:{tr:"Sosyal Medya Tasarımı",en:"Social Media Design"}, text:{tr:"Instagram, TikTok ve diğer platformlar için marka odaklı görsel içerikler.",en:"Brand-focused visual content for Instagram, TikTok and other platforms."}, href:"/sosyal-medya-tasarimi"},
+  {icon:"🌐", title:{tr:"Web Tasarımı",en:"Web Design"}, text:{tr:"Modern, hızlı, mobil uyumlu ve işletmenizi profesyonel gösteren web siteleri.",en:"Modern, fast and mobile-friendly websites that present your business professionally."}, href:"/web-tasarim"},
+  {icon:"🍽️", title:{tr:"Menü Tasarımı",en:"Menu Design"}, text:{tr:"Restoran ve kafeler için basılı, dijital ve QR menü tasarımları.",en:"Print, digital and QR menu designs for restaurants and cafés."}, href:"/menu-tasarimi"},
+  {icon:"💼", title:{tr:"Kartvizit Tasarımı",en:"Business Card Design"}, text:{tr:"Kurumsal kimliğinize uygun, baskıya hazır profesyonel kartvizitler.",en:"Professional, print-ready business cards aligned with your brand identity."}, href:"/kartvizit-tasarimi"},
+  {icon:"🤖", title:{tr:"Yapay Zekâ Çözümleri",en:"AI Solutions"}, text:{tr:"İçerik, tasarım ve dijital süreçlerde işletmelere yapay zekâ destekli çözümler.",en:"AI-powered solutions for content, design and digital business processes."}, href:"/yapay-zeka-cozumleri"},
 ];
-
-export default function Services() {
-  return (
-    <section className="section" id="services">
-      <h2 className="section-title">Hizmetlerimiz</h2>
-
-      <div className="cards">
-        {services.map((service) => (
-          <article className="card" key={service.href}>
-            <h3>
-              {service.icon} {service.title}
-            </h3>
-            <p>{service.text}</p>
-            <Link
-              to={service.href}
-              style={{
-                display: "inline-block",
-                marginTop: 12,
-                color: "#d4af37",
-                textDecoration: "none",
-                fontWeight: 700,
-              }}
-            >
-              Hizmeti İncele →
-            </Link>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
-}
+export default function Services(){ const {language,t}=useLanguage(); return <section className="section" id="services"><h2 className="section-title">{t("services")}</h2><div className="cards">{services.map(s=><article className="card" key={s.href}><h3>{s.icon} {s.title[language]}</h3><p>{s.text[language]}</p><Link to={s.href} style={{display:"inline-block",marginTop:12,color:"#d4af37",textDecoration:"none",fontWeight:700}}>{t("serviceInspect")}</Link></article>)}</div></section>; }

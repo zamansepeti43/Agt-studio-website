@@ -29,6 +29,14 @@ function normalizeName(value) {
     .trim();
 }
 
+async function updatePinterestBoardDescription(boardId, description) {
+  if (!boardId || !description) return;
+  await pinterestFetch(`/boards/${encodeURIComponent(boardId)}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ description }),
+  });
+}
+
 async function listPinterestBoards() {
   const boards = [];
   let bookmark = null;
@@ -117,6 +125,12 @@ export default async function handler(req, res) {
     try {
       const pinterestBoards = await listPinterestBoards();
       resolvedRules = (rules || []).map((rule) => resolveBoardRule(rule, pinterestBoards));
+
+      for (const rule of resolvedRules) {
+        if (rule.board_id && rule.description) {
+          await updatePinterestBoardDescription(rule.board_id, rule.description);
+        }
+      }
 
       for (const rule of resolvedRules) {
         const original = (rules || []).find((item) => item.id === rule.id);

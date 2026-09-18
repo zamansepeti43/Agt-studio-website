@@ -20,6 +20,43 @@ function chooseBoard(title, rules) {
     ) || null;
 }
 
+function normalizeName(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9çğıöşü\s]/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+async function listPinterestBoards() {
+  const boards = [];
+  let bookmark = null;
+  do {
+    const query = new URLSearchParams({ page_size: '250' });
+    if (bookmark) query.set('bookmark', bookmark);
+    const data = await pinterestFetch(`/boards?${query.toString()}`);
+    boards.push(...(data?.items || []));
+    bookmark = data?.bookmark || null;
+  } while (bookmark);
+  return boards;
+}
+
+function resolveBoardRule(rule, boards) {
+  if (rule?.board_id) return rule;
+  const target = normalizeName(rule?.board_name);
+  if (!target) return rule;
+  const exact = boards.find((board) => normalizeName(board.name) === target);
+  if (exact) return { ...rule, board_id: exact.id, board_name: exact.name };
+  const partial = boards.find((board) => {
+    const name = normalizeName(board.name);
+    return name.includes(target) || target.includes(name);
+  });
+  return partial
+    ? { ...rule, board_id: partial.id, board_name: partial.name }
+    : rule;
+}
+
 function pinterestImageUrl(listing, title, price) {
   const source = listing.images?.[0]?.url_760xN || listing.images?.[0]?.url_570xN;
   if (!source) return null;
@@ -73,6 +110,31 @@ export default async function handler(req, res) {
       'pinterest_board_rules?select=*&enabled=eq.true&order=priority.asc'
     );
 
+    // Resolve board IDs from Pinterest itself so newly-created boards do not
+    // require manually copying IDs into Supabase. If OAuth is not connected,
+    // keep the queue usable and resolve them on the next run.
+    let resolvedRules = rules || [];
+    try {
+      const pinterestBoards = await listPinterestBoards();
+      resolvedRules = (rules || []).map((rule) => resolveBoardRule(rule, pinterestBoards));
+
+      for (const rule of resolvedRules) {
+        if (rule.board_id && rule.board_id !== rules.find((r) => r.board_name === rule.board_name)?.board_id) {
+          await supabaseRest(
+            `pinterest_board_rules?board_name=eq.${encodeURIComponent(rule.board_name)}`,
+            {
+              method: 'PATCH',
+              headers: { Prefer: 'return=minimal' },
+              body: JSON.stringify({ board_id: rule.board_id, updated_at: new Date().toISOString() }),
+            }
+          );
+        }
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (!/OAuth|token|authorization|Pinterest bağlantısı/i.test(message)) throw error;
+    }
+
     let published = 0;
     let ready = 0;
     let errors = 0;
@@ -82,7 +144,7 @@ export default async function handler(req, res) {
       const title = String(listing.title || 'AGT Studio Digital Tool');
       const etsyUrl =
         listing.url || `https://www.etsy.com/listing/${listingId}`;
-      const board = chooseBoard(title, rules || []);
+      const board = chooseBoard(title, resolvedRules);
       const price = formatPrice(listing);
       const generatedImageUrl = pinterestImageUrl(listing, title, price);
 

@@ -222,6 +222,49 @@ export async function getEtsyAccessToken() {
   };
 }
 
+export async function requireAdminRequest(req) {
+  const authorization = req.headers.authorization || '';
+  if (!authorization.startsWith('Bearer ')) {
+    throw new Error('Unauthorized');
+  }
+
+  const accessToken = authorization.slice('Bearer '.length).trim();
+  if (!accessToken) throw new Error('Unauthorized');
+
+  const { supabaseUrl, serviceRoleKey } = getConfig();
+
+  const userResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
+    headers: {
+      apikey: serviceRoleKey,
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!userResponse.ok) throw new Error('Unauthorized');
+
+  const user = await userResponse.json();
+  if (!user?.id) throw new Error('Unauthorized');
+
+  const adminResponse = await fetch(
+    `${supabaseUrl}/rest/v1/admin_users?select=id&id=eq.${encodeURIComponent(user.id)}&limit=1`,
+    {
+      headers: {
+        apikey: serviceRoleKey,
+        Authorization: `Bearer ${serviceRoleKey}`,
+      },
+    }
+  );
+
+  if (!adminResponse.ok) throw new Error('Admin yetkisi doğrulanamadı.');
+
+  const admins = await adminResponse.json();
+  if (!Array.isArray(admins) || admins.length === 0) {
+    throw new Error('Forbidden');
+  }
+
+  return user;
+}
+
 export async function etsyApiFetch(path, options = {}) {
   const { keystring, sharedSecret } = getConfig();
   const { accessToken } = await getEtsyAccessToken();

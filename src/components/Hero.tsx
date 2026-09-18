@@ -1,20 +1,46 @@
-import { useEffect, useState } from "react";
 import logo from "../assets/agt-logo.png";
 import { useLanguage } from "../i18n/LanguageContext";
 
 export default function Hero() {
   const { language, t } = useLanguage();
-  const texts = language === "tr"
-    ? ["Logo Tasarımı","Sosyal Medya Tasarımı","Kartvizit Tasarımı","Menü Tasarımı","Web Tasarımı","Yapay Zekâ Çözümleri"]
-    : ["Logo Design","Social Media Design","Business Card Design","Menu Design","Web Design","AI Solutions"];
-  const [index, setIndex] = useState(0);
-  useEffect(() => { setIndex(0); }, [language]);
-  useEffect(() => { const timer=setInterval(()=>setIndex(prev=>(prev+1)%texts.length),2500); return()=>clearInterval(timer); }, [language, texts.length]);
-  return <section id="hero" className="hero">
-    <img src={logo} alt="AGT Studio" className="hero-logo" />
-    <h1 className="animated-title">{texts[index]}</h1>
-    <p className="animated-subtitle">{t("digitalSolutions")}</p>
-    <div className="hero-line"></div>
-    <a href="#services" className="hero-button">{t("discoverServices")}</a>
-  </section>;
+
+  return (
+    <section id="hero" className="hero">
+      <div className="hero-orb hero-orb-one" />
+      <div className="hero-orb hero-orb-two" />
+
+      <div className="hero-inner">
+        <div className="hero-copy">
+          <span className="hero-eyebrow">{t("heroEyebrow")}</span>
+          <h1>
+            {t("heroTitle")} <span>{t("heroTitleAccent")}</span>
+          </h1>
+          <p className="hero-description">{t("heroDescription")}</p>
+
+          <div className="hero-actions">
+            <a href="#etsy" className="hero-button hero-button-primary">{t("heroProductsCta")}</a>
+            <a href="#services" className="hero-button hero-button-secondary">{t("discoverServices")}</a>
+          </div>
+
+          <div className="hero-points">
+            <span>✓ {t("heroPointProducts")}</span>
+            <span>✓ {t("heroPointAI")}</span>
+            <span>✓ {t("heroPointWeb")}</span>
+          </div>
+        </div>
+
+        <div className="hero-visual" aria-hidden="true">
+          <div className="hero-logo-shell">
+            <div className="hero-logo-ring" />
+            <img src={logo} alt="" className="hero-logo" />
+          </div>
+          <div className="hero-visual-card">
+            <span>{t("heroVisualLabel")}</span>
+            <strong>{t("heroVisualTitle")}</strong>
+            <small>{t("heroVisualText")}</small>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }

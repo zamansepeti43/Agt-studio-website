@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import type { ReactNode } from "react";
 
 export type Language = "tr" | "en";
 
@@ -49,7 +50,7 @@ type LanguageContextValue = { language: Language; setLanguage: (language: Langua
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
+export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(() => {
     if (typeof window === "undefined") return "tr";
     return window.localStorage.getItem("agt-language") === "en" ? "en" : "tr";

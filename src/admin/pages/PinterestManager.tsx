@@ -96,8 +96,107 @@ export default function PinterestManager() {
     }
   };
 
+  const enablePushNotifications = async () => {
+    setError('');
+    try {
+      if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+        throw new Error('Bu tarayıcı telefon push bildirimlerini desteklemiyor.');
+      }
+
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        throw new Error('Bildirim izni verilmedi.');
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user?.id) throw new Error('Yönetici oturumu bulunamadı.');
+
+      const registration = await navigator.serviceWorker.register('/push-sw.js');
+      const { data: keyData, error: keyError } = await supabase.functions.invoke('pinterest-push', {
+        body: { action: 'public-key' },
+      });
+      if (keyError || !keyData?.publicKey) throw new Error(keyError?.message || 'Push anahtarı alınamadı.');
+
+      const base64ToBytes = (value: string) => {
+        const padding = '='.repeat((4 - (value.length % 4)) % 4);
+        const base64 = (value + padding).replace(/-/g, '+').replace(/_/g, '/');
+        const raw = atob(base64);
+        return Uint8Array.from(raw, (char) => char.charCodeAt(0));
+      };
+
+      let subscription = await registration.pushManager.getSubscription();
+      if (!subscription) {
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: base64ToBytes(keyData.publicKey),
+        });
+      }
+
+      const { error: subscribeError } = await supabase.functions.invoke('pinterest-push', {
+        body: {
+          action: 'subscribe',
+          userId: session.user.id,
+          subscription: subscription.toJSON(),
+        },
+      });
+      if (subscribeError) throw new Error(subscribeError.message || 'Telefon bildirimi kaydedilemedi.');
+
+      setError('');
+      window.alert('📱 Telefon bildirimleri açıldı. Yeni Pinterest onaylarında ve ürün serisi tamamlandığında bildirim alacaksın.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Telefon bildirimleri açılamadı.');
+    }
+  };
+
   useEffect(() => {
     loadQueue();
+  }, []);
+
+  useEffect(() => {
+    const approveId = new URLSearchParams(window.location.search).get('pinterestApprove');
+    if (!approveId) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) return;
+
+        const res = await fetch('/api/pinterest/sync', {
+          method: 'GET',
+          cache: 'no-store',
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || 'Pinterest kuyruğu alınamadı.');
+
+        const ids = (json.pendingApproval || [])
+          .filter((item: QueueItem) => String(item.etsy_listing_id) === approveId)
+          .map((item: QueueItem) => item.id);
+
+        if (ids.length) {
+          const approveRes = await fetch('/api/pinterest/sync', {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ action: 'approve', ids }),
+          });
+          const approveJson = await approveRes.json();
+          if (!approveRes.ok) throw new Error(approveJson.error || 'Pinterest onayı başarısız.');
+        }
+
+        if (!cancelled) {
+          window.history.replaceState({}, '', '/admin/pinterest');
+          await loadQueue();
+        }
+      } catch (err) {
+        if (!cancelled) setError(err instanceof Error ? err.message : 'Bildirim üzerinden onay başarısız.');
+      }
+    })();
+
+    return () => { cancelled = true; };
   }, []);
 
   const queue = data?.queue || [];
@@ -123,6 +222,9 @@ export default function PinterestManager() {
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button type="button" onClick={loadQueue} disabled={refreshing}>
             {refreshing ? 'Yenileniyor...' : '↻ Kuyruğu Yenile'}
+          </button>
+          <button type="button" onClick={enablePushNotifications}>
+            📱 Telefon Bildirimlerini Aç
           </button>
           <a href="/api/pinterest/connect">
             <button type="button">🔗 Pinterest'e Bağlan</button>

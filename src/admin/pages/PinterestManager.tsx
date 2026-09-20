@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 
 type QueueItem = {
@@ -98,10 +98,7 @@ export default function PinterestManager() {
   const published = queue.filter((item) => item.status === 'published');
   const next = data?.next || ready[0] || null;
 
-  const nextIndex = useMemo(
-    () => next ? queue.findIndex((item) => item.id === next.id) + 1 : 0,
-    [queue, next]
-  );
+  const nextIndex = next ? queue.findIndex((item) => item.id === next.id) + 1 : 0;
 
   if (loading) {
     return <div className="admin-page"><h1>📌 Pinterest Yönetimi</h1><p>Pinterest yayın kuyruğu hazırlanıyor...</p></div>;

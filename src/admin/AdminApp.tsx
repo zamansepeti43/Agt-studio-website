@@ -28,6 +28,7 @@ export default function AdminApp() {
         <Route path="requests" element={<ProjectRequests />} />
         <Route path="settings" element={<SiteSettings />} />
         <Route path="etsy" element={<EtsyManager />} />
+        <Route path="pinterest" element={<PinterestManager />} />
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Route>
     </Routes>

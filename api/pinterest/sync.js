@@ -239,7 +239,7 @@ async function syncQueue() {
         image_count: imageCount,
         scheduled_at: existingSchedule || scheduledAt,
         status: 'ready',
-        approval_status: 'approved',
+        approval_status: existingRow?.approval_status || 'pending',
         last_synced_at: new Date().toISOString(),
         last_error: null,
       };
@@ -250,6 +250,26 @@ async function syncQueue() {
           headers: { Prefer: 'return=minimal' },
           body: JSON.stringify(payload),
         });
+
+        if (imageIndex === 0) {
+          const admins = await supabaseRest('admin_users?select=id');
+          for (const admin of admins || []) {
+            await supabaseRest('notifications', {
+              method: 'POST',
+              headers: { Prefer: 'return=minimal' },
+              body: JSON.stringify({
+                user_id: admin.id,
+                type: 'pinterest_approval_required',
+                payload: {
+                  listing_id: listingId,
+                  title,
+                  image_count: imageCount,
+                  message: `Yeni Etsy ürünü Pinterest kuyruğuna eklendi: ${title}. Yayın serisini başlatmak için onay gerekiyor.`,
+                },
+              }),
+            });
+          }
+        }
       } else {
         await supabaseRest(
           `pinterest_automation?id=eq.${encodeURIComponent(existingRow.id)}`,

@@ -5,8 +5,6 @@ self.addEventListener("push", (event) => {
   const title = data.title || "AGT Studio";
   const options = {
     body: data.body || "Yeni AGT Studio bildirimi.",
-    icon: "/pwa-192.png",
-    badge: "/pwa-192.png",
     tag: data.tag || "agt-studio",
     data: data.data || { url: "/admin/pinterest" },
     actions: data.actions || [],

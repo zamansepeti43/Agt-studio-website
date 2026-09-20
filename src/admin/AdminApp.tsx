@@ -12,6 +12,7 @@ import PortfolioManager from './pages/PortfolioManager';
 import ProjectRequests from './pages/ProjectRequests';
 import SiteSettings from './pages/SiteSettings';
 import EtsyManager from './pages/EtsyManager';
+import PinterestManager from './pages/PinterestManager';
 
 export default function AdminApp() {
   return (

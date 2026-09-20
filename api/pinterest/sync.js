@@ -127,11 +127,15 @@ async function syncQueue() {
     state: 'active',
     limit: '100',
     offset: '0',
-    sort_on: 'updated',
+    sort_on: 'created',
     includes: 'Images',
   });
   const data = await etsyApiFetch(`/shops/${shop.shop_id}/listings?${query.toString()}`);
   const listings = data?.results || [];
+
+  if (listings.length > 24) {
+    throw new Error('Pinterest günlük saat planı 24 ürüne kadar destekleniyor. 24 veya daha az aktif Etsy ilanı olmalı.');
+  }
 
   const rules = await supabaseRest(
     'pinterest_board_rules?select=*&enabled=eq.true&order=priority.asc'
@@ -175,75 +179,105 @@ async function syncQueue() {
     }
   }
 
-  for (const listing of listings) {
+  // One Pin per active Etsy product per day, one hour apart.
+  // Each product advances to its next image every day. A product with 8 images
+  // therefore completes its visual cycle after 8 publishing days.
+  const now = new Date();
+  const today = istanbulDate(now);
+  const startHour = 10; // Türkiye saati; adjustable later from Pinterest Manager.
+  const slotMinutes = 60;
+
+  for (let productIndex = 0; productIndex < listings.length; productIndex += 1) {
+    const listing = listings[productIndex];
     const listingId = Number(listing.listing_id);
     const title = String(listing.title || 'AGT Studio Digital Tool');
     const etsyUrl = listing.url || `https://www.etsy.com/listing/${listingId}`;
     const board = chooseBoard(title, resolvedRules);
-    const price = formatPrice(listing);
-    const sourceImageUrl =
-      listing.images?.[0]?.url_760xN || listing.images?.[0]?.url_570xN || null;
-    const generatedImageUrl = pinterestImageUrl(listing, title, price);
+    const images = (listing.images || [])
+      .map((image) => image?.url_760xN || image?.url_570xN || image?.url_fullxfull)
+      .filter(Boolean);
+
+    if (!images.length) continue;
 
     const existing = await supabaseRest(
-      `pinterest_automation?select=*&etsy_listing_id=eq.${listingId}&limit=1`
+      `pinterest_automation?select=*&etsy_listing_id=eq.${listingId}&order=image_index.asc`
     );
-    const row = existing?.[0];
 
-    if (row?.status === 'published' && row.pin_id) {
-      await supabaseRest(`pinterest_automation?id=eq.${encodeURIComponent(row.id)}`, {
-        method: 'PATCH',
-        headers: { Prefer: 'return=minimal' },
-        body: JSON.stringify({
-          etsy_title: title,
-          etsy_url: etsyUrl,
-          source_image_url: sourceImageUrl,
-          generated_image_url: generatedImageUrl,
-          board_id: board?.board_id || row.board_id || null,
-          board_name: board?.board_name || row.board_name || null,
-          pin_title: title,
-          last_synced_at: new Date().toISOString(),
-        }),
-      });
-      continue;
-    }
+    const publishedCount = (existing || []).filter((item) => item.status === 'published' || item.status === 'completed').length;
+    const imageCount = images.length;
 
-    const payload = {
-      etsy_listing_id: listingId,
-      etsy_title: title,
-      etsy_url: etsyUrl,
-      source_image_url: sourceImageUrl,
-      generated_image_url: generatedImageUrl,
-      pin_title: title,
-      pin_description: `${title} — AGT Studio digital product on Etsy.`,
-      board_id: board?.board_id || null,
-      board_name: board?.board_name || null,
-      status: 'ready',
-      last_synced_at: new Date().toISOString(),
-      last_error: null,
-    };
+    // Keep existing image rows; add/update only missing images.
+    for (let imageIndex = 0; imageIndex < imageCount; imageIndex += 1) {
+      const sourceImageUrl = images[imageIndex];
+      const generatedImageUrl = pinterestImageUrl(listing, title, formatPrice(listing));
+      const existingRow = (existing || []).find((item) => Number(item.image_index) === imageIndex);
 
-    if (!row) {
-      await supabaseRest('pinterest_automation', {
-        method: 'POST',
-        headers: { Prefer: 'return=minimal' },
-        body: JSON.stringify(payload),
-      });
-    } else {
-      await supabaseRest(`pinterest_automation?id=eq.${encodeURIComponent(row.id)}`, {
-        method: 'PATCH',
-        headers: { Prefer: 'return=minimal' },
-        body: JSON.stringify(payload),
-      });
+      if (existingRow?.status === 'published' || existingRow?.status === 'completed') {
+        continue;
+      }
+
+      // The next unpublished image gets scheduled for the next available day.
+      // Future images are kept in the queue but receive their own future date.
+      const dayOffset = Math.max(0, imageIndex - publishedCount);
+      const target = new Date(now.getTime() + dayOffset * 24 * 60 * 60 * 1000);
+      const targetDay = istanbulDate(target);
+      const hour = startHour + productIndex;
+      const scheduledAt = `${targetDay}T${String(hour).padStart(2, '0')}:00:00+03:00`;
+
+      const payload = {
+        etsy_listing_id: listingId,
+        etsy_title: title,
+        etsy_url: etsyUrl,
+        source_image_url: sourceImageUrl,
+        generated_image_url: generatedImageUrl,
+        pin_title: title,
+        pin_description: `${title} — AGT Studio digital product on Etsy.`,
+        board_id: board?.board_id || null,
+        board_name: board?.board_name || null,
+        image_index: imageIndex,
+        image_count: imageCount,
+        scheduled_at: scheduledAt,
+        status: 'ready',
+        approval_status: 'approved',
+        last_synced_at: new Date().toISOString(),
+        last_error: null,
+      };
+
+      if (!existingRow) {
+        await supabaseRest('pinterest_automation', {
+          method: 'POST',
+          headers: { Prefer: 'return=minimal' },
+          body: JSON.stringify(payload),
+        });
+      } else {
+        await supabaseRest(
+          `pinterest_automation?id=eq.${encodeURIComponent(existingRow.id)}`,
+          {
+            method: 'PATCH',
+            headers: { Prefer: 'return=minimal' },
+            body: JSON.stringify(payload),
+          }
+        );
+      }
     }
   }
 
   const queue = await supabaseRest(
-    'pinterest_automation?select=*&order=created_at.asc'
+    'pinterest_automation?select=*&order=scheduled_at.asc,etsy_listing_id.asc,image_index.asc'
   );
 
   return { listings, queue: queue || [], pinterestConnected };
 }
+
+function isSameIstanbulDay(a, b = new Date()) {
+  return istanbulDate(a) === istanbulDate(b);
+}
+
+function isDueNow(scheduledAt, now = new Date()) {
+  if (!scheduledAt) return false;
+  return new Date(scheduledAt).getTime() <= now.getTime() + 5 * 60 * 1000;
+}
+
 
 async function publishNext(queue) {
   const latestPublished = (queue || [])

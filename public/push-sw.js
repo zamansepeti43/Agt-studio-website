@@ -17,9 +17,10 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
-  const target = event.action === "approve"
+  const targetPath = event.action === "approve"
     ? event.notification.data?.url
     : (event.notification.data?.url || "/admin/pinterest");
+  const target = new URL(targetPath, self.location.origin).href;
 
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {

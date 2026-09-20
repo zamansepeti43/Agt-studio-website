@@ -97,6 +97,25 @@ export default function EtsyManager() {
     } finally { setSaving(false); }
   };
 
+  const applyTargetedSeoOptimization = async () => {
+    setSaving(true); setError(''); setSaved('');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('Yönetici oturumu bulunamadı. Lütfen tekrar giriş yapın.');
+      const res = await fetch('/api/etsy/seo-optimization-setup', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'SEO optimizasyonu uygulanamadı.');
+      setSaved(data.message || 'Hedeflenen Etsy SEO değişiklikleri uygulandı.');
+      await loadData();
+      setTimeout(() => setSaved(''), 6000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'SEO optimizasyonu uygulanamadı.');
+    } finally { setSaving(false); }
+  };
+
   const saveShop = async () => {
     setSaving(true); setError(''); setSaved('');
     try {
@@ -172,9 +191,9 @@ export default function EtsyManager() {
           <div style={{ marginTop: 20, background: '#0d1117', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 24 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
               <h2 style={{ marginTop: 0, marginBottom: 0 }}>Aktif İlanlar</h2>
-              <button type="button" onClick={optimizeSeoTitles} disabled={saving}>🚀 SEO Başlıklarını Optimize Et</button>
+              <button type="button" onClick={applyTargetedSeoOptimization} disabled={saving}>🎯 2 Ürünün SEO'sunu Uygula</button>
             </div>
-            <p style={{ marginTop: 10, fontSize: 13, opacity: .75 }}>Reklam verdiğin 11 aktif ilanın başlıklarını optimize eder. Yalnızca başlık değişir; fiyat, açıklama, etiket ve görseller korunur.</p>
+            <p style={{ marginTop: 10, fontSize: 13, opacity: .75 }}>Sıfır görüntülenmede kalan Bakery Pricing Calculator ve Etsy Seller Customer Support Tool için hazırlanan başlık, 13 etiket ve açıklama girişini Etsy'ye uygular. Fiyat ve görseller değiştirilmez; diğer ilanlara dokunulmaz.</p>
             {dataLoading && <p>İlanlar Etsy’den getiriliyor...</p>}
             {!dataLoading && listings.length === 0 && <p>Aktif ilan bulunamadı.</p>}
             {!dataLoading && listings.map((listing) => { const p = listing.price?.amount != null && listing.price?.divisor ? listing.price.amount / listing.price.divisor : null; return <div key={listing.listing_id} style={{ display: 'flex', justifyContent: 'space-between', gap: 14, padding: 14, borderBottom: '1px solid var(--admin-border, #e5e7eb)' }}><div><strong>{listing.title}</strong><div style={{ fontSize: 13, opacity: .7 }}>ID: {listing.listing_id} · Stok: {listing.quantity ?? '—'}</div></div><strong>{p != null ? p.toFixed(2) + ' ' + (listing.price?.currency_code || '') : '—'}</strong></div>; })}

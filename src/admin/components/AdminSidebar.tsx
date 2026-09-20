@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { to: '/admin/packages', label: 'Paket Yönetimi', icon: '📦' },
   { to: '/admin/portfolio', label: 'Portföy', icon: '🖼️' },
   { to: '/admin/etsy', label: 'Etsy Yönetimi', icon: '🛍️' },
+  { to: '/admin/pinterest', label: 'Pinterest Yönetimi', icon: '📌' },
   { to: '/admin/settings', label: 'Site Ayarları', icon: '⚙️' },
 ];
 

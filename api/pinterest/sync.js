@@ -301,7 +301,7 @@ async function syncQueue() {
         if (imageIndex === 0) {
           const admins = await supabaseRest('admin_users?select=id');
           for (const admin of admins || []) {
-            await supabaseRest('notifications', {
+            const createdNotifications = await supabaseRest('notifications', {
               method: 'POST',
               headers: { Prefer: 'return=representation' },
               body: JSON.stringify({
@@ -315,11 +315,8 @@ async function syncQueue() {
                 },
               }),
             });
-            const createdNotification = await supabaseRest(
-              `notifications?user_id=eq.${encodeURIComponent(admin.id)}&type=eq.pinterest_approval_required&order=created_at.desc&limit=1&select=id`
-            );
-            if (createdNotification?.[0]?.id) {
-              await dispatchPushNotification(createdNotification[0].id);
+            if (createdNotifications?.[0]?.id) {
+              await dispatchPushNotification(createdNotifications[0].id);
             }
           }
         }
@@ -408,7 +405,7 @@ async function publishNext(queue) {
     if (nextStatus === 'completed') {
       const admins = await supabaseRest('admin_users?select=id');
       for (const admin of admins || []) {
-        await supabaseRest('notifications', {
+        const createdNotifications = await supabaseRest('notifications', {
           method: 'POST',
           headers: { Prefer: 'return=representation' },
           body: JSON.stringify({
@@ -422,11 +419,8 @@ async function publishNext(queue) {
             },
           }),
         });
-        const createdNotification = await supabaseRest(
-          `notifications?user_id=eq.${encodeURIComponent(admin.id)}&type=eq.pinterest_product_completed&order=created_at.desc&limit=1&select=id`
-        );
-        if (createdNotification?.[0]?.id) {
-          await dispatchPushNotification(createdNotification[0].id);
+        if (createdNotifications?.[0]?.id) {
+          await dispatchPushNotification(createdNotifications[0].id);
         }
       }
     }

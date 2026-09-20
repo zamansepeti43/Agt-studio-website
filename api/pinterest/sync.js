@@ -9,9 +9,9 @@ function isCronAuthorized(req) {
 }
 
 async function authorize(req) {
-  if (isCronAuthorized(req)) return 'cron';
-  await requireAdminRequest(req);
-  return 'admin';
+  if (isCronAuthorized(req)) return { role: 'cron', user: null };
+  const user = await requireAdminRequest(req);
+  return { role: 'admin', user };
 }
 
 function chooseBoard(title, rules) {
@@ -384,17 +384,58 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Admin approval actions reuse this endpoint so the Vercel Hobby
+    // serverless-function limit is not increased.
+    if (req.method === 'POST' && actor.role === 'admin') {
+      const body = typeof req.body === 'string'
+        ? JSON.parse(req.body || '{}')
+        : (req.body || {});
+
+      if (body.action === 'approve' || body.action === 'reject') {
+        const ids = Array.isArray(body.ids) ? body.ids : [body.id];
+        const cleanIds = ids.filter(Boolean);
+        if (!cleanIds.length) {
+          res.status(400).json({ error: 'Onay için kayıt seçilmedi.' });
+          return;
+        }
+
+        const approvalStatus = body.action === 'approve' ? 'approved' : 'rejected';
+        for (const id of cleanIds) {
+          await supabaseRest(
+            `pinterest_automation?id=eq.${encodeURIComponent(id)}`,
+            {
+              method: 'PATCH',
+              headers: { Prefer: 'return=minimal' },
+              body: JSON.stringify({
+                approval_status: approvalStatus,
+                approved_at: approvalStatus === 'approved' ? new Date().toISOString() : null,
+                status: approvalStatus === 'approved' ? 'ready' : 'skipped',
+              }),
+            }
+          );
+        }
+
+        res.status(200).json({ ok: true, action: body.action, count: cleanIds.length });
+        return;
+      }
+    }
+
     const result = await syncQueue();
 
-    // Admin GET only refreshes/synchronizes the queue. It never publishes.
     if (req.method === 'GET') {
       const latestPublished = (result.queue || [])
-        .filter((item) => item.status === 'published' && item.published_at)
-        .sort((a, b) => new Date(b.published_at) - new Date(a.published_at))[0] || null;
+        .filter((item) => (item.status === 'published' || item.status === 'completed') && item.published_at)
+        .sort((a, b) => new Date(b.published_at || 0).getTime() - new Date(a.published_at || 0).getTime())[0] || null;
 
       const next = (result.queue || [])
         .filter((item) => item.status === 'ready' && item.approval_status === 'approved')
         .sort((a, b) => new Date(a.scheduled_at || 0).getTime() - new Date(b.scheduled_at || 0).getTime())[0] || null;
+
+      const pendingApproval = (result.queue || [])
+        .filter((item) => item.approval_status === 'pending')
+        .sort((a, b) => new Date(a.scheduled_at || 0).getTime() - new Date(b.scheduled_at || 0).getTime());
+
+      const completed = (result.queue || []).filter((item) => item.status === 'completed');
 
       res.setHeader('Cache-Control', 'no-store');
       res.status(200).json({
@@ -404,14 +445,15 @@ export default async function handler(req, res) {
         queue: result.queue,
         next,
         latestPublished,
-        nextPublishAt: nextPublishAt(latestPublished?.published_at),
-        cadence: 'Günde 1 Pin — Etsy ilan sırasına göre',
+        pendingApproval,
+        completed,
+        nextPublishAt: next?.scheduled_at || null,
+        cadence: 'Her aktif Etsy ürünü günde 1 görsel — saatlik aralıklarla',
       });
       return;
     }
 
-    // Only Vercel Cron is allowed to publish automatically.
-    if (actor !== 'cron') {
+    if (actor.role !== 'cron') {
       res.status(403).json({ error: 'Otomatik yayın endpointi yalnızca zamanlanmış görev tarafından çalıştırılabilir.' });
       return;
     }
@@ -428,7 +470,7 @@ export default async function handler(req, res) {
     }
 
     const refreshedQueue = await supabaseRest(
-      'pinterest_automation?select=*&order=created_at.asc'
+      'pinterest_automation?select=*&order=scheduled_at.asc,etsy_listing_id.asc,image_index.asc'
     );
 
     res.status(200).json({
@@ -437,15 +479,14 @@ export default async function handler(req, res) {
       queue: refreshedQueue || [],
       pinterestConnected: result.pinterestConnected,
       ...publishResult,
-      nextPublishAt: nextPublishAt(
+      nextPublishAt:
         (refreshedQueue || [])
-          .filter((item) => item.status === 'published' && item.published_at)
-          .sort((a, b) => new Date(b.published_at) - new Date(a.published_at))[0]?.published_at
-      ),
+          .filter((item) => item.status === 'ready' && item.approval_status === 'approved')
+          .sort((a, b) => new Date(a.scheduled_at || 0).getTime() - new Date(b.scheduled_at || 0).getTime())[0]?.scheduled_at || null,
       message:
         publishResult.published === 1
-          ? 'Günlük Pinterest Pin yayınlandı.'
-          : 'Bugünkü Pinterest yayını atlanmadı; kuyruk bir sonraki günlük çalışmayı bekliyor.',
+          ? 'Pinterest Pin yayınlandı.'
+          : 'Bu saatte yayınlanacak uygun Pin yok.',
     });
   } catch (error) {
     res.status(500).json({

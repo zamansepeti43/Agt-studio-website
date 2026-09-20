@@ -65,7 +65,6 @@ export default function PinterestManager() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
-  const [saved, setSaved] = useState('');
 
   const loadQueue = async () => {
     setRefreshing(true);
@@ -126,7 +125,6 @@ export default function PinterestManager() {
       </div>
 
       {error && <div style={{ marginBottom: 18, padding: 14, borderRadius: 12, border: '1px solid #7f1d1d', background: '#2b1010', color: '#fecaca' }}>{error}</div>}
-      {saved && <div style={{ marginBottom: 18, padding: 14, borderRadius: 12, border: '1px solid #166534', background: '#0d2415', color: '#bbf7d0', fontWeight: 700 }}>{saved}</div>}
 
       <div style={{ maxWidth: 1150 }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 18 }}>

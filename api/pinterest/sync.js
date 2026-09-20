@@ -180,8 +180,8 @@ async function syncQueue() {
   }
 
   // One Pin per active Etsy product per day, one hour apart.
-  // Each product advances to its next image every day. A product with 8 images
-  // therefore completes its visual cycle after 8 publishing days.
+  // Each product advances to its next image every day. When the last image
+  // is published, the next day starts the sequence again from image 1.
   const now = new Date();
   const today = istanbulDate(now);
   const startHour = 10; // Türkiye saati; adjustable later from Pinterest Manager.
@@ -203,14 +203,61 @@ async function syncQueue() {
       `pinterest_automation?select=*&etsy_listing_id=eq.${listingId}&order=image_index.asc`
     );
 
-    const publishedCount = (existing || []).filter((item) => item.status === 'published' || item.status === 'completed').length;
     const imageCount = images.length;
+
+    // When the full image sequence is completed, start a fresh cycle.
+    // Example: 8 images => days 1-8 publish images 1-8, day 9 starts again
+    // with image 1. Subsequent cycles are automatic; only the first cycle
+    // of a newly discovered product requires admin approval.
+    const cycleCompleted =
+      existing.length >= imageCount &&
+      existing.slice(0, imageCount).every((item) => item.status === 'completed');
+
+    if (cycleCompleted) {
+      for (let imageIndex = 0; imageIndex < imageCount; imageIndex += 1) {
+        const row = existing.find((item) => Number(item.image_index) === imageIndex);
+        if (!row) continue;
+
+        const target = new Date(now.getTime() + (imageIndex + 1) * 24 * 60 * 60 * 1000);
+        const targetDay = istanbulDate(target);
+        const hour = startHour + productIndex;
+        const scheduledAt = `${targetDay}T${String(hour).padStart(2, '0')}:00:00+03:00`;
+
+        await supabaseRest(
+          `pinterest_automation?id=eq.${encodeURIComponent(row.id)}`,
+          {
+            method: 'PATCH',
+            headers: { Prefer: 'return=minimal' },
+            body: JSON.stringify({
+              source_image_url: images[imageIndex],
+              generated_image_url: pinterestImageUrl(listing, title, formatPrice(listing)),
+              image_count: imageCount,
+              scheduled_at: scheduledAt,
+              status: 'ready',
+              approval_status: 'approved',
+              approved_at: row.approved_at || new Date().toISOString(),
+              pin_id: null,
+              published_at: null,
+              completed_at: null,
+              last_error: null,
+              last_synced_at: new Date().toISOString(),
+            }),
+          }
+        );
+      }
+    }
+
+    const cycleRows = cycleCompleted
+      ? await supabaseRest(
+          `pinterest_automation?select=*&etsy_listing_id=eq.${listingId}&order=image_index.asc`
+        )
+      : existing;
 
     // Keep existing image rows; add/update only missing images.
     for (let imageIndex = 0; imageIndex < imageCount; imageIndex += 1) {
       const sourceImageUrl = images[imageIndex];
       const generatedImageUrl = pinterestImageUrl(listing, title, formatPrice(listing));
-      const existingRow = (existing || []).find((item) => Number(item.image_index) === imageIndex);
+      const existingRow = (cycleRows || []).find((item) => Number(item.image_index) === imageIndex);
 
       if (existingRow?.status === 'published' || existingRow?.status === 'completed') {
         continue;

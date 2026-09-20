@@ -34,7 +34,7 @@ export default async function handler(req, res) {
     await storeOAuthToken(tokenData);
     clearStateCookie(res);
 
-    res.redirect(302, '/?pinterest=connected#etsy');
+    res.redirect(302, '/admin/pinterest?connected=1');
   } catch (error) {
     clearStateCookie(res);
     res.status(500).json({

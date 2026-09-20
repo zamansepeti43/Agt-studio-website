@@ -33,7 +33,7 @@
   "crons": [
     {
       "path": "/api/pinterest/sync",
-      "schedule": "0 16 * * *"
+      "schedule": "0 * * * *"
     }
   ]
 }

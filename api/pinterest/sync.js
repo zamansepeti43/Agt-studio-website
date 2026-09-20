@@ -223,7 +223,7 @@ export default async function handler(req, res) {
     let pinterestConnected = true;
     try {
       const queued = await supabaseRest(
-        'pinterest_automation?select=*&status=eq.ready&order=created_at.asc&limit=100'
+        'pinterest_automation?select=*&status=eq.ready&board_id=not.is.null&generated_image_url=not.is.null&order=created_at.asc&limit=1'
       );
 
       for (const item of queued || []) {

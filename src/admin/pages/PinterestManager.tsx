@@ -1,3 +1,4 @@
+// Pinterest admin entry point — keeps Hobby deployment within the function limit.
 export default function PinterestManager() {
   return (
     <div className="admin-page">

@@ -244,3 +244,20 @@ export async function supabaseRest(path, options = {}) {
 
   return data;
 }
+
+export async function dispatchPushNotification(notificationId) {
+  const { supabaseUrl, serviceRoleKey } = config();
+  const response = await fetch(`${supabaseUrl}/functions/v1/pinterest-push`, {
+    method: 'POST',
+    headers: {
+      apikey: serviceRoleKey,
+      Authorization: `Bearer ${serviceRoleKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ action: 'dispatch', notificationId }),
+  });
+  if (!response.ok) {
+    throw new Error(`Push dispatch failed (${response.status}): ${await response.text()}`);
+  }
+  return response.json();
+}

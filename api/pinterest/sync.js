@@ -1,5 +1,5 @@
 import { etsyApiFetch, getEtsyAccessToken, requireAdminRequest } from '../etsy/_lib.js';
-import { pinterestFetch, supabaseRest } from './_lib.js';
+import { pinterestFetch, supabaseRest, dispatchPushNotification } from './_lib.js';
 
 function isCronAuthorized(req) {
   const secret = process.env.CRON_SECRET;
@@ -303,7 +303,7 @@ async function syncQueue() {
           for (const admin of admins || []) {
             await supabaseRest('notifications', {
               method: 'POST',
-              headers: { Prefer: 'return=minimal' },
+              headers: { Prefer: 'return=representation' },
               body: JSON.stringify({
                 user_id: admin.id,
                 type: 'pinterest_approval_required',
@@ -315,6 +315,12 @@ async function syncQueue() {
                 },
               }),
             });
+            const createdNotification = await supabaseRest(
+              `notifications?user_id=eq.${encodeURIComponent(admin.id)}&type=eq.pinterest_approval_required&order=created_at.desc&limit=1&select=id`
+            );
+            if (createdNotification?.[0]?.id) {
+              await dispatchPushNotification(createdNotification[0].id);
+            }
           }
         }
       } else {
@@ -404,7 +410,7 @@ async function publishNext(queue) {
       for (const admin of admins || []) {
         await supabaseRest('notifications', {
           method: 'POST',
-          headers: { Prefer: 'return=minimal' },
+          headers: { Prefer: 'return=representation' },
           body: JSON.stringify({
             user_id: admin.id,
             type: 'pinterest_product_completed',
@@ -416,6 +422,12 @@ async function publishNext(queue) {
             },
           }),
         });
+        const createdNotification = await supabaseRest(
+          `notifications?user_id=eq.${encodeURIComponent(admin.id)}&type=eq.pinterest_product_completed&order=created_at.desc&limit=1&select=id`
+        );
+        if (createdNotification?.[0]?.id) {
+          await dispatchPushNotification(createdNotification[0].id);
+        }
       }
     }
 

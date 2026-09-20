@@ -218,7 +218,8 @@ async function syncQueue() {
 
       // The next unpublished image gets scheduled for the next available day.
       // Future images are kept in the queue but receive their own future date.
-      const dayOffset = Math.max(0, imageIndex - publishedCount);
+      const existingSchedule = existingRow?.scheduled_at;
+      const dayOffset = imageIndex + 1;
       const target = new Date(now.getTime() + dayOffset * 24 * 60 * 60 * 1000);
       const targetDay = istanbulDate(target);
       const hour = startHour + productIndex;
@@ -236,7 +237,7 @@ async function syncQueue() {
         board_name: board?.board_name || null,
         image_index: imageIndex,
         image_count: imageCount,
-        scheduled_at: scheduledAt,
+        scheduled_at: existingSchedule || scheduledAt,
         status: 'ready',
         approval_status: 'approved',
         last_synced_at: new Date().toISOString(),
@@ -392,8 +393,8 @@ export default async function handler(req, res) {
         .sort((a, b) => new Date(b.published_at) - new Date(a.published_at))[0] || null;
 
       const next = (result.queue || [])
-        .filter((item) => item.status === 'ready')
-        .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))[0] || null;
+        .filter((item) => item.status === 'ready' && item.approval_status === 'approved')
+        .sort((a, b) => new Date(a.scheduled_at || 0).getTime() - new Date(b.scheduled_at || 0).getTime())[0] || null;
 
       res.setHeader('Cache-Control', 'no-store');
       res.status(200).json({

@@ -118,7 +118,7 @@ export default function PinterestManager() {
       <div className="admin-page-header">
         <div>
           <h1>📌 Pinterest Yönetimi</h1>
-          <p>Etsy ilan görsellerini sırayla Pinterest'e günde 1 Pin olarak yayınla.</p>
+          <p>Etsy ilanlarının görsellerini ürün başına günde 1 kez, saatlik aralıklarla Pinterest'e planla.</p>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button type="button" onClick={loadQueue} disabled={refreshing}>

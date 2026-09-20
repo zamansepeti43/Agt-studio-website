@@ -11,7 +11,11 @@ type QueueItem = {
   pin_title?: string | null;
   board_name?: string | null;
   board_id?: string | null;
-  status: 'pending' | 'ready' | 'published' | 'error' | 'skipped';
+  status: 'pending' | 'ready' | 'published' | 'completed' | 'error' | 'skipped';
+  image_index: number;
+  image_count: number;
+  scheduled_at?: string | null;
+  approval_status: 'pending' | 'approved' | 'rejected';
   pin_id?: string | null;
   last_error?: string | null;
   published_at?: string | null;
@@ -29,6 +33,8 @@ type PinterestResponse = {
   nextPublishAt?: string;
   cadence?: string;
   error?: string;
+  pendingApproval?: QueueItem[];
+  completed?: QueueItem[];
 };
 
 const tabs = [
@@ -55,6 +61,7 @@ function statusLabel(status: QueueItem['status']) {
     published: 'Yayınlandı',
     error: 'Hata',
     skipped: 'Atlandı',
+    completed: 'Ürün tamamlandı',
   };
   return map[status];
 }
@@ -94,8 +101,10 @@ export default function PinterestManager() {
   }, []);
 
   const queue = data?.queue || [];
-  const ready = queue.filter((item) => item.status === 'ready');
-  const published = queue.filter((item) => item.status === 'published');
+  const ready = queue.filter((item) => item.status === 'ready' && item.approval_status === 'approved');
+  const published = queue.filter((item) => item.status === 'published' || item.status === 'completed');
+  const pendingApproval = data?.pendingApproval || queue.filter((item) => item.approval_status === 'pending');
+  const completed = data?.completed || queue.filter((item) => item.status === 'completed');
   const next = data?.next || ready[0] || null;
 
   const nextIndex = next ? queue.findIndex((item) => item.id === next.id) + 1 : 0;
@@ -132,7 +141,10 @@ export default function PinterestManager() {
             <small>Yayın kuyruğu</small><h2 style={{ margin: '6px 0 0' }}>{ready.length}</h2>
           </div>
           <div style={{ background: '#0d1117', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 14, padding: 18 }}>
-            <small>Yayınlanan</small><h2 style={{ margin: '6px 0 0' }}>{published.length}</h2>
+            <small>Yayınlanan görsel</small><h2 style={{ margin: '6px 0 0' }}>{published.length}</h2>
+          </div>
+          <div style={{ background: pendingApproval.length ? '#2a2110' : '#0d1117', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 14, padding: 18 }}>
+            <small>Onay bekleyen ürün</small><h2 style={{ margin: '6px 0 0' }}>{new Set(pendingApproval.map((item) => item.etsy_listing_id)).size}</h2>
           </div>
           <div style={{ background: '#0d1117', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 14, padding: 18 }}>
             <small>Pinterest bağlantısı</small><h2 style={{ margin: '6px 0 0', fontSize: 18 }}>{data?.pinterestConnected ? '🟢 Aktif' : '🟠 Bekliyor'}</h2>
@@ -157,6 +169,35 @@ export default function PinterestManager() {
           ))}
         </div>
 
+        {pendingApproval.length > 0 && (
+          <div style={{ marginBottom: 16, padding: 18, background: '#2a2110', border: '1px solid #8a6a1f', borderRadius: 16 }}>
+            <h2 style={{ marginTop: 0 }}>🔔 Onay bekliyor</h2>
+            <p>Yeni Etsy ürünü algılandı. Onaylarsan o ürünün görselleri sırayla yayınlanmaya başlayacak.</p>
+            {Array.from(new Map(pendingApproval.map((item) => [item.etsy_listing_id, item])).values()).map((item) => (
+              <div key={item.etsy_listing_id} style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', padding: 10, borderTop: '1px solid #5b471a' }}>
+                <div><strong>{item.etsy_title}</strong><div style={{ fontSize: 12, opacity: .7 }}>{item.image_count} görsel · İlk yayın {formatDate(item.scheduled_at)}</div></div>
+                <button type="button" onClick={async () => {
+                  try {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (!session?.access_token) throw new Error('Yönetici oturumu bulunamadı.');
+                    const ids = pendingApproval.filter((x) => x.etsy_listing_id === item.etsy_listing_id).map((x) => x.id);
+                    const res = await fetch('/api/pinterest/sync', {
+                      method: 'POST',
+                      headers: { Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ action: 'approve', ids }),
+                    });
+                    const json = await res.json();
+                    if (!res.ok) throw new Error(json.error || 'Onay başarısız.');
+                    await loadQueue();
+                  } catch (err) {
+                    setError(err instanceof Error ? err.message : 'Onay başarısız.');
+                  }
+                }}>✅ Ürünü Onayla</button>
+              </div>
+            ))}
+          </div>
+        )}
+
         {tab === 'queue' && (
           <div style={{ background: '#0d1117', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 20 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -178,7 +219,8 @@ export default function PinterestManager() {
                   </div>
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontWeight: 800 }}>#{index + 1} · {item.etsy_title || 'Etsy ürünü'}</div>
-                    <div style={{ fontSize: 12, opacity: .65, marginTop: 4 }}>Pano: {item.board_name || 'Pano eşleşmesi bekliyor'} · ID: {item.etsy_listing_id}</div>
+                    <div style={{ fontSize: 12, opacity: .65, marginTop: 4 }}>Görsel {item.image_index + 1}/{item.image_count} · Pano: {item.board_name || 'Pano eşleşmesi bekliyor'}</div>
+                    <div style={{ fontSize: 12, opacity: .65, marginTop: 3 }}>Plan: {formatDate(item.scheduled_at)} · Onay: {item.approval_status === 'approved' ? '✅' : '🔔 Bekliyor'}</div>
                     {item.published_at && <div style={{ fontSize: 12, opacity: .65, marginTop: 3 }}>Yayın: {formatDate(item.published_at)}</div>}
                     {item.last_error && <div style={{ fontSize: 12, color: '#fca5a5', marginTop: 3 }}>{item.last_error}</div>}
                   </div>
@@ -202,8 +244,9 @@ export default function PinterestManager() {
                   <h2 style={{ marginTop: 8 }}>{next.etsy_title}</h2>
                   <p><strong>Pano:</strong> {next.board_name || 'Pano eşleşmesi bekliyor'}</p>
                   <p><strong>Durum:</strong> {statusLabel(next.status)}</p>
-                  <p><strong>Günlük yayın saati:</strong> 19:00 (Türkiye saati)</p>
+                  <p><strong>Yayın:</strong> Her aktif ürün için günde 1 görsel; ürünler 1 saat arayla.</p>
                   <p><strong>Sonraki yayın:</strong> {data?.nextPublishAt ? formatDate(data.nextPublishAt) : '—'}</p>
+                  <p><strong>Görsel:</strong> {(next.image_index || 0) + 1}/{next.image_count}</p>
                   {next.etsy_url && <a href={next.etsy_url} target="_blank" rel="noreferrer"><button type="button">🛍️ Etsy ilanını aç</button></a>}
                 </div>
               </div>
@@ -219,11 +262,11 @@ export default function PinterestManager() {
             <div style={{ display: 'grid', gap: 12 }}>
               <div style={{ padding: 16, borderRadius: 12, border: '1px solid var(--admin-border, #e5e7eb)' }}>
                 <strong>Günlük limit</strong>
-                <p style={{ marginBottom: 0, opacity: .72 }}>Her takvim gününde en fazla 1 Etsy ilanı Pinterest'e gönderilir. Manuel çağrı yapılsa bile ikinci Pin aynı gün yayınlanmaz.</p>
+                <p style={{ marginBottom: 0, opacity: .72 }}>Her aktif Etsy ürünü günde 1 görsel yayınlar. Ürünler 1 saat arayla ilerler; 13 ürün varsa günde 13 Pin oluşur.</p>
               </div>
               <div style={{ padding: 16, borderRadius: 12, border: '1px solid var(--admin-border, #e5e7eb)' }}>
                 <strong>Sıralama</strong>
-                <p style={{ marginBottom: 0, opacity: .72 }}>Yeni Etsy ilanları mevcut kuyruğun sonuna eklenir. Yayınlanmamış ilanlar sırayla ilerler.</p>
+                <p style={{ marginBottom: 0, opacity: .72 }}>Bir ürünün 8 görseli varsa 8 yayın gününde görsel serisi tamamlanır. Yeni ürün için telefona/onay merkezine onay isteği düşer.</p>
               </div>
               <div style={{ padding: 16, borderRadius: 12, border: '1px solid var(--admin-border, #e5e7eb)' }}>
                 <strong>Görsel</strong>

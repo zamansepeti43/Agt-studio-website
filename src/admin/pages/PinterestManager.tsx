@@ -20,6 +20,7 @@ export default function PinterestManager() {
   const [syncing, setSyncing] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [connected, setConnected] = useState(false);
 
   const authHeaders = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -45,7 +46,17 @@ export default function PinterestManager() {
     }
   };
 
-  useEffect(() => { loadQueue(); }, []);
+  useEffect(() => {
+    const loadStatus = async () => {
+      try {
+        const res = await fetch('/api/pinterest/status', { headers: await authHeaders(), cache: 'no-store' });
+        const data = await res.json();
+        setConnected(Boolean(data.connected));
+      } catch { setConnected(false); }
+    };
+    loadStatus();
+    loadQueue();
+  }, []);
 
   const syncNow = async () => {
     setSyncing(true);
@@ -86,6 +97,9 @@ export default function PinterestManager() {
         </div>
         <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
           <button type="button" onClick={loadQueue} disabled={loading}>↻ Yenile</button>
+          <button type="button" onClick={() => { window.location.href = '/api/pinterest/connect'; }} disabled={connected}>
+            {connected ? '🟢 Pinterest Bağlı' : '🔗 Pinterest’e Bağlan'}
+          </button>
           <button type="button" onClick={syncNow} disabled={syncing}>
             {syncing ? 'Hazırlanıyor...' : '⚡ Etsy → Pinterest Hazırla'}
           </button>
@@ -95,6 +109,9 @@ export default function PinterestManager() {
       <div style={{ maxWidth:1100 }}>
         <div style={{ background:'#0d1117', border:'1px solid var(--admin-border, #e5e7eb)', borderRadius:16, padding:22 }}>
           <h2 style={{ marginTop:0 }}>Ücretsiz yayın sistemi</h2>
+          <p style={{ lineHeight:1.6, opacity:.82, marginBottom:8 }}>
+            {connected ? 'Pinterest bağlantısı aktif. API erişimi hazır olduğunda kuyruktaki Pinler otomatik yayınlanabilir.' : 'Önce Pinterest’e bağlan; Pinterest izin ekranında sen onay vereceksin. Şifren AGT Studio’ya verilmez.'}
+          </p>
           <p style={{ lineHeight:1.6, opacity:.82, marginBottom:0 }}>
             Bu ekran Etsy ürününü, görselini, başlığını, açıklamasını, bağlantısını ve pano bilgisini hazırlar.
             Pinterest API onayı gelene kadar Pin'i Pinterest'in kendi ücretsiz zamanlayıcısından yayınlayabilirsin.

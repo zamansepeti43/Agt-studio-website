@@ -280,25 +280,21 @@ function isDueNow(scheduledAt, now = new Date()) {
 
 
 async function publishNext(queue) {
-  const latestPublished = (queue || [])
-    .filter((item) => item.status === 'published' && item.published_at)
-    .sort((a, b) => new Date(b.published_at) - new Date(a.published_at))[0];
-
-  if (latestPublished && istanbulDate(latestPublished.published_at) === istanbulDate()) {
-    return { published: 0, skippedReason: 'today_already_published', latestPublished };
-  }
+  const now = new Date();
 
   const next = (queue || [])
     .filter(
       (item) =>
         item.status === 'ready' &&
+        item.approval_status === 'approved' &&
         item.board_id &&
-        item.generated_image_url
+        item.generated_image_url &&
+        isDueNow(item.scheduled_at, now)
     )
-    .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))[0];
+    .sort((a, b) => new Date(a.scheduled_at || 0).getTime() - new Date(b.scheduled_at || 0).getTime())[0];
 
   if (!next) {
-    return { published: 0, skippedReason: 'queue_empty', latestPublished };
+    return { published: 0, skippedReason: 'no_due_pin' };
   }
 
   try {
@@ -317,19 +313,45 @@ async function publishNext(queue) {
       }),
     });
 
+    const nextStatus = Number(next.image_index || 0) + 1 >= Number(next.image_count || 1)
+      ? 'completed'
+      : 'published';
+
     await supabaseRest(`pinterest_automation?id=eq.${encodeURIComponent(next.id)}`, {
       method: 'PATCH',
       headers: { Prefer: 'return=minimal' },
       body: JSON.stringify({
-        status: 'published',
+        status: nextStatus,
         pin_id: pin?.id || null,
         published_at: new Date().toISOString(),
+        completed_at: nextStatus === 'completed' ? new Date().toISOString() : null,
         last_error: null,
         attempt_count: Number(next.attempt_count || 0) + 1,
       }),
     });
 
-    return { published: 1, item: next, pinId: pin?.id || null };
+    // Product cycle completed: create an admin notification record.
+    if (nextStatus === 'completed') {
+      const admins = await supabaseRest('admin_users?select=id');
+      for (const admin of admins || []) {
+        await supabaseRest('notifications', {
+          method: 'POST',
+          headers: { Prefer: 'return=minimal' },
+          body: JSON.stringify({
+            user_id: admin.id,
+            type: 'pinterest_product_completed',
+            payload: {
+              listing_id: next.etsy_listing_id,
+              title: next.etsy_title,
+              image_count: next.image_count,
+              message: `Pinterest görsel serisi tamamlandı: ${next.etsy_title}`,
+            },
+          }),
+        });
+      }
+    }
+
+    return { published: 1, item: next, pinId: pin?.id || null, completed: nextStatus === 'completed' };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     await supabaseRest(`pinterest_automation?id=eq.${encodeURIComponent(next.id)}`, {

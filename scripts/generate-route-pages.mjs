@@ -143,9 +143,9 @@ const routes = [
   },
   {
     path: "/privacy",
-    title: "Privacy Policy | AGT Studio",
-    description: "AGT Studio privacy policy and information about how website and service-related data is handled.",
-    keywords: "AGT Studio privacy policy, privacy",
+    title: "Pinterest API Privacy Policy | AGT Studio",
+    description: "AGT Studio privacy policy for the Pinterest API integration, OAuth authorization, data handling, security and account access.",
+    keywords: "AGT Studio privacy policy, Pinterest API privacy policy, Pinterest OAuth, data privacy",
     type: "WebPage",
     name: "Privacy Policy"
   }

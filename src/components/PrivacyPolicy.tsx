@@ -13,6 +13,7 @@ function PrivacyPolicy() {
       <h1>Privacy Policy</h1>
       <p><strong>AGT Studio / AGTStudioCo Pin Publisher</strong></p>
       <p><strong>Last updated:</strong> September 22, 2026</p>
+      <p><strong>Policy version:</strong> 1.1</p>
 
       <h2>1. About This Policy</h2>
       <p>
@@ -111,6 +112,7 @@ function PrivacyPolicy() {
 
       <h1 style={{ fontSize: 30 }}>Gizlilik Politikası</h1>
       <p><strong>AGT Studio / AGTStudioCo Pin Publisher</strong></p>
+      <p><strong>Politika sürümü:</strong> 1.1</p>
 
       <h2>1. Bu Politika Hakkında</h2>
       <p>

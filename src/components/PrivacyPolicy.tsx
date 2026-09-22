@@ -14,6 +14,7 @@ function PrivacyPolicy() {
       <p><strong>AGT Studio / AGTStudioCo Pin Publisher</strong></p>
       <p><strong>Last updated:</strong> September 22, 2026</p>
       <p><strong>Policy version:</strong> 1.1</p>
+      {/* Vercel deployment trigger: Git integration reconnected on September 22, 2026. */}
 
       <h2>1. About This Policy</h2>
       <p>

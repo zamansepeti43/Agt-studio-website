@@ -203,7 +203,6 @@ export default function PinterestManager() {
   const ready = queue.filter((item) => item.status === 'ready' && item.approval_status === 'approved');
   const published = queue.filter((item) => item.status === 'published' || item.status === 'completed');
   const pendingApproval = data?.pendingApproval || queue.filter((item) => item.approval_status === 'pending');
-  const completed = data?.completed || queue.filter((item) => item.status === 'completed');
   const next = data?.next || ready[0] || null;
 
   const nextIndex = next ? queue.findIndex((item) => item.id === next.id) + 1 : 0;

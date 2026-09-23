@@ -13,7 +13,9 @@ function PrivacyPolicy() {
       <h1>Privacy Policy</h1>
       <p><strong>AGT Studio / AGTStudioCo Pin Publisher</strong></p>
       <p><strong>Last updated:</strong> September 22, 2026</p>
-      <p><strong>Policy version:</strong> 1.1</p>
+      <p><strong>Policy version:</strong> 1.2</p>
+      <p><strong>Contact email:</strong> <a href="mailto:agtstudyo@gmail.com">agtstudyo@gmail.com</a></p>
+      <p><strong>Application website:</strong> <a href="https://agt-studio.vercel.app/">https://agt-studio.vercel.app/</a></p>
       {/* Vercel deployment trigger: Git integration reconnected on September 22, 2026. */}
 
       <h2>1. About This Policy</h2>
@@ -113,7 +115,9 @@ function PrivacyPolicy() {
 
       <h1 style={{ fontSize: 30 }}>Gizlilik Politikası</h1>
       <p><strong>AGT Studio / AGTStudioCo Pin Publisher</strong></p>
-      <p><strong>Politika sürümü:</strong> 1.1</p>
+      <p><strong>Politika sürümü:</strong> 1.2</p>
+      <p><strong>İletişim e-postası:</strong> <a href="mailto:agtstudyo@gmail.com">agtstudyo@gmail.com</a></p>
+      <p><strong>Uygulama web sitesi:</strong> <a href="https://agt-studio.vercel.app/">https://agt-studio.vercel.app/</a></p>
 
       <h2>1. Bu Politika Hakkında</h2>
       <p>

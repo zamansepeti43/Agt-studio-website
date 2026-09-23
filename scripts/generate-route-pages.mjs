@@ -173,6 +173,119 @@ for (const route of routes) {
   const url = `https://agt-studio.vercel.app${route.path}`;
   let html = base;
 
+  // Pinterest's reviewer must be able to read the privacy policy from the
+  // raw public HTML without depending on client-side React execution.
+  if (route.path === "/privacy") {
+    html = `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy | AGT Studio / AGTStudioCo Pin Publisher</title>
+<meta name="description" content="AGT Studio privacy policy for the AGTStudioCo Pin Publisher Pinterest API and OAuth integration.">
+<link rel="canonical" href="https://agt-studio.vercel.app/privacy">
+<meta name="robots" content="index, follow">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="AGT Studio">
+<meta property="og:title" content="Privacy Policy | AGT Studio">
+<meta property="og:description" content="Privacy policy for AGTStudioCo Pin Publisher and its Pinterest API integration.">
+<meta property="og:url" content="https://agt-studio.vercel.app/privacy">
+</head>
+<body style="margin:0;background:#080808;color:#f5f5f5;font-family:Arial,sans-serif;line-height:1.7">
+<main style="max-width:900px;margin:0 auto;padding:48px 24px">
+<h1>Privacy Policy</h1>
+<p><strong>AGT Studio / AGTStudioCo Pin Publisher</strong></p>
+<p><strong>Last updated:</strong> September 23, 2026</p>
+<p><strong>Policy version:</strong> 1.2</p>
+<p><strong>Contact email:</strong> <a href="mailto:agtstudyo@gmail.com" style="color:#d4af37">agtstudyo@gmail.com</a></p>
+<p><strong>Application website:</strong> <a href="https://agt-studio.vercel.app/" style="color:#d4af37">https://agt-studio.vercel.app/</a></p>
+
+<h2>1. About This Policy</h2>
+<p>This Privacy Policy explains how AGT Studio (AGTStudioCo) handles information for the AGTStudioCo Pin Publisher application and related website services. The application is operated by AGT Studio and uses the official Pinterest API to manage and publish content to the authorized Pinterest account.</p>
+
+<h2>2. Pinterest API and OAuth</h2>
+<p>AGTStudioCo Pin Publisher uses the official Pinterest API and Pinterest OAuth authorization flow. We do not request or store a Pinterest account password. Authorization takes place on Pinterest, and API access is granted only after the account owner explicitly approves the requested permissions.</p>
+
+<h2>3. Information We Process</h2>
+<p>Depending on the permissions granted, the application may process Pinterest account identifiers, board information, Pin information, and OAuth access credentials required to perform authorized API operations. We request only the permissions necessary for the publishing workflow.</p>
+
+<h2>4. How Information Is Used</h2>
+<p>Pinterest API information is used only to authenticate the authorized account, create or manage Pins and boards where permitted, synchronize publishing tasks, and operate AGT Studio's Pinterest publishing workflow. Pinterest API data is not sold, rented, or used for unrelated advertising purposes.</p>
+
+<h2>5. Data Sharing</h2>
+<p>We do not sell Pinterest API data, provide it to data brokers, or share it with unrelated third parties. Information may be processed by infrastructure providers used to operate the AGT Studio website and application, only as necessary to provide the service.</p>
+
+<h2>6. Security</h2>
+<p>OAuth credentials and access tokens are treated as confidential application data and are not intentionally exposed in the public website or browser interface. We use reasonable technical measures to protect application credentials and API data against unauthorized access.</p>
+
+<h2>7. Data Retention and Access Revocation</h2>
+<p>We retain API-related information only for as long as reasonably necessary to operate the authorized workflow. The account owner can revoke the application's Pinterest access through Pinterest. After access is revoked, the application can no longer make authorized API requests on behalf of that account.</p>
+
+<h2>8. Data Deletion Requests</h2>
+<p>You may request deletion of application-held personal information by contacting AGT Studio at <a href="mailto:agtstudyo@gmail.com" style="color:#d4af37">agtstudyo@gmail.com</a>. We will review valid requests and delete information that we are not required to retain for legal, security, or operational reasons.</p>
+
+<h2>9. Third-Party Services</h2>
+<p>Pinterest is a third-party platform used by the application. Pinterest independently processes information under its own terms and privacy policy. AGT Studio does not control Pinterest's independent processing.</p>
+
+<h2>10. Contact</h2>
+<p><strong>AGT Studio / AGTStudioCo</strong><br>
+Website: <a href="https://agt-studio.vercel.app/" style="color:#d4af37">https://agt-studio.vercel.app/</a><br>
+Privacy Policy: <a href="https://agt-studio.vercel.app/privacy" style="color:#d4af37">https://agt-studio.vercel.app/privacy</a><br>
+Email: <a href="mailto:agtstudyo@gmail.com" style="color:#d4af37">agtstudyo@gmail.com</a></p>
+
+<h2>11. Policy Updates</h2>
+<p>We may update this Privacy Policy when the application, Pinterest API integration, or applicable requirements change. The current version is always published at this URL.</p>
+
+<hr style="margin:48px 0 32px;border:0;border-top:1px solid #333">
+
+<h1>Gizlilik Politikası</h1>
+<p><strong>AGT Studio / AGTStudioCo Pin Publisher</strong></p>
+<p><strong>Son güncelleme:</strong> 23 Eylül 2026</p>
+<p><strong>Politika sürümü:</strong> 1.2</p>
+<p><strong>İletişim e-postası:</strong> <a href="mailto:agtstudyo@gmail.com" style="color:#d4af37">agtstudyo@gmail.com</a></p>
+<p><strong>Uygulama web sitesi:</strong> <a href="https://agt-studio.vercel.app/" style="color:#d4af37">https://agt-studio.vercel.app/</a></p>
+
+<h2>1. Bu Politika Hakkında</h2>
+<p>Bu politika, AGT Studio'nun AGTStudioCo Pin Publisher uygulaması ve ilgili web hizmetleri kapsamında bilgileri nasıl işlediğini açıklar. Uygulama AGT Studio tarafından işletilir ve yetkilendirilmiş Pinterest hesabındaki içerikleri yönetmek ve yayınlamak için resmi Pinterest API'sini kullanır.</p>
+
+<h2>2. Pinterest API ve OAuth</h2>
+<p>Uygulama resmi Pinterest API'sini ve Pinterest OAuth yetkilendirme akışını kullanır. Pinterest hesabının şifresi istenmez veya saklanmaz. Yetkilendirme Pinterest üzerinde gerçekleştirilir ve API erişimi yalnızca hesap sahibinin açık onayından sonra verilir.</p>
+
+<h2>3. İşlenen Bilgiler</h2>
+<p>Verilen izinlere bağlı olarak Pinterest hesap kimliği, pano bilgileri, Pin bilgileri ve yetkili API işlemleri için gerekli OAuth erişim bilgileri işlenebilir. Yalnızca yayınlama iş akışı için gerekli izinler talep edilir.</p>
+
+<h2>4. Bilgilerin Kullanımı</h2>
+<p>Pinterest API bilgileri yalnızca yetkili hesabın doğrulanması, izin verilen Pin ve pano işlemlerinin yapılması, yayınlama görevlerinin senkronize edilmesi ve AGT Studio Pinterest yayınlama iş akışının çalıştırılması için kullanılır. Pinterest API verileri satılmaz, kiralanmaz veya ilgisiz reklam amaçlarıyla kullanılmaz.</p>
+
+<h2>5. Veri Paylaşımı</h2>
+<p>Pinterest API verileri satılmaz, veri brokerlarına verilmez ve ilgisiz üçüncü taraflarla paylaşılmaz. Bilgiler yalnızca hizmeti sağlamak için gerekli olduğu ölçüde AGT Studio web sitesi ve uygulamasını çalıştıran altyapı sağlayıcıları tarafından işlenebilir.</p>
+
+<h2>6. Güvenlik</h2>
+<p>OAuth kimlik bilgileri ve erişim belirteçleri gizli uygulama verileri olarak ele alınır ve herkese açık web sitesinde veya tarayıcı arayüzünde bilerek gösterilmez. Uygulama kimlik bilgilerini ve API verilerini yetkisiz erişime karşı korumak için makul teknik önlemler kullanılır.</p>
+
+<h2>7. Veri Saklama ve Erişimin İptali</h2>
+<p>API ile ilgili bilgiler yalnızca yetkili iş akışını yürütmek için makul ölçüde gerekli olduğu süre boyunca saklanır. Hesap sahibi Pinterest üzerinden uygulamanın erişimini iptal edebilir. Erişim iptal edildiğinde uygulama bu hesap adına yetkili API istekleri gönderemez.</p>
+
+<h2>8. Veri Silme Talepleri</h2>
+<p>Uygulama tarafından tutulan kişisel bilgilerin silinmesini <a href="mailto:agtstudyo@gmail.com" style="color:#d4af37">agtstudyo@gmail.com</a> adresinden AGT Studio'ya talep edebilirsiniz. Geçerli talepler incelenir ve yasal, güvenlik veya operasyonel nedenlerle saklanması gerekmeyen bilgiler silinir.</p>
+
+<h2>9. Üçüncü Taraf Hizmetler</h2>
+<p>Pinterest uygulama tarafından kullanılan üçüncü taraf bir platformdur. Pinterest bilgileri kendi şartları ve gizlilik politikası kapsamında bağımsız olarak işler. AGT Studio, Pinterest'in bağımsız veri işleme faaliyetlerini kontrol etmez.</p>
+
+<h2>10. İletişim</h2>
+<p><strong>AGT Studio / AGTStudioCo</strong><br>
+Web sitesi: <a href="https://agt-studio.vercel.app/" style="color:#d4af37">https://agt-studio.vercel.app/</a><br>
+Gizlilik Politikası: <a href="https://agt-studio.vercel.app/privacy" style="color:#d4af37">https://agt-studio.vercel.app/privacy</a><br>
+E-posta: <a href="mailto:agtstudyo@gmail.com" style="color:#d4af37">agtstudyo@gmail.com</a></p>
+
+<h2>11. Politika Güncellemeleri</h2>
+<p>Uygulama, Pinterest API entegrasyonu veya geçerli gereklilikler değiştiğinde bu Gizlilik Politikası güncellenebilir. Güncel sürüm her zaman bu URL'de yayımlanır.</p>
+<p><a href="https://agt-studio.vercel.app/" style="color:#d4af37">AGT Studio ana sayfasına dön</a></p>
+</main>
+</body>
+</html>`;
+  }
+
   html = html.replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(route.title)}</title>`);
   html = setMeta(html, /<meta name="description" content="[^"]*"\s*\/>/, `<meta name="description" content="${esc(route.description)}"/>`);
   html = setMeta(html, /<meta name="keywords" content="[^"]*"\s*\/>/, `<meta name="keywords" content="${esc(route.keywords)}"/>`);

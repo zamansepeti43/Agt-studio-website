@@ -272,7 +272,6 @@ export default function EtsyManager() {
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>{sections.map((section) => <span key={section.shop_section_id} style={{ padding: '6px 10px', borderRadius: 999, background: '#151b23', border: '1px solid #303846', fontSize: 12 }}>📁 {section.title} · {section.active_listing_count ?? 0} ilan</span>)}</div>
               {listings.map((listing) => {
                 const suggestedSection = suggestSectionId(listing, sections);
-                const selectedSection = suggestedSection ?? sectionAssignments[listing.listing_id] ?? '';
                 const currentSectionId = Number(listing.shop_section_id ?? listing.section_id ?? 0);
                 const currentSectionName = sections.find((s) => s.shop_section_id === currentSectionId)?.title || 'Bölüm yok';
                 const suggestedSectionName = sections.find((s) => s.shop_section_id === Number(suggestedSection))?.title || 'Elle kontrol edilmeli';

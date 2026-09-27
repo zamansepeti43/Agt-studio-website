@@ -25,41 +25,19 @@ function normalize(value: string) {
 
 function suggestSectionId(listing: EtsyListing, sections: EtsySection[]) {
   const text = normalize(listing.title);
-  const rules: Array<{ keys: string[]; labels: string[] }> = [
-    { keys: ['etsy', 'seller', 'ecommerce', 'e-commerce', 'product research', 'product idea', 'customer support', 'profit'], labels: ['etsy', 'e-commerce', 'ecommerce', 'seller', 'etsy tools', 'etsy satıcı', 'etsy araç'] },
-    { keys: ['ai api', 'api finder', 'apk', 'android', 'developer', 'no-code', 'windows apk'], labels: ['ai', 'developer', 'android', 'apk', 'yapay zeka', 'geliştirici'] },
-    { keys: ['barber', 'barbershop', 'beauty', 'bakery', 'pressure washing', 'business', 'pricing', 'job tracker'], labels: ['business', 'işletme', 'business tools', 'management', 'yazılım', 'berber', 'güzellik', 'bakery', 'fiyat'] },
-    { keys: ['planner', 'planning', 'travel', 'moving', 'organizer'], labels: ['planner', 'planlayıcı', 'productivity', 'organizasyon', 'seyahat', 'taşınma'] },
+  const candidates = [
+    { keys: ['etsy seller', 'etsy satıcı', 'customer support', 'etsy tools'], labels: ['etsy', 'seller'] },
+    { keys: ['api finder', 'ai api', 'developer', 'android', 'apk', 'no-code'], labels: ['ai', 'developer', 'android', 'apk'] },
+    { keys: ['bakery', 'bakery pricing', 'barber', 'barbershop', 'beauty', 'pressure washing', 'job tracker'], labels: ['business', 'bakery', 'beauty', 'management'] },
+    { keys: ['planner', 'planning', 'travel planner', 'moving', 'organizer'], labels: ['planner', 'planning', 'productivity', 'travel'] },
   ];
-
   let best: { id: number; score: number } | null = null;
-  for (const rule of rules) {
-    if (!rule.keys.some((key) => text.includes(normalize(key)))) continue;
+  for (const candidate of candidates) {
+    if (!candidate.keys.some((key) => text.includes(normalize(key)))) continue;
     for (const section of sections) {
       const sectionText = normalize(section.title);
-      const score = rule.labels.reduce((sum, label) => sectionText.includes(normalize(label)) ? sum + 2 : sum, 0);
-      if (score > 0 && (!best || score > best.score)) best = { id: section.shop_section_id, score };
-    }
-  }
-
-  return best?.id ?? null;
-}
-
-function suggestTaxonomyId(listing: EtsyListing, taxonomy: EtsyTaxonomy[]) {
-  const text = normalize(listing.title);
-  const rules = [
-    { keys: ['etsy seller', 'etsy satıcı', 'customer support', 'etsy tools', 'etsy tool'], labels: ['business', 'software', 'digital', 'templates'] },
-    { keys: ['bakery', 'bakery pricing', 'baker', 'pastane'], labels: ['business', 'food', 'restaurant', 'menu', 'bakery'] },
-    { keys: ['api finder', 'ai api', 'developer', 'android', 'apk', 'windows app', 'no-code'], labels: ['software', 'computer', 'electronics', 'app', 'technology', 'digital'] },
-    { keys: ['planner', 'organizer', 'planning'], labels: ['paper', 'planner', 'organization', 'calendar', 'digital'] },
-  ];
-  let best: { id: number; score: number } | null = null;
-  for (const rule of rules) {
-    if (!rule.keys.some((key) => text.includes(normalize(key)))) continue;
-    for (const node of taxonomy) {
-      const nodeText = normalize(node.path);
-      const score = rule.labels.reduce((sum, label) => nodeText.includes(normalize(label)) ? sum + 1 : sum, 0);
-      if (score > 0 && (!best || score > best.score)) best = { id: node.id, score };
+      const score = candidate.labels.reduce((sum, label) => sectionText.includes(normalize(label)) ? sum + 1 : sum, 0);
+      if (score >= 2 && (!best || score > best.score)) best = { id: section.shop_section_id, score };
     }
   }
   return best?.id ?? null;
@@ -105,11 +83,9 @@ export default function EtsyManager() {
         const current = Number(listing.shop_section_id ?? listing.section_id ?? 0);
         const suggested = suggestSectionId(listing, loadedSections);
         const taxonomyId = Number(listing.taxonomy_id || 0);
-        const suggestedTaxonomy = suggestTaxonomyId(listing, loadedTaxonomy);
         if (current) initialAssignments[listing.listing_id] = current;
         else if (suggested) initialAssignments[listing.listing_id] = suggested;
         if (taxonomyId) initialTaxonomyAssignments[listing.listing_id] = taxonomyId;
-        else if (suggestedTaxonomy) initialTaxonomyAssignments[listing.listing_id] = suggestedTaxonomy;
       }
       setSectionAssignments(initialAssignments);
       setTaxonomyAssignments(initialTaxonomyAssignments);
@@ -285,10 +261,10 @@ export default function EtsyManager() {
           <div style={{ marginTop: 20, background: '#0d1117', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 24 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
               <div>
-                <h2 style={{ marginTop: 0, marginBottom: 4 }}>🗂️ Etsy Kategori Yerleşim Önizlemesi</h2>
-                <p style={{ margin: 0, fontSize: 13, opacity: .75 }}>Etsy'den gerçek ilanları ve mağaza bölümlerini çeker. Aşağıdaki seçimler sadece taslaktır; sen onaylamadan Etsy'de hiçbir değişiklik yapılmaz.</p>
+                <h2 style={{ marginTop: 0, marginBottom: 4 }}>🗂️ Etsy Kategori + Mağaza Bölümü Yerleşimi</h2>
+                <p style={{ margin: 0, fontSize: 13, opacity: .75 }}>Mevcut Etsy marketplace kategorisi gerçek API verisinden gösterilir. Otomatik kategori ataması yapılmaz; kategori seçimini sen onayladıktan sonra Etsy'ye göndeririz. Mağaza bölümü için yalnızca güçlü eşleşmeler önerilir.</p>
               </div>
-              <button type="button" onClick={applySectionAssignments} disabled={applyingSections || !sections.length}>{applyingSections ? 'Etsy’ye uygulanıyor...' : '✅ Seçimleri Onayla ve Etsy’ye Uygula'}</button>
+              <button type="button" onClick={applySectionAssignments} disabled={applyingSections || (!sections.length && !taxonomy.length)}>{applyingSections ? 'Etsy’ye uygulanıyor...' : '✅ Seçimleri Onayla ve Etsy’ye Uygula'}</button>
             </div>
 
             {!sections.length && !taxonomy.length && <p style={{ marginTop: 18 }}>Etsy kategori/bölüm verisi bulunamadı.</p>}
@@ -298,18 +274,16 @@ export default function EtsyManager() {
               </div>}
               {listings.map((listing) => {
                 const suggestedSection = suggestSectionId(listing, sections);
-                const suggestedTaxonomy = suggestTaxonomyId(listing, taxonomy);
                 const selectedSection = sectionAssignments[listing.listing_id] ?? suggestedSection ?? '';
-                const selectedTaxonomy = taxonomyAssignments[listing.listing_id] ?? suggestedTaxonomy ?? '';
+                const selectedTaxonomy = taxonomyAssignments[listing.listing_id] ?? '';
                 const currentSectionId = Number(listing.shop_section_id ?? listing.section_id ?? 0);
                 const currentSectionName = sections.find((s) => s.shop_section_id === currentSectionId)?.title || 'Bölüm yok';
-                const currentTaxonomyName = taxonomy.find((t) => t.id === Number(listing.taxonomy_id))?.path || 'Kategori yok';
-                const suggestedTaxonomyName = taxonomy.find((t) => t.id === Number(suggestedTaxonomy))?.path || 'Eşleşme yok';
+                const currentTaxonomyName = taxonomy.find((t) => t.id === Number(listing.taxonomy_id))?.path || 'Kategori atanmış değil';
                 const suggestedSectionName = sections.find((s) => s.shop_section_id === Number(suggestedSection))?.title || 'Eşleşme yok';
                 return <div key={listing.listing_id} style={{ padding: '14px 0', borderBottom: '1px solid var(--admin-border, #e5e7eb)' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, 1.35fr) minmax(220px, 1fr) minmax(220px, 1fr)', gap: 12, alignItems: 'center' }}>
                     <div><strong>{listing.title}</strong><div style={{ fontSize: 12, opacity: .6 }}>ID: {listing.listing_id}</div></div>
-                    <div><small style={{ opacity: .65 }}>Mevcut Etsy kategorisi</small><div style={{ marginTop: 4 }}>{currentTaxonomyName}</div><small style={{ opacity: .55 }}>Öneri: {suggestedTaxonomyName}</small></div>
+                    <div><small style={{ opacity: .65 }}>Mevcut Etsy kategorisi</small><div style={{ marginTop: 4 }}>{currentTaxonomyName}</div><small style={{ opacity: .55 }}>Otomatik kategori önerisi kapalı — yanlış kategoriye yönlendirme yapılmaz.</small></div>
                     <div><small style={{ opacity: .65 }}>Mevcut mağaza bölümü</small><div style={{ marginTop: 4 }}>{currentSectionName}</div><small style={{ opacity: .55 }}>Öneri: {suggestedSectionName}</small></div>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, 1fr) minmax(240px, 1fr)', gap: 12, marginTop: 10 }}>

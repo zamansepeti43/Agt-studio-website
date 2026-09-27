@@ -7,17 +7,15 @@ const PREMIUM_SHOP = {
   digital_sale_message: 'Thank you for your purchase. Your digital files are available through your Etsy order. Please download and save your files after purchase. If you need installation or product support, message AGTStudioCo through Etsy.',
 };
 
-const SECTION_RULES = [
-  { title: 'Business Tools', match: ['barberos', 'pressure washing', 'business'] },
-  { title: 'Research & Planning', match: ['product idea finder', 'product radar'] },
-  { title: 'AI & Developer Tools', match: ['ai api finder'] },
-  { title: 'App Development Tools', match: ['apk builder'] },
+const SHOP_SECTIONS = [
+  'İş Araçları',
+  'Yapay Zeka ve Geliştirici Araçları',
+  'Etsy satıcı araçları',
+  'Android Geliştirici Araçları',
+  'İşletme Yönetimi',
+  'Planlayıcılar / Verimlilik',
+  'Hayat verimliliği',
 ];
-
-function findSection(title) {
-  const t = String(title || '').toLowerCase();
-  return SECTION_RULES.find(rule => rule.match.some(term => t.includes(term)))?.title || null;
-}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -39,42 +37,28 @@ export default async function handler(req, res) {
       body: form.toString(),
     });
 
-    const existingSections = await etsyApiFetch(`/shops/${shopId}/sections`);
+    const existingSections = await etsyApiFetch('/shops/' + shopId + '/sections');
     const sectionMap = new Map(
-      (existingSections?.results || []).map(section => [String(section.title).toLowerCase(), Number(section.shop_section_id)])
+      (existingSections?.results || []).map(section => [
+        String(section.title).toLocaleLowerCase('tr-TR'),
+        Number(section.shop_section_id),
+      ])
     );
 
     const createdSections = [];
-    for (const rule of SECTION_RULES) {
-      const key = rule.title.toLowerCase();
+    for (const title of SHOP_SECTIONS) {
+      const key = title.toLocaleLowerCase('tr-TR');
       if (sectionMap.has(key)) continue;
-      const section = await etsyApiFetch(`/shops/${shopId}/sections`, {
+      const section = await etsyApiFetch('/shops/' + shopId + '/sections', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ title: rule.title }).toString(),
+        body: new URLSearchParams({ title }).toString(),
       });
       const id = Number(section?.shop_section_id);
       if (id) {
         sectionMap.set(key, id);
-        createdSections.push(rule.title);
+        createdSections.push(title);
       }
-    }
-
-    const listings = await etsyApiFetch(`/shops/${shopId}/listings?state=active&limit=100&offset=0`);
-    const assigned = [];
-    for (const listing of listings?.results || []) {
-      const sectionTitle = findSection(listing.title);
-      if (!sectionTitle) continue;
-      const sectionId = sectionMap.get(sectionTitle.toLowerCase());
-      if (!sectionId || Number(listing.shop_section_id) === sectionId) continue;
-
-      // Etsy Open API v3 updateListing is PATCH and is scoped to the shop.
-      await etsyApiFetch(`/shops/${shopId}/listings/${listing.listing_id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ shop_section_id: String(sectionId) }).toString(),
-      });
-      assigned.push({ listing_id: listing.listing_id, section: sectionTitle });
     }
 
     res.setHeader('Cache-Control', 'no-store');
@@ -82,8 +66,7 @@ export default async function handler(req, res) {
       ok: true,
       shop: updatedShop,
       sectionsCreated: createdSections,
-      listingsAssigned: assigned,
-      message: 'Premium mağaza kurulumu tamamlandı.',
+      message: 'Premium mağaza kurulumu tamamlandı. Ürünlerin mağaza bölümlerine dağıtımı değiştirilmedi.',
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Premium Etsy setup failed';

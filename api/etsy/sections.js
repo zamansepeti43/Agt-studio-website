@@ -1,4 +1,4 @@
-import { etsyApiFetch, getEtsyAccessToken, requireAdminRequest } from './_lib.js';
+import { etsyApiFetch, getEtsyAccessToken } from './_lib.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     res.setHeader('Cache-Control', 'no-store');
     res.status(200).json({
       shopId: Number(shop.shop_id),
-      sections: sections?.results || [],
+      sections: Array.isArray(sections?.results) ? sections.results : [],
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Etsy shop sections request failed';

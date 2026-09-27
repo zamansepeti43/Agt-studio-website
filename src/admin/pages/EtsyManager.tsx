@@ -43,26 +43,61 @@ function suggestSectionId(listing: EtsyListing, sections: EtsySection[]) {
   return best?.id ?? null;
 }
 
+function taxonomyLabel(value: string) {
+  const translations: Record<string, string> = {
+    'paper & party supplies': 'Kağıt ve Parti Malzemeleri',
+    'paper': 'Kağıt',
+    'stationery design & templates': 'Kırtasiye Tasarımları ve Şablonlar',
+    'templates': 'Şablonlar',
+    'planner templates': 'Planlayıcı Şablonları',
+    'business templates': 'İş Şablonları',
+    'website templates': 'Web Sitesi Şablonları',
+    'spreadsheet templates': 'Hesap Tablosu Şablonları',
+    'printable': 'Yazdırılabilir',
+    'printables': 'Yazdırılabilirler',
+    'digital': 'Dijital',
+  };
+  return value
+    .split(' → ')
+    .map(part => translations[normalize(part)] || part)
+    .join(' → ');
+}
+
+function getCategoryGuide(listing: EtsyListing) {
+  const text = normalize(listing.title);
+  if (text.includes('travel planner')) return { title: 'Planlayıcı Şablonları', reason: 'Seyahat planlayıcıları bu ürün grubuna en yakın eşleşmedir.' };
+  if (text.includes('moving planner')) return { title: 'Planlayıcı Şablonları', reason: 'Taşınma planlayıcısı bir planlama şablonudur.' };
+  if (text.includes('planner')) return { title: 'Planlayıcı Şablonları', reason: 'Ürün adı planlayıcı/organizer türünü açıkça belirtiyor.' };
+  if (text.includes('bakery pricing')) return { title: 'İş Şablonları / Hesap Tablosu Şablonları', reason: 'Fırın fiyatlandırma ve maliyet hesabı için kullanılan iş aracıdır.' };
+  if (text.includes('pressure washing') || text.includes('job tracker') || text.includes('business pro') || text.includes('barber management')) return { title: 'İş Şablonları', reason: 'İşletme yönetimi, müşteri veya iş takibi amacı taşıyor.' };
+  if (text.includes('etsy seller') || text.includes('customer support') || text.includes('etsy profit') || text.includes('product research')) return { title: 'İş Şablonları', reason: 'Etsy satıcısı için yönetim, destek, araştırma veya kâr takibi aracı.' };
+  if (text.includes('subscription tracker') || text.includes('tracker')) return { title: 'Şablonlar', reason: 'Takip ve kayıt amacı taşıyan dijital şablon.' };
+  if (text.includes('api finder') || text.includes('ai api') || text.includes('android') || text.includes('apk') || text.includes('app builder')) return { title: 'Şablonlar', reason: 'Dijital yazılım/araç ürünü; Etsy taksonomisinde en yakın dijital şablon dalı kullanılmalı.' };
+  if (text.includes('prompt generator') || text.includes('ai prompt')) return { title: 'Şablonlar', reason: 'Yapay zekâ prompt/şablon üreticisi.' };
+  return { title: 'Elle kontrol edilmeli', reason: 'Ürün adından güvenli ve spesifik kategori çıkarılamıyor.' };
+}
+
 function suggestTaxonomyId(listing: EtsyListing, taxonomy: EtsyTaxonomy[]) {
   const text = normalize(listing.title);
   const groups = [
-    { keys: ['travel planner', 'moving planner', 'planner'], terms: ['planner templates'] },
-    { keys: ['bakery pricing', 'pricing calculator', 'profit calculator'], terms: ['business templates', 'templates'] },
-    { keys: ['pressure washing', 'job tracker', 'business pro'], terms: ['business templates', 'templates'] },
+    { keys: ['travel planner', 'moving planner', 'planner'], terms: ['planner templates', 'templates'] },
+    { keys: ['bakery pricing'], terms: ['spreadsheet templates', 'business templates', 'templates'] },
+    { keys: ['pressure washing', 'job tracker', 'business pro', 'barber management'], terms: ['business templates', 'templates'] },
     { keys: ['etsy seller', 'customer support', 'etsy profit', 'product research'], terms: ['business templates', 'templates'] },
-    { keys: ['api finder', 'android', 'apk', 'windows apk', 'app builder'], terms: ['website templates', 'templates'] },
-    { keys: ['subscription tracker', 'tracker'], terms: ['templates'] },
+    { keys: ['api finder', 'ai api', 'android', 'apk', 'windows apk', 'app builder'], terms: ['templates', 'website templates'] },
+    { keys: ['subscription tracker', 'tracker'], terms: ['spreadsheet templates', 'templates'] },
+    { keys: ['prompt generator', 'ai prompt'], terms: ['templates'] },
   ];
   const group = groups.find(g => g.keys.some(k => text.includes(normalize(k))));
   if (!group) return null;
-  let best = null;
+  let best: { id: number; score: number } | null = null;
   for (const node of taxonomy) {
     const leaf = normalize(node.name);
     let score = 0;
     for (const term of group.terms) {
       const t = normalize(term);
-      if (leaf === t) score += 10;
-      else if (leaf.includes(t)) score += 6;
+      if (leaf === t) score += 20;
+      else if (leaf.includes(t)) score += 10;
     }
     if (score && (!best || score > best.score)) best = { id: node.id, score };
   }
@@ -288,7 +323,7 @@ export default function EtsyManager() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
               <div>
                 <h2 style={{ marginTop: 0, marginBottom: 4 }}>🗂️ Etsy Kategori + Mağaza Bölümü Yerleşimi</h2>
-                <p style={{ margin: 0, fontSize: 13, opacity: .75 }}>Mevcut Etsy marketplace kategorisi gerçek API verisinden gösterilir. Otomatik kategori ataması yapılmaz; kategori seçimini sen onayladıktan sonra Etsy'ye göndeririz. Mağaza bölümü için yalnızca güçlü eşleşmeler önerilir.</p>
+                <p style={{ margin: 0, fontSize: 13, opacity: .75 }}>Her ürünün mevcut kategorisini ve önerilen kategorisini Türkçe gösteriyoruz. Sen onay vermeden Etsy'de hiçbir kategori değişmez.</p>
               </div>
               <button type="button" onClick={applySectionAssignments} disabled={applyingSections || (!sections.length && !taxonomy.length)}>{applyingSections ? 'Etsy’ye uygulanıyor...' : '✅ Seçimleri Onayla ve Etsy’ye Uygula'}</button>
             </div>
@@ -301,29 +336,36 @@ export default function EtsyManager() {
               {listings.map((listing) => {
                 const suggestedSection = suggestSectionId(listing, sections);
                 const suggestedTaxonomy = suggestTaxonomyId(listing, taxonomy);
+                const categoryGuide = getCategoryGuide(listing);
                 const selectedSection = sectionAssignments[listing.listing_id] ?? suggestedSection ?? '';
                 const selectedTaxonomy = taxonomyAssignments[listing.listing_id] ?? (Number(listing.taxonomy_id || 0) || '');
                 const currentSectionId = Number(listing.shop_section_id ?? listing.section_id ?? 0);
                 const currentSectionName = sections.find((s) => s.shop_section_id === currentSectionId)?.title || 'Bölüm yok';
-                const currentTaxonomyName = taxonomy.find((t) => t.id === Number(listing.taxonomy_id))?.path || 'Kategori atanmış değil';
-                const suggestedTaxonomyName = taxonomy.find((t) => t.id === Number(suggestedTaxonomy))?.path || 'Güvenilir öneri bulunamadı';
+                const currentTaxonomyPath = taxonomy.find((t) => t.id === Number(listing.taxonomy_id))?.path || '';
+                const currentTaxonomyName = currentTaxonomyPath ? taxonomyLabel(currentTaxonomyPath) : 'Kategori atanmış değil';
+                const suggestedTaxonomyPath = taxonomy.find((t) => t.id === Number(suggestedTaxonomy))?.path || '';
+                const suggestedTaxonomyName = suggestedTaxonomyPath ? taxonomyLabel(suggestedTaxonomyPath) : 'Güvenilir otomatik öneri yok';
                 const suggestedSectionName = sections.find((s) => s.shop_section_id === Number(suggestedSection))?.title || 'Eşleşme yok';
                 return <div key={listing.listing_id} style={{ padding: '14px 0', borderBottom: '1px solid var(--admin-border, #e5e7eb)' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, 1.35fr) minmax(220px, 1fr) minmax(220px, 1fr)', gap: 12, alignItems: 'center' }}>
                     <div><strong>{listing.title}</strong><div style={{ fontSize: 12, opacity: .6 }}>ID: {listing.listing_id}</div></div>
-                    <div><small style={{ opacity: .65 }}>Mevcut Etsy kategorisi</small><div style={{ marginTop: 4 }}>{currentTaxonomyName}</div><small style={{ opacity: .55 }}>Öneri: {suggestedTaxonomyName}</small></div>
-                    <div><small style={{ opacity: .65 }}>Mevcut mağaza bölümü</small><div style={{ marginTop: 4 }}>{currentSectionName}</div><small style={{ opacity: .55 }}>Öneri: {suggestedSectionName}</small></div>
+                    <div><small style={{ opacity: .65 }}>📌 Mevcut Etsy kategorisi</small><div style={{ marginTop: 4 }}>{currentTaxonomyName}</div><small style={{ opacity: .55 }}>🤖 Sistem önerisi: {suggestedTaxonomyName}</small></div>
+                    <div><small style={{ opacity: .65 }}>📁 Mevcut mağaza bölümü</small><div style={{ marginTop: 4 }}>{currentSectionName}</div><small style={{ opacity: .55 }}>🤖 Sistem önerisi: {suggestedSectionName}</small></div>
+                  </div>
+                  <div style={{ marginTop: 10, padding: '10px 12px', borderRadius: 10, background: '#151b23', border: '1px solid #303846' }}>
+                    <strong>🎯 Bu ürün için kategori:</strong> {categoryGuide.title}
+                    <div style={{ fontSize: 12, opacity: .7, marginTop: 4 }}>{categoryGuide.reason}</div>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, 1fr) minmax(240px, 1fr)', gap: 12, marginTop: 10 }}>
                     <div>
-                      <small style={{ opacity: .65 }}>Marketplace kategorisi seç</small>
+                      <small style={{ opacity: .65 }}>🗂️ Etsy kategorisi seç</small>
                       <select value={selectedTaxonomy} onChange={(e) => setTaxonomyAssignments((prev) => ({ ...prev, [listing.listing_id]: Number(e.target.value) }))} style={{ ...fieldStyle, marginTop: 4 }}>
                         <option value="">Kategori seç</option>
-                        {taxonomy.map((node) => <option key={node.id} value={node.id}>{node.path}</option>)}
+                        {taxonomy.map((node) => <option key={node.id} value={node.id}>{taxonomyLabel(node.path)}</option>)}
                       </select>
                     </div>
                     <div>
-                      <small style={{ opacity: .65 }}>Mağaza bölümü seç</small>
+                      <small style={{ opacity: .65 }}>📁 Mağaza bölümü seç</small>
                       <select value={selectedSection} onChange={(e) => setSectionAssignments((prev) => ({ ...prev, [listing.listing_id]: Number(e.target.value) }))} style={{ ...fieldStyle, marginTop: 4 }}>
                         <option value="">Bölüm seç</option>
                         {sections.map((section) => <option key={section.shop_section_id} value={section.shop_section_id}>{section.title}</option>)}
@@ -340,7 +382,7 @@ export default function EtsyManager() {
               <h2 style={{ marginTop: 0, marginBottom: 0 }}>Aktif İlanlar</h2>
               <button type="button" onClick={applyTargetedSeoOptimization} disabled={saving}>🎯 2 Ürünün SEO'sunu Uygula</button>
             </div>
-            <p style={{ marginTop: 10, fontSize: 13, opacity: .75 }}>Sıfır görüntülenmede kalan Bakery Pricing Calculator ve Etsy Seller Customer Support Tool için hazırlanan başlık, 13 etiket ve açıklama girişini Etsy'ye uygular. Fiyat ve görseller değiştirilmez; diğer ilanlara dokunulmaz.</p>
+            <p style={{ marginTop: 10, fontSize: 13, opacity: .75 }}>Sıfır görüntülenmede kalan iki ürün için hazırlanan SEO değişikliklerini uygular. Fiyat ve görseller değiştirilmez; diğer ilanlara dokunulmaz.</p>
             {dataLoading && <p>İlanlar Etsy’den getiriliyor...</p>}
             {!dataLoading && listings.length === 0 && <p>Aktif ilan bulunamadı.</p>}
             {!dataLoading && listings.map((listing) => { const p = listing.price?.amount != null && listing.price?.divisor ? listing.price.amount / listing.price.divisor : null; return <div key={listing.listing_id} style={{ display: 'flex', justifyContent: 'space-between', gap: 14, padding: 14, borderBottom: '1px solid var(--admin-border, #e5e7eb)' }}><div><strong>{listing.title}</strong><div style={{ fontSize: 13, opacity: .7 }}>ID: {listing.listing_id} · Stok: {listing.quantity ?? '—'}</div></div><strong>{p != null ? p.toFixed(2) + ' ' + (listing.price?.currency_code || '') : '—'}</strong></div>; })}

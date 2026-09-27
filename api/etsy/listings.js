@@ -122,11 +122,24 @@ export default async function handler(req, res) {
           const form = new URLSearchParams();
           form.set('section_id', String(sectionId));
 
-          await etsyApiFetch(`/shops/${shopId}/listings/${listingId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8' },
-            body: form.toString(),
-          });
+          try {
+            await etsyApiFetch(`/shops/${shopId}/listings/${listingId}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8' },
+              body: form.toString(),
+            });
+          } catch (error) {
+            const message = error instanceof Error ? error.message : '';
+            if (/\\(405\\)|\\(404\\)/.test(message)) {
+              await etsyApiFetch(`/shops/${shopId}/listings/${listingId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8' },
+                body: form.toString(),
+              });
+            } else {
+              throw error;
+            }
+          }
           results.push({ listing_id: listingId, section_id: sectionId, ok: true });
         } catch (error) {
           results.push({ listing_id: listingId, section_id: sectionId, ok: false, error: error instanceof Error ? error.message : 'Etsy güncellemesi başarısız' });

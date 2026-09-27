@@ -25,13 +25,13 @@ function normalize(value: string) {
 function suggestSectionId(listing: EtsyListing, sections: EtsySection[]) {
   const text = normalize(listing.title);
   const rules = [
-    { keys: ['etsy seller', 'customer support', 'etsy tools', 'etsy profit', 'product research', 'etsy product'], labels: ['etsy satıcı araçları'] },
-    { keys: ['windows apk', 'android', 'apk', 'android builder', 'android app', 'no-code android'], labels: ['android geliştirici araçları'] },
-    { keys: ['api finder', 'ai api', 'prompt generator', 'ai prompt', 'developer', 'windows apk', 'app builder', 'ai tool'], labels: ['yapay zeka ve geliştirici araçları'] },
-    { keys: ['barber management', 'barbershop', 'beautyos', 'business management', 'business pro', 'pressure washing', 'job tracker'], labels: ['işletme yönetimi'] },
-    { keys: ['bakery pricing', 'pricing calculator', 'profit calculator', 'calculator'], labels: ['iş araçları'] },
-    { keys: ['travel planner', 'moving planner', 'planner', 'planning', 'organizer', 'checklist'], labels: ['planlayıcılar / verimlilik'] },
-    { keys: ['subscription tracker', 'habit tracker', 'life tracker', 'budget tracker', 'personal tracker'], labels: ['hayat verimliliği'] },
+    { keys: ['etsy product idea finder', 'product radar', 'product research', 'etsy product', 'etsy seller', 'customer support', 'etsy tools', 'etsy profit'], labels: ['etsy satıcı araçları', 'etsy seller tools'] },
+    { keys: ['windows apk', 'no-code android', 'android builder', 'android app', 'android', 'apk'], labels: ['android geliştirici araçları', 'android developer tools'] },
+    { keys: ['api finder', 'ai api', 'prompt generator', 'ai prompt', 'developer', 'app builder', 'ai tool'], labels: ['yapay zeka ve geliştirici araçları', 'ai & developer tools'] },
+    { keys: ['barber management', 'barbershop', 'beautyos', 'business management', 'business pro', 'pressure washing', 'job tracker'], labels: ['işletme yönetimi', 'business management'] },
+    { keys: ['bakery pricing', 'pricing calculator', 'profit calculator', 'calculator'], labels: ['iş araçları', 'business tools'] },
+    { keys: ['travel planner', 'moving planner', 'planner', 'planning', 'organizer', 'checklist'], labels: ['planlayıcılar / verimlilik', 'planners / productivity'] },
+    { keys: ['subscription tracker', 'habit tracker', 'life tracker', 'budget tracker', 'personal tracker'], labels: ['hayat verimliliği', 'life productivity'] },
   ];
   let best: { id: number; score: number } | null = null;
   for (const rule of rules) {
@@ -47,8 +47,8 @@ function suggestSectionId(listing: EtsyListing, sections: EtsySection[]) {
 
 function sectionReason(listing: EtsyListing) {
   const text = normalize(listing.title);
-  if (text.includes('etsy seller') || text.includes('customer support') || text.includes('etsy profit') || text.includes('product research')) return 'Etsy Satıcı Araçları';
-  if (text.includes('android') || text.includes('apk')) return 'Android Geliştirici Araçları';
+  if (text.includes('etsy product idea finder') || text.includes('product radar') || text.includes('product research') || text.includes('etsy product') || text.includes('etsy seller') || text.includes('customer support') || text.includes('etsy profit')) return 'Etsy Satıcı Araçları';
+  if (text.includes('windows apk') || text.includes('no-code android') || text.includes('android builder') || text.includes('android app') || text.includes('android') || text.includes('apk')) return 'Android Geliştirici Araçları';
   if (text.includes('api finder') || text.includes('ai api') || text.includes('prompt generator') || text.includes('ai prompt') || text.includes('developer')) return 'Yapay Zeka ve Geliştirici Araçları';
   if (text.includes('barber') || text.includes('beautyos') || text.includes('business management') || text.includes('business pro') || text.includes('pressure washing')) return 'İşletme Yönetimi';
   if (text.includes('bakery pricing') || text.includes('pricing calculator') || text.includes('profit calculator')) return 'İş Araçları';

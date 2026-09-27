@@ -14,33 +14,12 @@ type EtsyShop = {
 type EtsyProfile = { user_id?: number; primary_email?: string; first_name?: string; last_name?: string; image_url_75x75?: string; };
 type EtsyListing = { listing_id: number; title: string; state: string; section_id?: number | null; shop_section_id?: number | null; taxonomy_id?: number | null; price?: { amount?: number; divisor?: number; currency_code?: string }; quantity?: number; url?: string; };
 type EtsySection = { shop_section_id: number; title: string; rank?: number; active_listing_count?: number; };
-type EtsyTaxonomy = { id: number; name: string; level?: number; parent_id?: number | null; path: string; };
 
 const fieldStyle = { width: '100%', boxSizing: 'border-box' as const, padding: '11px 12px', borderRadius: 10, border: '1px solid var(--admin-border, #e5e7eb)', background: '#0d1117', color: 'inherit' };
 const labelStyle = { display: 'block', fontWeight: 700, marginBottom: 7, fontSize: 13, color: '#f0f3f6' };
 
 function normalize(value: string) {
   return value.toLocaleLowerCase('tr-TR').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ı/g, 'i');
-}
-
-function suggestSectionId(listing: EtsyListing, sections: EtsySection[]) {
-  const text = normalize(listing.title);
-  const candidates = [
-    { keys: ['etsy seller', 'etsy satıcı', 'customer support', 'etsy tools'], labels: ['etsy', 'seller'] },
-    { keys: ['api finder', 'ai api', 'developer', 'android', 'apk', 'no-code'], labels: ['ai', 'developer', 'android', 'apk'] },
-    { keys: ['bakery', 'bakery pricing', 'barber', 'barbershop', 'beauty', 'pressure washing', 'job tracker'], labels: ['business', 'bakery', 'beauty', 'management'] },
-    { keys: ['planner', 'planning', 'travel planner', 'moving', 'organizer'], labels: ['planner', 'planning', 'productivity', 'travel'] },
-  ];
-  let best: { id: number; score: number } | null = null;
-  for (const candidate of candidates) {
-    if (!candidate.keys.some((key) => text.includes(normalize(key)))) continue;
-    for (const section of sections) {
-      const sectionText = normalize(section.title);
-      const score = candidate.labels.reduce((sum, label) => sectionText.includes(normalize(label)) ? sum + 1 : sum, 0);
-      if (score >= 2 && (!best || score > best.score)) best = { id: section.shop_section_id, score };
-    }
-  }
-  return best?.id ?? null;
 }
 
 function suggestSectionId(listing: EtsyListing, sections: EtsySection[]) {
@@ -182,11 +161,11 @@ export default function EtsyManager() {
           changed: sectionId && sectionId !== currentSection,
         };
       })
-      .filter((item) => item.changed && (item.section_id || item.taxonomy_id))
+      .filter((item) => item.changed && item.section_id)
       .map(({ changed, ...item }) => item);
 
     if (!changes.length) {
-      setSaved('Onaylanacak kategori değişikliği yok.');
+      setSaved('Onaylanacak mağaza bölümü değişikliği yok.');
       setTimeout(() => setSaved(''), 3500);
       return;
     }
@@ -201,13 +180,13 @@ export default function EtsyManager() {
         body: JSON.stringify({ assignments: changes }),
       });
       const data = await res.json();
-      if (!res.ok && res.status !== 207) throw new Error(data.error || 'Kategori değişiklikleri uygulanamadı.');
+      if (!res.ok && res.status !== 207) throw new Error(data.error || 'Mağaza bölümü değişiklikleri uygulanamadı.');
       if (data.failed) throw new Error(`${data.updated} ürün güncellendi, ${data.failed} ürün güncellenemedi.`);
       setSaved(`Onaylandı ve Etsy'ye uygulandı: ${data.updated} ürün.`);
       await loadData();
       setTimeout(() => setSaved(''), 6000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Kategori değişiklikleri uygulanamadı.');
+      setError(err instanceof Error ? err.message : 'Mağaza bölümü değişiklikleri uygulanamadı.');
     } finally { setApplyingSections(false); }
   };
 

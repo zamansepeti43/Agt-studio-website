@@ -130,7 +130,7 @@ export default async function handler(req, res) {
             });
           } catch (error) {
             const message = error instanceof Error ? error.message : '';
-            if (/\\(405\\)|\\(404\\)/.test(message)) {
+            if (/\(405\)|\(404\)/.test(message)) {
               await etsyApiFetch(`/shops/${shopId}/listings/${listingId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8' },
@@ -142,7 +142,9 @@ export default async function handler(req, res) {
           }
           results.push({ listing_id: listingId, section_id: sectionId, ok: true });
         } catch (error) {
-          results.push({ listing_id: listingId, section_id: sectionId, ok: false, error: error instanceof Error ? error.message : 'Etsy güncellemesi başarısız' });
+          const message = error instanceof Error ? error.message : 'Etsy güncellemesi başarısız';
+          console.error('[Etsy section assignment failed]', { listingId, sectionId, message });
+          results.push({ listing_id: listingId, section_id: sectionId, ok: false, error: message });
         }
       }
 

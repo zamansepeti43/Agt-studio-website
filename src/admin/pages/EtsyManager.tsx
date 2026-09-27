@@ -26,7 +26,7 @@ function suggestSectionId(listing: EtsyListing, sections: EtsySection[]) {
   const text = normalize(listing.title);
   const rules = [
     { keys: ['etsy seller', 'customer support', 'etsy tools', 'etsy profit', 'product research', 'etsy product'], labels: ['etsy satıcı araçları'] },
-    { keys: ['android', 'apk', 'android builder', 'android app'], labels: ['android geliştirici araçları'] },
+    { keys: ['windows apk', 'android', 'apk', 'android builder', 'android app', 'no-code android'], labels: ['android geliştirici araçları'] },
     { keys: ['api finder', 'ai api', 'prompt generator', 'ai prompt', 'developer', 'windows apk', 'app builder', 'ai tool'], labels: ['yapay zeka ve geliştirici araçları'] },
     { keys: ['barber management', 'barbershop', 'beautyos', 'business management', 'business pro', 'pressure washing', 'job tracker'], labels: ['işletme yönetimi'] },
     { keys: ['bakery pricing', 'pricing calculator', 'profit calculator', 'calculator'], labels: ['iş araçları'] },
@@ -92,8 +92,8 @@ export default function EtsyManager() {
       for (const listing of loadedListings) {
         const current = Number(listing.shop_section_id ?? listing.section_id ?? 0);
         const suggested = suggestSectionId(listing, loadedSections);
-        if (current) initialAssignments[listing.listing_id] = current;
-        else if (suggested) initialAssignments[listing.listing_id] = suggested;
+        if (suggested) initialAssignments[listing.listing_id] = suggested;
+        else if (current) initialAssignments[listing.listing_id] = current;
       }
       setSectionAssignments(initialAssignments);
       setForm({
@@ -165,7 +165,7 @@ export default function EtsyManager() {
       .map(({ changed, ...item }) => item);
 
     if (!changes.length) {
-      setSaved('Onaylanacak mağaza bölümü değişikliği yok.');
+      setSaved('Uygulanacak mağaza bölümü değişikliği yok.');
       setTimeout(() => setSaved(''), 3500);
       return;
     }
@@ -264,7 +264,7 @@ export default function EtsyManager() {
 
           <div style={{ marginTop: 20, background: '#0d1117', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 24 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-              <div><h2 style={{ marginTop: 0, marginBottom: 4 }}>📁 Etsy Mağaza Bölümlerine Dağıt</h2><p style={{ margin: 0, fontSize: 13, opacity: .75 }}>Burada sadece mağaza bölümlerini düzenliyoruz. Ürünlerin mevcut Etsy kategorilerine kesinlikle dokunmuyoruz.</p></div>
+              <div><h2 style={{ marginTop: 0, marginBottom: 4 }}>📁 Ürünleri Mağaza Bölümlerine Dağıt</h2><p style={{ margin: 0, fontSize: 13, opacity: .75 }}>Senin için ürünleri başlıklarına göre ben sınıflandırıyorum. Sen sadece son dağılımı onaylıyorsun. Etsy kategorilerine kesinlikle dokunulmuyor.</p></div>
               <button type="button" onClick={applySectionAssignments} disabled={applyingSections || !sections.length}>{applyingSections ? 'Etsy’ye uygulanıyor...' : '✅ Bölüm Dağılımını Onayla ve Etsy’ye Uygula'}</button>
             </div>
             {!sections.length && <p style={{ marginTop: 18 }}>Etsy mağaza bölümü bulunamadı.</p>}
@@ -272,7 +272,7 @@ export default function EtsyManager() {
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>{sections.map((section) => <span key={section.shop_section_id} style={{ padding: '6px 10px', borderRadius: 999, background: '#151b23', border: '1px solid #303846', fontSize: 12 }}>📁 {section.title} · {section.active_listing_count ?? 0} ilan</span>)}</div>
               {listings.map((listing) => {
                 const suggestedSection = suggestSectionId(listing, sections);
-                const selectedSection = sectionAssignments[listing.listing_id] ?? suggestedSection ?? '';
+                const selectedSection = suggestedSection ?? sectionAssignments[listing.listing_id] ?? '';
                 const currentSectionId = Number(listing.shop_section_id ?? listing.section_id ?? 0);
                 const currentSectionName = sections.find((s) => s.shop_section_id === currentSectionId)?.title || 'Bölüm yok';
                 const suggestedSectionName = sections.find((s) => s.shop_section_id === Number(suggestedSection))?.title || 'Elle kontrol edilmeli';
@@ -282,7 +282,7 @@ export default function EtsyManager() {
                     <div><small style={{ opacity: .65 }}>📁 Mevcut mağaza bölümü</small><div style={{ marginTop: 4 }}>{currentSectionName}</div></div>
                     <div><small style={{ opacity: .65 }}>🎯 Önerilen mağaza bölümü</small><div style={{ marginTop: 4 }}>{suggestedSectionName}</div><small style={{ opacity: .55 }}>Neden: {sectionReason(listing)}</small></div>
                   </div>
-                  <div style={{ marginTop: 10 }}><small style={{ opacity: .65 }}>📁 Bu ürünü şu bölüme koy</small><select value={selectedSection} onChange={(e) => setSectionAssignments((prev) => ({ ...prev, [listing.listing_id]: Number(e.target.value) }))} style={{ ...fieldStyle, marginTop: 4 }}><option value="">Bölüm seç</option>{sections.map((section) => <option key={section.shop_section_id} value={section.shop_section_id}>{section.title}</option>)}</select></div>
+                  <div style={{ marginTop: 10, padding: '10px 12px', borderRadius: 10, background: '#151b23', border: '1px solid #303846' }}><small style={{ opacity: .65 }}>🤖 Benim atadığım mağaza bölümü</small><div style={{ marginTop: 4, fontWeight: 800 }}>{suggestedSectionName}</div><small style={{ opacity: .55 }}>Onayladığında sadece bu mağaza bölümü Etsy'ye uygulanır.</small></div>
                 </div>;
               })}
             </div>}

@@ -181,7 +181,12 @@ export default function EtsyManager() {
       });
       const data = await res.json();
       if (!res.ok && res.status !== 207) throw new Error(data.error || 'Mağaza bölümü değişiklikleri uygulanamadı.');
-      if (data.failed) throw new Error(`${data.updated} ürün güncellendi, ${data.failed} ürün güncellenemedi.`);
+      if (data.failed) {
+        const details = Array.isArray(data.results)
+          ? data.results.filter((item: { ok?: boolean }) => !item.ok).map((item: { listing_id?: number; error?: string }) => `#${item.listing_id || '?'}: ${item.error || 'Bilinmeyen Etsy hatası'}`).join(' | ')
+          : '';
+        throw new Error(`${data.updated} ürün güncellendi, ${data.failed} ürün güncellenemedi.${details ? ' Detay: ' + details : ''}`);
+      }
       setSaved(`Onaylandı ve Etsy'ye uygulandı: ${data.updated} ürün.`);
       await loadData();
       setTimeout(() => setSaved(''), 6000);

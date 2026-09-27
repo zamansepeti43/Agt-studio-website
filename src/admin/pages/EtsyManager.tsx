@@ -79,7 +79,8 @@ export default function EtsyManager() {
       for (const listing of loadedListings) {
         const current = Number(listing.section_id || 0);
         const suggested = suggestSectionId(listing, loadedSections);
-        if (current || suggested) initialAssignments[listing.listing_id] = current || suggested;
+        const assignment = current || suggested;
+        if (assignment) initialAssignments[listing.listing_id] = assignment;
       }
       setSectionAssignments(initialAssignments);
       setForm({

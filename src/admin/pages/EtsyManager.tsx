@@ -45,34 +45,26 @@ function suggestSectionId(listing: EtsyListing, sections: EtsySection[]) {
 
 function suggestTaxonomyId(listing: EtsyListing, taxonomy: EtsyTaxonomy[]) {
   const text = normalize(listing.title);
-  const rules: Array<{ keys: string[]; labels: string[] }> = [
-    { keys: ['travel planner', 'moving planner', 'planner'], labels: ['planner templates', 'planner template'] },
-    { keys: ['social media', 'content calendar'], labels: ['social media templates'] },
-    { keys: ['prompt generator', 'prompt pack', 'ai prompt'], labels: ['templates'] },
-    { keys: ['bakery pricing', 'pricing calculator', 'profit calculator', 'calculator'], labels: ['business templates', 'templates'] },
-    { keys: ['pressure washing', 'job tracker', 'business tool', 'business pro'], labels: ['business templates', 'templates'] },
-    { keys: ['etsy seller', 'etsy customer support', 'etsy profit', 'etsy product research'], labels: ['business templates', 'templates'] },
-    { keys: ['api finder', 'android', 'apk', 'windows apk', 'app builder', 'software'], labels: ['website templates', 'templates'] },
-    { keys: ['subscription tracker', 'tracker'], labels: ['planner templates', 'templates'] },
+  const groups = [
+    { keys: ['travel planner', 'moving planner', 'planner'], terms: ['planner templates'] },
+    { keys: ['bakery pricing', 'pricing calculator', 'profit calculator'], terms: ['business templates', 'templates'] },
+    { keys: ['pressure washing', 'job tracker', 'business pro'], terms: ['business templates', 'templates'] },
+    { keys: ['etsy seller', 'customer support', 'etsy profit', 'product research'], terms: ['business templates', 'templates'] },
+    { keys: ['api finder', 'android', 'apk', 'windows apk', 'app builder'], terms: ['website templates', 'templates'] },
+    { keys: ['subscription tracker', 'tracker'], terms: ['templates'] },
   ];
-
-  let best: { id: number; score: number } | null = null;
-  for (const rule of rules) {
-    if (!rule.keys.some((key) => text.includes(normalize(key)))) continue;
-    for (const node of taxonomy) {
-      const path = normalize(node.path);
-      const leaf = normalize(node.name);
-      // Prefer a specific leaf over broad parent nodes such as "Paper & Party Supplies".
-      let score = 0;
-      for (const label of rule.labels) {
-        const target = normalize(label);
-        if (leaf === target) score += 12;
-        else if (leaf.includes(target)) score += 7;
-        else if (path.includes(target)) score += 2;
-      }
-      if (node.level >= 3) score += 2;
-      if (score > 0 && (!best || score > best.score)) best = { id: node.id, score };
+  const group = groups.find(g => g.keys.some(k => text.includes(normalize(k))));
+  if (!group) return null;
+  let best = null;
+  for (const node of taxonomy) {
+    const leaf = normalize(node.name);
+    let score = 0;
+    for (const term of group.terms) {
+      const t = normalize(term);
+      if (leaf === t) score += 10;
+      else if (leaf.includes(t)) score += 6;
     }
+    if (score && (!best || score > best.score)) best = { id: node.id, score };
   }
   return best?.id ?? null;
 }
@@ -296,7 +288,7 @@ export default function EtsyManager() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
               <div>
                 <h2 style={{ marginTop: 0, marginBottom: 4 }}>🗂️ Etsy Kategori + Mağaza Bölümü Yerleşimi</h2>
-                <p style={{ margin: 0, fontSize: 13, opacity: .75 }}>Mevcut kategori Etsy API'sinden gelir. AGT Studio artık ürün başlığına göre yalnızca spesifik ve güçlü taxonomy (kategori) eşleşmelerini önerir; seçim yapılmadan Etsy'ye yazmaz.</p>
+                <p style={{ margin: 0, fontSize: 13, opacity: .75 }}>Mevcut Etsy marketplace kategorisi gerçek API verisinden gösterilir. Otomatik kategori ataması yapılmaz; kategori seçimini sen onayladıktan sonra Etsy'ye göndeririz. Mağaza bölümü için yalnızca güçlü eşleşmeler önerilir.</p>
               </div>
               <button type="button" onClick={applySectionAssignments} disabled={applyingSections || (!sections.length && !taxonomy.length)}>{applyingSections ? 'Etsy’ye uygulanıyor...' : '✅ Seçimleri Onayla ve Etsy’ye Uygula'}</button>
             </div>

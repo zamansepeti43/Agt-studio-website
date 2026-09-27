@@ -58,7 +58,7 @@ export default async function handler(req, res) {
       }
       const assignments = Array.isArray(body?.assignments) ? body.assignments : [];
       if (!assignments.length) {
-        res.status(400).json({ error: 'Uygulanacak kategori değişikliği bulunamadı.' });
+        res.status(400).json({ error: 'Uygulanacak mağaza bölümü değişikliği bulunamadı.' });
         return;
       }
 
@@ -66,25 +66,23 @@ export default async function handler(req, res) {
       for (const item of assignments) {
         const listingId = Number(item?.listing_id);
         const sectionId = item?.section_id == null || item?.section_id === '' ? null : Number(item.section_id);
-        const taxonomyId = item?.taxonomy_id == null || item?.taxonomy_id === '' ? null : Number(item.taxonomy_id);
-        if (!listingId || (!sectionId && !taxonomyId)) {
-          results.push({ listing_id: listingId || null, ok: false, error: 'Geçersiz ilan veya kategori.' });
+        if (!listingId || !sectionId) {
+          results.push({ listing_id: listingId || null, ok: false, error: 'Geçersiz ilan veya mağaza bölümü.' });
           continue;
         }
 
         try {
           const form = new URLSearchParams();
-          if (sectionId) form.set('section_id', String(sectionId));
-          if (taxonomyId) form.set('taxonomy_id', String(taxonomyId));
+          form.set('section_id', String(sectionId));
 
           await etsyApiFetch(`/shops/${shopId}/listings/${listingId}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8' },
             body: form.toString(),
           });
-          results.push({ listing_id: listingId, section_id: sectionId, taxonomy_id: taxonomyId, ok: true });
+          results.push({ listing_id: listingId, section_id: sectionId, ok: true });
         } catch (error) {
-          results.push({ listing_id: listingId, section_id: sectionId, taxonomy_id: taxonomyId, ok: false, error: error instanceof Error ? error.message : 'Etsy güncellemesi başarısız' });
+          results.push({ listing_id: listingId, section_id: sectionId, ok: false, error: error instanceof Error ? error.message : 'Etsy güncellemesi başarısız' });
         }
       }
 
@@ -98,7 +96,7 @@ export default async function handler(req, res) {
       });
       return;
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Etsy kategori güncellemesi başarısız';
+      const message = error instanceof Error ? error.message : 'Etsy mağaza bölümü güncellemesi başarısız';
       const status = message === 'Unauthorized' ? 401 : message === 'Forbidden' ? 403 : 502;
       res.status(status).json({ error: message });
       return;

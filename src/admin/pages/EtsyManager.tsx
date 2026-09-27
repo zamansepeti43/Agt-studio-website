@@ -43,65 +43,39 @@ function suggestSectionId(listing: EtsyListing, sections: EtsySection[]) {
   return best?.id ?? null;
 }
 
-function taxonomyLabel(value: string) {
-  const translations: Record<string, string> = {
-    'paper & party supplies': 'Kağıt ve Parti Malzemeleri',
-    'paper': 'Kağıt',
-    'stationery design & templates': 'Kırtasiye Tasarımları ve Şablonlar',
-    'templates': 'Şablonlar',
-    'planner templates': 'Planlayıcı Şablonları',
-    'business templates': 'İş Şablonları',
-    'website templates': 'Web Sitesi Şablonları',
-    'spreadsheet templates': 'Hesap Tablosu Şablonları',
-    'printable': 'Yazdırılabilir',
-    'printables': 'Yazdırılabilirler',
-    'digital': 'Dijital',
-  };
-  return value
-    .split(' → ')
-    .map(part => translations[normalize(part)] || part)
-    .join(' → ');
-}
-
-function getCategoryGuide(listing: EtsyListing) {
+function suggestSectionId(listing: EtsyListing, sections: EtsySection[]) {
   const text = normalize(listing.title);
-  if (text.includes('travel planner')) return { title: 'Planlayıcı Şablonları', reason: 'Seyahat planlayıcıları bu ürün grubuna en yakın eşleşmedir.' };
-  if (text.includes('moving planner')) return { title: 'Planlayıcı Şablonları', reason: 'Taşınma planlayıcısı bir planlama şablonudur.' };
-  if (text.includes('planner')) return { title: 'Planlayıcı Şablonları', reason: 'Ürün adı planlayıcı/organizer türünü açıkça belirtiyor.' };
-  if (text.includes('bakery pricing')) return { title: 'İş Şablonları / Hesap Tablosu Şablonları', reason: 'Fırın fiyatlandırma ve maliyet hesabı için kullanılan iş aracıdır.' };
-  if (text.includes('pressure washing') || text.includes('job tracker') || text.includes('business pro') || text.includes('barber management')) return { title: 'İş Şablonları', reason: 'İşletme yönetimi, müşteri veya iş takibi amacı taşıyor.' };
-  if (text.includes('etsy seller') || text.includes('customer support') || text.includes('etsy profit') || text.includes('product research')) return { title: 'İş Şablonları', reason: 'Etsy satıcısı için yönetim, destek, araştırma veya kâr takibi aracı.' };
-  if (text.includes('subscription tracker') || text.includes('tracker')) return { title: 'Şablonlar', reason: 'Takip ve kayıt amacı taşıyan dijital şablon.' };
-  if (text.includes('api finder') || text.includes('ai api') || text.includes('android') || text.includes('apk') || text.includes('app builder')) return { title: 'Şablonlar', reason: 'Dijital yazılım/araç ürünü; Etsy taksonomisinde en yakın dijital şablon dalı kullanılmalı.' };
-  if (text.includes('prompt generator') || text.includes('ai prompt')) return { title: 'Şablonlar', reason: 'Yapay zekâ prompt/şablon üreticisi.' };
-  return { title: 'Elle kontrol edilmeli', reason: 'Ürün adından güvenli ve spesifik kategori çıkarılamıyor.' };
-}
-
-function suggestTaxonomyId(listing: EtsyListing, taxonomy: EtsyTaxonomy[]) {
-  const text = normalize(listing.title);
-  const groups = [
-    { keys: ['travel planner', 'moving planner', 'planner'], terms: ['planner templates', 'templates'] },
-    { keys: ['bakery pricing'], terms: ['spreadsheet templates', 'business templates', 'templates'] },
-    { keys: ['pressure washing', 'job tracker', 'business pro', 'barber management'], terms: ['business templates', 'templates'] },
-    { keys: ['etsy seller', 'customer support', 'etsy profit', 'product research'], terms: ['business templates', 'templates'] },
-    { keys: ['api finder', 'ai api', 'android', 'apk', 'windows apk', 'app builder'], terms: ['templates', 'website templates'] },
-    { keys: ['subscription tracker', 'tracker'], terms: ['spreadsheet templates', 'templates'] },
-    { keys: ['prompt generator', 'ai prompt'], terms: ['templates'] },
+  const rules = [
+    { keys: ['etsy seller', 'customer support', 'etsy tools', 'etsy profit', 'product research', 'etsy product'], labels: ['etsy satıcı araçları'] },
+    { keys: ['android', 'apk', 'android builder', 'android app'], labels: ['android geliştirici araçları'] },
+    { keys: ['api finder', 'ai api', 'prompt generator', 'ai prompt', 'developer', 'windows apk', 'app builder', 'ai tool'], labels: ['yapay zeka ve geliştirici araçları'] },
+    { keys: ['barber management', 'barbershop', 'beautyos', 'business management', 'business pro', 'pressure washing', 'job tracker'], labels: ['işletme yönetimi'] },
+    { keys: ['bakery pricing', 'pricing calculator', 'profit calculator', 'calculator'], labels: ['iş araçları'] },
+    { keys: ['travel planner', 'moving planner', 'planner', 'planning', 'organizer', 'checklist'], labels: ['planlayıcılar / verimlilik'] },
+    { keys: ['subscription tracker', 'habit tracker', 'life tracker', 'budget tracker', 'personal tracker'], labels: ['hayat verimliliği'] },
   ];
-  const group = groups.find(g => g.keys.some(k => text.includes(normalize(k))));
-  if (!group) return null;
   let best: { id: number; score: number } | null = null;
-  for (const node of taxonomy) {
-    const leaf = normalize(node.name);
-    let score = 0;
-    for (const term of group.terms) {
-      const t = normalize(term);
-      if (leaf === t) score += 20;
-      else if (leaf.includes(t)) score += 10;
+  for (const rule of rules) {
+    if (!rule.keys.some((key) => text.includes(normalize(key)))) continue;
+    for (const section of sections) {
+      const sectionText = normalize(section.title);
+      const score = rule.labels.some((label) => sectionText.includes(normalize(label))) ? 10 : 0;
+      if (score > 0 && (!best || score > best.score)) best = { id: section.shop_section_id, score };
     }
-    if (score && (!best || score > best.score)) best = { id: node.id, score };
   }
   return best?.id ?? null;
+}
+
+function sectionReason(listing: EtsyListing) {
+  const text = normalize(listing.title);
+  if (text.includes('etsy seller') || text.includes('customer support') || text.includes('etsy profit') || text.includes('product research')) return 'Etsy Satıcı Araçları';
+  if (text.includes('android') || text.includes('apk')) return 'Android Geliştirici Araçları';
+  if (text.includes('api finder') || text.includes('ai api') || text.includes('prompt generator') || text.includes('ai prompt') || text.includes('developer')) return 'Yapay Zeka ve Geliştirici Araçları';
+  if (text.includes('barber') || text.includes('beautyos') || text.includes('business management') || text.includes('business pro') || text.includes('pressure washing')) return 'İşletme Yönetimi';
+  if (text.includes('bakery pricing') || text.includes('pricing calculator') || text.includes('profit calculator')) return 'İş Araçları';
+  if (text.includes('travel planner') || text.includes('moving planner') || text.includes('planner') || text.includes('checklist')) return 'Planlayıcılar / Verimlilik';
+  if (text.includes('subscription tracker') || text.includes('habit tracker') || text.includes('life tracker')) return 'Hayat Verimliliği';
+  return 'Elle kontrol edilmeli';
 }
 
 export default function EtsyManager() {
@@ -110,8 +84,6 @@ export default function EtsyManager() {
   const [profile, setProfile] = useState<EtsyProfile | null>(null);
   const [listings, setListings] = useState<EtsyListing[]>([]);
   const [sections, setSections] = useState<EtsySection[]>([]);
-  const [taxonomy, setTaxonomy] = useState<EtsyTaxonomy[]>([]);
-  const [taxonomyAssignments, setTaxonomyAssignments] = useState<Record<number, number>>({});
   const [sectionAssignments, setSectionAssignments] = useState<Record<number, number>>({});
   const [listingCount, setListingCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -136,20 +108,15 @@ export default function EtsyManager() {
       if (!results[2].ok) throw new Error(listingsData.error || 'İlanlar alınamadı.');
       const loadedListings = listingsData.listings?.results || [];
       const loadedSections = Array.isArray(listingsData.sections) ? listingsData.sections : [];
-      const loadedTaxonomy = Array.isArray(listingsData.taxonomy) ? listingsData.taxonomy : [];
-      setShop(shopData); setProfile(profileData); setListings(loadedListings); setSections(loadedSections); setTaxonomy(loadedTaxonomy); setListingCount(Number(listingsData.listings?.count || 0));
+      setShop(shopData); setProfile(profileData); setListings(loadedListings); setSections(loadedSections); setListingCount(Number(listingsData.listings?.count || 0));
       const initialAssignments: Record<number, number> = {};
-      const initialTaxonomyAssignments: Record<number, number> = {};
       for (const listing of loadedListings) {
         const current = Number(listing.shop_section_id ?? listing.section_id ?? 0);
         const suggested = suggestSectionId(listing, loadedSections);
-        const taxonomyId = Number(listing.taxonomy_id || 0);
         if (current) initialAssignments[listing.listing_id] = current;
         else if (suggested) initialAssignments[listing.listing_id] = suggested;
-        if (taxonomyId) initialTaxonomyAssignments[listing.listing_id] = taxonomyId;
       }
       setSectionAssignments(initialAssignments);
-      setTaxonomyAssignments(initialTaxonomyAssignments);
       setForm({
         title: shopData.title || '',
         announcement: shopData.announcement || '',
@@ -208,14 +175,11 @@ export default function EtsyManager() {
     const changes = listings
       .map((listing) => {
         const currentSection = Number(listing.shop_section_id ?? listing.section_id ?? 0);
-        const currentTaxonomy = Number(listing.taxonomy_id || 0);
         const sectionId = Number(sectionAssignments[listing.listing_id] || 0);
-        const taxonomyId = Number(taxonomyAssignments[listing.listing_id] || 0);
         return {
           listing_id: listing.listing_id,
           section_id: sectionId || undefined,
-          taxonomy_id: taxonomyId || undefined,
-          changed: (sectionId && sectionId !== currentSection) || (taxonomyId && taxonomyId !== currentTaxonomy),
+          changed: sectionId && sectionId !== currentSection,
         };
       })
       .filter((item) => item.changed && (item.section_id || item.taxonomy_id))
@@ -321,62 +285,29 @@ export default function EtsyManager() {
 
           <div style={{ marginTop: 20, background: '#0d1117', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 24 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-              <div>
-                <h2 style={{ marginTop: 0, marginBottom: 4 }}>🗂️ Etsy Kategori + Mağaza Bölümü Yerleşimi</h2>
-                <p style={{ margin: 0, fontSize: 13, opacity: .75 }}>Her ürünün mevcut kategorisini ve önerilen kategorisini Türkçe gösteriyoruz. Sen onay vermeden Etsy'de hiçbir kategori değişmez.</p>
-              </div>
-              <button type="button" onClick={applySectionAssignments} disabled={applyingSections || (!sections.length && !taxonomy.length)}>{applyingSections ? 'Etsy’ye uygulanıyor...' : '✅ Seçimleri Onayla ve Etsy’ye Uygula'}</button>
+              <div><h2 style={{ marginTop: 0, marginBottom: 4 }}>📁 Etsy Mağaza Bölümlerine Dağıt</h2><p style={{ margin: 0, fontSize: 13, opacity: .75 }}>Burada sadece mağaza bölümlerini düzenliyoruz. Ürünlerin mevcut Etsy kategorilerine kesinlikle dokunmuyoruz.</p></div>
+              <button type="button" onClick={applySectionAssignments} disabled={applyingSections || !sections.length}>{applyingSections ? 'Etsy’ye uygulanıyor...' : '✅ Bölüm Dağılımını Onayla ve Etsy’ye Uygula'}</button>
             </div>
-
-            {!sections.length && !taxonomy.length && <p style={{ marginTop: 18 }}>Etsy kategori/bölüm verisi bulunamadı.</p>}
-            {(sections.length > 0 || taxonomy.length > 0) && <div style={{ marginTop: 18 }}>
-              {sections.length > 0 && <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
-                {sections.map((section) => <span key={section.shop_section_id} style={{ padding: '6px 10px', borderRadius: 999, background: '#151b23', border: '1px solid #303846', fontSize: 12 }}>📁 {section.title} · {section.active_listing_count ?? 0} ilan</span>)}
-              </div>}
+            {!sections.length && <p style={{ marginTop: 18 }}>Etsy mağaza bölümü bulunamadı.</p>}
+            {sections.length > 0 && <div style={{ marginTop: 18 }}>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>{sections.map((section) => <span key={section.shop_section_id} style={{ padding: '6px 10px', borderRadius: 999, background: '#151b23', border: '1px solid #303846', fontSize: 12 }}>📁 {section.title} · {section.active_listing_count ?? 0} ilan</span>)}</div>
               {listings.map((listing) => {
                 const suggestedSection = suggestSectionId(listing, sections);
-                const suggestedTaxonomy = suggestTaxonomyId(listing, taxonomy);
-                const categoryGuide = getCategoryGuide(listing);
                 const selectedSection = sectionAssignments[listing.listing_id] ?? suggestedSection ?? '';
-                const selectedTaxonomy = taxonomyAssignments[listing.listing_id] ?? (Number(listing.taxonomy_id || 0) || '');
                 const currentSectionId = Number(listing.shop_section_id ?? listing.section_id ?? 0);
                 const currentSectionName = sections.find((s) => s.shop_section_id === currentSectionId)?.title || 'Bölüm yok';
-                const currentTaxonomyPath = taxonomy.find((t) => t.id === Number(listing.taxonomy_id))?.path || '';
-                const currentTaxonomyName = currentTaxonomyPath ? taxonomyLabel(currentTaxonomyPath) : 'Kategori atanmış değil';
-                const suggestedTaxonomyPath = taxonomy.find((t) => t.id === Number(suggestedTaxonomy))?.path || '';
-                const suggestedTaxonomyName = suggestedTaxonomyPath ? taxonomyLabel(suggestedTaxonomyPath) : 'Güvenilir otomatik öneri yok';
-                const suggestedSectionName = sections.find((s) => s.shop_section_id === Number(suggestedSection))?.title || 'Eşleşme yok';
+                const suggestedSectionName = sections.find((s) => s.shop_section_id === Number(suggestedSection))?.title || 'Elle kontrol edilmeli';
                 return <div key={listing.listing_id} style={{ padding: '14px 0', borderBottom: '1px solid var(--admin-border, #e5e7eb)' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, 1.35fr) minmax(220px, 1fr) minmax(220px, 1fr)', gap: 12, alignItems: 'center' }}>
                     <div><strong>{listing.title}</strong><div style={{ fontSize: 12, opacity: .6 }}>ID: {listing.listing_id}</div></div>
-                    <div><small style={{ opacity: .65 }}>📌 Mevcut Etsy kategorisi</small><div style={{ marginTop: 4 }}>{currentTaxonomyName}</div><small style={{ opacity: .55 }}>🤖 Sistem önerisi: {suggestedTaxonomyName}</small></div>
-                    <div><small style={{ opacity: .65 }}>📁 Mevcut mağaza bölümü</small><div style={{ marginTop: 4 }}>{currentSectionName}</div><small style={{ opacity: .55 }}>🤖 Sistem önerisi: {suggestedSectionName}</small></div>
+                    <div><small style={{ opacity: .65 }}>📁 Mevcut mağaza bölümü</small><div style={{ marginTop: 4 }}>{currentSectionName}</div></div>
+                    <div><small style={{ opacity: .65 }}>🎯 Önerilen mağaza bölümü</small><div style={{ marginTop: 4 }}>{suggestedSectionName}</div><small style={{ opacity: .55 }}>Neden: {sectionReason(listing)}</small></div>
                   </div>
-                  <div style={{ marginTop: 10, padding: '10px 12px', borderRadius: 10, background: '#151b23', border: '1px solid #303846' }}>
-                    <strong>🎯 Bu ürün için kategori:</strong> {categoryGuide.title}
-                    <div style={{ fontSize: 12, opacity: .7, marginTop: 4 }}>{categoryGuide.reason}</div>
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, 1fr) minmax(240px, 1fr)', gap: 12, marginTop: 10 }}>
-                    <div>
-                      <small style={{ opacity: .65 }}>🗂️ Etsy kategorisi seç</small>
-                      <select value={selectedTaxonomy} onChange={(e) => setTaxonomyAssignments((prev) => ({ ...prev, [listing.listing_id]: Number(e.target.value) }))} style={{ ...fieldStyle, marginTop: 4 }}>
-                        <option value="">Kategori seç</option>
-                        {taxonomy.map((node) => <option key={node.id} value={node.id}>{taxonomyLabel(node.path)}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <small style={{ opacity: .65 }}>📁 Mağaza bölümü seç</small>
-                      <select value={selectedSection} onChange={(e) => setSectionAssignments((prev) => ({ ...prev, [listing.listing_id]: Number(e.target.value) }))} style={{ ...fieldStyle, marginTop: 4 }}>
-                        <option value="">Bölüm seç</option>
-                        {sections.map((section) => <option key={section.shop_section_id} value={section.shop_section_id}>{section.title}</option>)}
-                      </select>
-                    </div>
-                  </div>
+                  <div style={{ marginTop: 10 }}><small style={{ opacity: .65 }}>📁 Bu ürünü şu bölüme koy</small><select value={selectedSection} onChange={(e) => setSectionAssignments((prev) => ({ ...prev, [listing.listing_id]: Number(e.target.value) }))} style={{ ...fieldStyle, marginTop: 4 }}><option value="">Bölüm seç</option>{sections.map((section) => <option key={section.shop_section_id} value={section.shop_section_id}>{section.title}</option>)}</select></div>
                 </div>;
               })}
             </div>}
           </div>
-
           <div style={{ marginTop: 20, background: '#0d1117', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 24 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
               <h2 style={{ marginTop: 0, marginBottom: 0 }}>Aktif İlanlar</h2>

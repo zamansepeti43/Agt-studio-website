@@ -76,7 +76,7 @@ export default async function handler(req, res) {
           form.set('section_id', String(sectionId));
 
           await etsyApiFetch(`/shops/${shopId}/listings/${listingId}`, {
-            method: 'PATCH',
+            method: 'PUT',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8' },
             body: form.toString(),
           });

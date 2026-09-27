@@ -67,15 +67,13 @@ export default function EtsyManager() {
         fetch('/api/etsy/shop', { cache: 'no-store' }),
         fetch('/api/etsy/profile', { cache: 'no-store' }),
         fetch('/api/etsy/listings?state=active&limit=50&offset=0', { cache: 'no-store' }),
-        fetch('/api/etsy/sections', { cache: 'no-store' }),
       ]);
-      const shopData = await results[0].json(); const profileData = await results[1].json(); const listingsData = await results[2].json(); const sectionsData = await results[3].json();
+      const shopData = await results[0].json(); const profileData = await results[1].json(); const listingsData = await results[2].json();
       if (!results[0].ok) throw new Error(shopData.error || 'Mağaza bilgisi alınamadı.');
       if (!results[1].ok) throw new Error(profileData.error || 'Profil bilgisi alınamadı.');
       if (!results[2].ok) throw new Error(listingsData.error || 'İlanlar alınamadı.');
-      if (!results[3].ok) throw new Error(sectionsData.error || 'Mağaza kategorileri alınamadı.');
       const loadedListings = listingsData.listings?.results || [];
-      const loadedSections = sectionsData.sections || [];
+      const loadedSections = Array.isArray(listingsData.sections) ? listingsData.sections : [];
       setShop(shopData); setProfile(profileData); setListings(loadedListings); setSections(loadedSections); setListingCount(Number(listingsData.listings?.count || 0));
       const initialAssignments: Record<number, number> = {};
       for (const listing of loadedListings) {
@@ -153,7 +151,7 @@ export default function EtsyManager() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) throw new Error('Yönetici oturumu bulunamadı. Lütfen tekrar giriş yapın.');
-      const res = await fetch('/api/etsy/section-assignments', {
+      const res = await fetch('/api/etsy/listings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
         body: JSON.stringify({ assignments: changes }),

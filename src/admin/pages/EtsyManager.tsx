@@ -13,7 +13,8 @@ type EtsyShop = {
 };
 type EtsyProfile = { user_id?: number; primary_email?: string; first_name?: string; last_name?: string; image_url_75x75?: string; };
 type EtsyListing = { listing_id: number; title: string; state: string; section_id?: number | null; shop_section_id?: number | null; taxonomy_id?: number | null; price?: { amount?: number; divisor?: number; currency_code?: string }; quantity?: number; url?: string; };
-type EtsySection = { shop_section_id: number; title: string; rank?: number; active_listing_count?: number; };\ntype EtsyTaxonomy = { id: number; name: string; level?: number; parent_id?: number | null; path: string; };
+type EtsySection = { shop_section_id: number; title: string; rank?: number; active_listing_count?: number; };
+type EtsyTaxonomy = { id: number; name: string; level?: number; parent_id?: number | null; path: string; };
 
 const fieldStyle = { width: '100%', boxSizing: 'border-box' as const, padding: '11px 12px', borderRadius: 10, border: '1px solid var(--admin-border, #e5e7eb)', background: '#0d1117', color: 'inherit' };
 const labelStyle = { display: 'block', fontWeight: 700, marginBottom: 7, fontSize: 13, color: '#f0f3f6' };
@@ -44,12 +45,34 @@ function suggestSectionId(listing: EtsyListing, sections: EtsySection[]) {
   return best?.id ?? null;
 }
 
+function suggestTaxonomyId(listing: EtsyListing, taxonomy: EtsyTaxonomy[]) {
+  const text = normalize(listing.title);
+  const rules = [
+    { keys: ['etsy seller', 'etsy satıcı', 'customer support', 'etsy tools', 'etsy tool'], labels: ['business', 'software', 'digital', 'templates'] },
+    { keys: ['bakery', 'bakery pricing', 'baker', 'pastane'], labels: ['business', 'food', 'restaurant', 'menu', 'bakery'] },
+    { keys: ['api finder', 'ai api', 'developer', 'android', 'apk', 'windows app', 'no-code'], labels: ['software', 'computer', 'electronics', 'app', 'technology', 'digital'] },
+    { keys: ['planner', 'organizer', 'planning'], labels: ['paper', 'planner', 'organization', 'calendar', 'digital'] },
+  ];
+  let best: { id: number; score: number } | null = null;
+  for (const rule of rules) {
+    if (!rule.keys.some((key) => text.includes(normalize(key)))) continue;
+    for (const node of taxonomy) {
+      const nodeText = normalize(node.path);
+      const score = rule.labels.reduce((sum, label) => nodeText.includes(normalize(label)) ? sum + 1 : sum, 0);
+      if (score > 0 && (!best || score > best.score)) best = { id: node.id, score };
+    }
+  }
+  return best?.id ?? null;
+}
+
 export default function EtsyManager() {
   const [status, setStatus] = useState<EtsyStatus | null>(null);
   const [shop, setShop] = useState<EtsyShop | null>(null);
   const [profile, setProfile] = useState<EtsyProfile | null>(null);
   const [listings, setListings] = useState<EtsyListing[]>([]);
-  const [sections, setSections] = useState<EtsySection[]>([]);\n  const [taxonomy, setTaxonomy] = useState<EtsyTaxonomy[]>([]);\n  const [taxonomyAssignments, setTaxonomyAssignments] = useState<Record<number, number>>({});
+  const [sections, setSections] = useState<EtsySection[]>([]);
+  const [taxonomy, setTaxonomy] = useState<EtsyTaxonomy[]>([]);
+  const [taxonomyAssignments, setTaxonomyAssignments] = useState<Record<number, number>>({});
   const [sectionAssignments, setSectionAssignments] = useState<Record<number, number>>({});
   const [listingCount, setListingCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -74,15 +97,22 @@ export default function EtsyManager() {
       if (!results[2].ok) throw new Error(listingsData.error || 'İlanlar alınamadı.');
       const loadedListings = listingsData.listings?.results || [];
       const loadedSections = Array.isArray(listingsData.sections) ? listingsData.sections : [];
-      setShop(shopData); setProfile(profileData); setListings(loadedListings); setSections(loadedSections); setListingCount(Number(listingsData.listings?.count || 0));
+      const loadedTaxonomy = Array.isArray(listingsData.taxonomy) ? listingsData.taxonomy : [];
+      setShop(shopData); setProfile(profileData); setListings(loadedListings); setSections(loadedSections); setTaxonomy(loadedTaxonomy); setListingCount(Number(listingsData.listings?.count || 0));
       const initialAssignments: Record<number, number> = {};
+      const initialTaxonomyAssignments: Record<number, number> = {};
       for (const listing of loadedListings) {
-        const current = Number(listing.section_id || 0);
+        const current = Number(listing.shop_section_id ?? listing.section_id ?? 0);
         const suggested = suggestSectionId(listing, loadedSections);
-        const assignment = current || suggested;
-        if (assignment) initialAssignments[listing.listing_id] = assignment;
+        const taxonomyId = Number(listing.taxonomy_id || 0);
+        const suggestedTaxonomy = suggestTaxonomyId(listing, loadedTaxonomy);
+        if (current) initialAssignments[listing.listing_id] = current;
+        else if (suggested) initialAssignments[listing.listing_id] = suggested;
+        if (taxonomyId) initialTaxonomyAssignments[listing.listing_id] = taxonomyId;
+        else if (suggestedTaxonomy) initialTaxonomyAssignments[listing.listing_id] = suggestedTaxonomy;
       }
       setSectionAssignments(initialAssignments);
+      setTaxonomyAssignments(initialTaxonomyAssignments);
       setForm({
         title: shopData.title || '',
         announcement: shopData.announcement || '',

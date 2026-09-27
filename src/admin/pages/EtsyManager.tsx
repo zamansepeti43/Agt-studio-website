@@ -12,8 +12,8 @@ type EtsyShop = {
   policy_shipping?: string | null; policy_refunds?: string | null; policy_privacy?: string | null;
 };
 type EtsyProfile = { user_id?: number; primary_email?: string; first_name?: string; last_name?: string; image_url_75x75?: string; };
-type EtsyListing = { listing_id: number; title: string; state: string; section_id?: number | null; price?: { amount?: number; divisor?: number; currency_code?: string }; quantity?: number; url?: string; };
-type EtsySection = { shop_section_id: number; title: string; rank?: number; active_listing_count?: number; };
+type EtsyListing = { listing_id: number; title: string; state: string; section_id?: number | null; shop_section_id?: number | null; taxonomy_id?: number | null; price?: { amount?: number; divisor?: number; currency_code?: string }; quantity?: number; url?: string; };
+type EtsySection = { shop_section_id: number; title: string; rank?: number; active_listing_count?: number; };\ntype EtsyTaxonomy = { id: number; name: string; level?: number; parent_id?: number | null; path: string; };
 
 const fieldStyle = { width: '100%', boxSizing: 'border-box' as const, padding: '11px 12px', borderRadius: 10, border: '1px solid var(--admin-border, #e5e7eb)', background: '#0d1117', color: 'inherit' };
 const labelStyle = { display: 'block', fontWeight: 700, marginBottom: 7, fontSize: 13, color: '#f0f3f6' };
@@ -49,7 +49,7 @@ export default function EtsyManager() {
   const [shop, setShop] = useState<EtsyShop | null>(null);
   const [profile, setProfile] = useState<EtsyProfile | null>(null);
   const [listings, setListings] = useState<EtsyListing[]>([]);
-  const [sections, setSections] = useState<EtsySection[]>([]);
+  const [sections, setSections] = useState<EtsySection[]>([]);\n  const [taxonomy, setTaxonomy] = useState<EtsyTaxonomy[]>([]);\n  const [taxonomyAssignments, setTaxonomyAssignments] = useState<Record<number, number>>({});
   const [sectionAssignments, setSectionAssignments] = useState<Record<number, number>>({});
   const [listingCount, setListingCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -139,8 +139,20 @@ export default function EtsyManager() {
 
   const applySectionAssignments = async () => {
     const changes = listings
-      .map((listing) => ({ listing_id: listing.listing_id, section_id: sectionAssignments[listing.listing_id] }))
-      .filter((item) => item.section_id && Number(item.section_id) !== Number(listings.find((x) => x.listing_id === item.listing_id)?.section_id));
+      .map((listing) => {
+        const currentSection = Number(listing.shop_section_id ?? listing.section_id ?? 0);
+        const currentTaxonomy = Number(listing.taxonomy_id || 0);
+        const sectionId = Number(sectionAssignments[listing.listing_id] || 0);
+        const taxonomyId = Number(taxonomyAssignments[listing.listing_id] || 0);
+        return {
+          listing_id: listing.listing_id,
+          section_id: sectionId || undefined,
+          taxonomy_id: taxonomyId || undefined,
+          changed: (sectionId && sectionId !== currentSection) || (taxonomyId && taxonomyId !== currentTaxonomy),
+        };
+      })
+      .filter((item) => item.changed && (item.section_id || item.taxonomy_id))
+      .map(({ changed, ...item }) => item);
 
     if (!changes.length) {
       setSaved('Onaylanacak kategori değişikliği yok.');
@@ -249,25 +261,42 @@ export default function EtsyManager() {
               <button type="button" onClick={applySectionAssignments} disabled={applyingSections || !sections.length}>{applyingSections ? 'Etsy’ye uygulanıyor...' : '✅ Seçimleri Onayla ve Etsy’ye Uygula'}</button>
             </div>
 
-            {!sections.length && <p style={{ marginTop: 18 }}>Etsy mağazasında kullanılabilir kategori/bölüm bulunamadı.</p>}
-            {sections.length > 0 && <div style={{ marginTop: 18 }}>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
-                {sections.map((section) => <span key={section.shop_section_id} style={{ padding: '6px 10px', borderRadius: 999, background: '#151b23', border: '1px solid #303846', fontSize: 12 }}>{section.title} · {section.active_listing_count ?? 0} ilan</span>)}
-              </div>
+            {!sections.length && !taxonomy.length && <p style={{ marginTop: 18 }}>Etsy kategori/bölüm verisi bulunamadı.</p>}
+            {(sections.length > 0 || taxonomy.length > 0) && <div style={{ marginTop: 18 }}>
+              {sections.length > 0 && <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
+                {sections.map((section) => <span key={section.shop_section_id} style={{ padding: '6px 10px', borderRadius: 999, background: '#151b23', border: '1px solid #303846', fontSize: 12 }}>📁 {section.title} · {section.active_listing_count ?? 0} ilan</span>)}
+              </div>}
               {listings.map((listing) => {
-                const suggested = suggestSectionId(listing, sections);
-                const selected = sectionAssignments[listing.listing_id] ?? suggested ?? '';
-                const currentName = sections.find((s) => s.shop_section_id === Number(listing.section_id))?.title || 'Kategori yok';
-                const suggestedName = sections.find((s) => s.shop_section_id === Number(suggested))?.title || 'Eşleşme bulunamadı';
-                return <div key={listing.listing_id} style={{ display: 'grid', gridTemplateColumns: 'minmax(260px, 1.5fr) minmax(180px, 1fr) minmax(180px, 1fr)', gap: 12, alignItems: 'center', padding: '12px 0', borderBottom: '1px solid var(--admin-border, #e5e7eb)' }}>
-                  <div><strong>{listing.title}</strong><div style={{ fontSize: 12, opacity: .6 }}>ID: {listing.listing_id}</div></div>
-                  <div><small style={{ opacity: .65 }}>Mevcut</small><div style={{ marginTop: 4 }}>{currentName}</div></div>
-                  <div>
-                    <small style={{ opacity: .65 }}>Önerilen: {suggestedName}</small>
-                    <select value={selected} onChange={(e) => setSectionAssignments((prev) => ({ ...prev, [listing.listing_id]: Number(e.target.value) }))} style={{ ...fieldStyle, marginTop: 4 }}>
-                      <option value="">Kategori seç</option>
-                      {sections.map((section) => <option key={section.shop_section_id} value={section.shop_section_id}>{section.title}</option>)}
-                    </select>
+                const suggestedSection = suggestSectionId(listing, sections);
+                const suggestedTaxonomy = suggestTaxonomyId(listing, taxonomy);
+                const selectedSection = sectionAssignments[listing.listing_id] ?? suggestedSection ?? '';
+                const selectedTaxonomy = taxonomyAssignments[listing.listing_id] ?? suggestedTaxonomy ?? '';
+                const currentSectionId = Number(listing.shop_section_id ?? listing.section_id ?? 0);
+                const currentSectionName = sections.find((s) => s.shop_section_id === currentSectionId)?.title || 'Bölüm yok';
+                const currentTaxonomyName = taxonomy.find((t) => t.id === Number(listing.taxonomy_id))?.path || 'Kategori yok';
+                const suggestedTaxonomyName = taxonomy.find((t) => t.id === Number(suggestedTaxonomy))?.path || 'Eşleşme yok';
+                const suggestedSectionName = sections.find((s) => s.shop_section_id === Number(suggestedSection))?.title || 'Eşleşme yok';
+                return <div key={listing.listing_id} style={{ padding: '14px 0', borderBottom: '1px solid var(--admin-border, #e5e7eb)' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, 1.35fr) minmax(220px, 1fr) minmax(220px, 1fr)', gap: 12, alignItems: 'center' }}>
+                    <div><strong>{listing.title}</strong><div style={{ fontSize: 12, opacity: .6 }}>ID: {listing.listing_id}</div></div>
+                    <div><small style={{ opacity: .65 }}>Mevcut Etsy kategorisi</small><div style={{ marginTop: 4 }}>{currentTaxonomyName}</div><small style={{ opacity: .55 }}>Öneri: {suggestedTaxonomyName}</small></div>
+                    <div><small style={{ opacity: .65 }}>Mevcut mağaza bölümü</small><div style={{ marginTop: 4 }}>{currentSectionName}</div><small style={{ opacity: .55 }}>Öneri: {suggestedSectionName}</small></div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, 1fr) minmax(240px, 1fr)', gap: 12, marginTop: 10 }}>
+                    <div>
+                      <small style={{ opacity: .65 }}>Marketplace kategorisi seç</small>
+                      <select value={selectedTaxonomy} onChange={(e) => setTaxonomyAssignments((prev) => ({ ...prev, [listing.listing_id]: Number(e.target.value) }))} style={{ ...fieldStyle, marginTop: 4 }}>
+                        <option value="">Kategori seç</option>
+                        {taxonomy.map((node) => <option key={node.id} value={node.id}>{node.path}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <small style={{ opacity: .65 }}>Mağaza bölümü seç</small>
+                      <select value={selectedSection} onChange={(e) => setSectionAssignments((prev) => ({ ...prev, [listing.listing_id]: Number(e.target.value) }))} style={{ ...fieldStyle, marginTop: 4 }}>
+                        <option value="">Bölüm seç</option>
+                        {sections.map((section) => <option key={section.shop_section_id} value={section.shop_section_id}>{section.title}</option>)}
+                      </select>
+                    </div>
                   </div>
                 </div>;
               })}

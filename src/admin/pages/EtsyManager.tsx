@@ -12,20 +12,50 @@ type EtsyShop = {
   policy_shipping?: string | null; policy_refunds?: string | null; policy_privacy?: string | null;
 };
 type EtsyProfile = { user_id?: number; primary_email?: string; first_name?: string; last_name?: string; image_url_75x75?: string; };
-type EtsyListing = { listing_id: number; title: string; state: string; price?: { amount?: number; divisor?: number; currency_code?: string }; quantity?: number; url?: string; };
+type EtsyListing = { listing_id: number; title: string; state: string; section_id?: number | null; price?: { amount?: number; divisor?: number; currency_code?: string }; quantity?: number; url?: string; };
+type EtsySection = { shop_section_id: number; title: string; rank?: number; active_listing_count?: number; };
 
 const fieldStyle = { width: '100%', boxSizing: 'border-box' as const, padding: '11px 12px', borderRadius: 10, border: '1px solid var(--admin-border, #e5e7eb)', background: '#0d1117', color: 'inherit' };
 const labelStyle = { display: 'block', fontWeight: 700, marginBottom: 7, fontSize: 13, color: '#f0f3f6' };
+
+function normalize(value: string) {
+  return value.toLocaleLowerCase('tr-TR').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').replace(/ı/g, 'i');
+}
+
+function suggestSectionId(listing: EtsyListing, sections: EtsySection[]) {
+  const text = normalize(listing.title);
+  const rules: Array<{ keys: string[]; labels: string[] }> = [
+    { keys: ['etsy', 'seller', 'ecommerce', 'e-commerce', 'product research', 'product idea', 'customer support', 'profit'], labels: ['etsy', 'e-commerce', 'ecommerce', 'seller', 'etsy tools', 'etsy satıcı', 'etsy araç'] },
+    { keys: ['ai api', 'api finder', 'apk', 'android', 'developer', 'no-code', 'windows apk'], labels: ['ai', 'developer', 'android', 'apk', 'yapay zeka', 'geliştirici'] },
+    { keys: ['barber', 'barbershop', 'beauty', 'bakery', 'pressure washing', 'business', 'pricing', 'job tracker'], labels: ['business', 'işletme', 'business tools', 'management', 'yazılım', 'berber', 'güzellik', 'bakery', 'fiyat'] },
+    { keys: ['planner', 'planning', 'travel', 'moving', 'organizer'], labels: ['planner', 'planlayıcı', 'productivity', 'organizasyon', 'seyahat', 'taşınma'] },
+  ];
+
+  let best: { id: number; score: number } | null = null;
+  for (const rule of rules) {
+    if (!rule.keys.some((key) => text.includes(normalize(key)))) continue;
+    for (const section of sections) {
+      const sectionText = normalize(section.title);
+      const score = rule.labels.reduce((sum, label) => sectionText.includes(normalize(label)) ? sum + 2 : sum, 0);
+      if (score > 0 && (!best || score > best.score)) best = { id: section.shop_section_id, score };
+    }
+  }
+
+  return best?.id ?? null;
+}
 
 export default function EtsyManager() {
   const [status, setStatus] = useState<EtsyStatus | null>(null);
   const [shop, setShop] = useState<EtsyShop | null>(null);
   const [profile, setProfile] = useState<EtsyProfile | null>(null);
   const [listings, setListings] = useState<EtsyListing[]>([]);
+  const [sections, setSections] = useState<EtsySection[]>([]);
+  const [sectionAssignments, setSectionAssignments] = useState<Record<number, number>>({});
   const [listingCount, setListingCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [dataLoading, setDataLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [applyingSections, setApplyingSections] = useState(false);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState('');
   const [form, setForm] = useState({ title: '', announcement: '', sale_message: '', digital_sale_message: '' });
@@ -37,12 +67,21 @@ export default function EtsyManager() {
         fetch('/api/etsy/shop', { cache: 'no-store' }),
         fetch('/api/etsy/profile', { cache: 'no-store' }),
         fetch('/api/etsy/listings?state=active&limit=50&offset=0', { cache: 'no-store' }),
+        fetch('/api/etsy/sections', { cache: 'no-store' }),
       ]);
-      const shopData = await results[0].json(); const profileData = await results[1].json(); const listingsData = await results[2].json();
+      const shopData = await results[0].json(); const profileData = await results[1].json(); const listingsData = await results[2].json(); const sectionsData = await results[3].json();
       if (!results[0].ok) throw new Error(shopData.error || 'Mağaza bilgisi alınamadı.');
       if (!results[1].ok) throw new Error(profileData.error || 'Profil bilgisi alınamadı.');
       if (!results[2].ok) throw new Error(listingsData.error || 'İlanlar alınamadı.');
-      setShop(shopData); setProfile(profileData); setListings(listingsData.listings?.results || []); setListingCount(Number(listingsData.listings?.count || 0));
+      if (!results[3].ok) throw new Error(sectionsData.error || 'Mağaza kategorileri alınamadı.');
+      const loadedListings = listingsData.listings?.results || [];
+      const loadedSections = sectionsData.sections || [];
+      setShop(shopData); setProfile(profileData); setListings(loadedListings); setSections(loadedSections); setListingCount(Number(listingsData.listings?.count || 0));
+      const initialAssignments: Record<number, number> = {};
+      for (const listing of loadedListings) {
+        if (listing.section_id) initialAssignments[listing.listing_id] = Number(listing.section_id);
+      }
+      setSectionAssignments(initialAssignments);
       setForm({
         title: shopData.title || '',
         announcement: shopData.announcement || '',
@@ -95,6 +134,37 @@ export default function EtsyManager() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'SEO optimizasyonu uygulanamadı.');
     } finally { setSaving(false); }
+  };
+
+  const applySectionAssignments = async () => {
+    const changes = listings
+      .map((listing) => ({ listing_id: listing.listing_id, section_id: sectionAssignments[listing.listing_id] }))
+      .filter((item) => item.section_id && Number(item.section_id) !== Number(listings.find((x) => x.listing_id === item.listing_id)?.section_id));
+
+    if (!changes.length) {
+      setSaved('Onaylanacak kategori değişikliği yok.');
+      setTimeout(() => setSaved(''), 3500);
+      return;
+    }
+
+    setApplyingSections(true); setError(''); setSaved('');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('Yönetici oturumu bulunamadı. Lütfen tekrar giriş yapın.');
+      const res = await fetch('/api/etsy/section-assignments', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ assignments: changes }),
+      });
+      const data = await res.json();
+      if (!res.ok && res.status !== 207) throw new Error(data.error || 'Kategori değişiklikleri uygulanamadı.');
+      if (data.failed) throw new Error(`${data.updated} ürün güncellendi, ${data.failed} ürün güncellenemedi.`);
+      setSaved(`Onaylandı ve Etsy'ye uygulandı: ${data.updated} ürün.`);
+      await loadData();
+      setTimeout(() => setSaved(''), 6000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Kategori değişiklikleri uygulanamadı.');
+    } finally { setApplyingSections(false); }
   };
 
   const saveShop = async () => {
@@ -167,6 +237,40 @@ export default function EtsyManager() {
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}><button type="button" onClick={saveShop} disabled={saving}>{saving ? 'Etsy’ye kaydediliyor...' : '💾 Etsy’ye Kaydet'}</button></div>
             </div>
             <p style={{ marginBottom: 0, marginTop: 14, fontSize: 12, opacity: .65 }}>Kaydet butonu gerçek Etsy API'sine PUT gönderir; mevcut alanları değiştirmeden yalnızca bu dört alanı günceller.</p>
+          </div>
+
+          <div style={{ marginTop: 20, background: '#0d1117', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 24 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+              <div>
+                <h2 style={{ marginTop: 0, marginBottom: 4 }}>🗂️ Etsy Kategori Yerleşim Önizlemesi</h2>
+                <p style={{ margin: 0, fontSize: 13, opacity: .75 }}>Etsy'den gerçek ilanları ve mağaza bölümlerini çeker. Aşağıdaki seçimler sadece taslaktır; sen onaylamadan Etsy'de hiçbir değişiklik yapılmaz.</p>
+              </div>
+              <button type="button" onClick={applySectionAssignments} disabled={applyingSections || !sections.length}>{applyingSections ? 'Etsy’ye uygulanıyor...' : '✅ Seçimleri Onayla ve Etsy’ye Uygula'}</button>
+            </div>
+
+            {!sections.length && <p style={{ marginTop: 18 }}>Etsy mağazasında kullanılabilir kategori/bölüm bulunamadı.</p>}
+            {sections.length > 0 && <div style={{ marginTop: 18 }}>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
+                {sections.map((section) => <span key={section.shop_section_id} style={{ padding: '6px 10px', borderRadius: 999, background: '#151b23', border: '1px solid #303846', fontSize: 12 }}>{section.title} · {section.active_listing_count ?? 0} ilan</span>)}
+              </div>
+              {listings.map((listing) => {
+                const suggested = suggestSectionId(listing, sections);
+                const selected = sectionAssignments[listing.listing_id] ?? suggested ?? '';
+                const currentName = sections.find((s) => s.shop_section_id === Number(listing.section_id))?.title || 'Kategori yok';
+                const suggestedName = sections.find((s) => s.shop_section_id === Number(suggested))?.title || 'Eşleşme bulunamadı';
+                return <div key={listing.listing_id} style={{ display: 'grid', gridTemplateColumns: 'minmax(260px, 1.5fr) minmax(180px, 1fr) minmax(180px, 1fr)', gap: 12, alignItems: 'center', padding: '12px 0', borderBottom: '1px solid var(--admin-border, #e5e7eb)' }}>
+                  <div><strong>{listing.title}</strong><div style={{ fontSize: 12, opacity: .6 }}>ID: {listing.listing_id}</div></div>
+                  <div><small style={{ opacity: .65 }}>Mevcut</small><div style={{ marginTop: 4 }}>{currentName}</div></div>
+                  <div>
+                    <small style={{ opacity: .65 }}>Önerilen: {suggestedName}</small>
+                    <select value={selected} onChange={(e) => setSectionAssignments((prev) => ({ ...prev, [listing.listing_id]: Number(e.target.value) }))} style={{ ...fieldStyle, marginTop: 4 }}>
+                      <option value="">Kategori seç</option>
+                      {sections.map((section) => <option key={section.shop_section_id} value={section.shop_section_id}>{section.title}</option>)}
+                    </select>
+                  </div>
+                </div>;
+              })}
+            </div>}
           </div>
 
           <div style={{ marginTop: 20, background: '#0d1117', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 24 }}>

@@ -1,5 +1,15 @@
 import { etsyApiFetch, getEtsyAccessToken, requireAdminRequest } from './_lib.js';
 
+function flattenTaxonomy(nodes, parentPath = []) {
+  const out = [];
+  for (const node of Array.isArray(nodes) ? nodes : []) {
+    const path = [...parentPath, node.name].filter(Boolean);
+    out.push({ id: Number(node.id), name: String(node.name || ''), level: Number(node.level || 0), parent_id: node.parent_id == null ? null : Number(node.parent_id), path: path.join(' → ') });
+    if (Array.isArray(node.children)) out.push(...flattenTaxonomy(node.children, path));
+  }
+  return out;
+}
+
 export default async function handler(req, res) {
   if (req.method === 'GET') {
     try {
@@ -14,9 +24,10 @@ export default async function handler(req, res) {
         state, limit: String(limit), offset: String(offset), sort_on: 'updated', includes: 'Images',
       });
 
-      const [listings, sections] = await Promise.all([
+      const [listings, sections, taxonomy] = await Promise.all([
         etsyApiFetch(`/shops/${shop.shop_id}/listings?${query.toString()}`),
         etsyApiFetch(`/shops/${shop.shop_id}/sections`),
+        etsyApiFetch('/seller-taxonomy/nodes'),
       ]);
 
       res.setHeader('Cache-Control', 'no-store');
@@ -24,6 +35,7 @@ export default async function handler(req, res) {
         shop,
         listings,
         sections: Array.isArray(sections?.results) ? sections.results : [],
+        taxonomy: flattenTaxonomy(taxonomy?.results || []),
       });
       return;
     } catch (error) {
@@ -53,20 +65,26 @@ export default async function handler(req, res) {
       const results = [];
       for (const item of assignments) {
         const listingId = Number(item?.listing_id);
-        const sectionId = Number(item?.section_id);
-        if (!listingId || !sectionId) {
+        const sectionId = item?.section_id == null || item?.section_id === '' ? null : Number(item.section_id);
+        const taxonomyId = item?.taxonomy_id == null || item?.taxonomy_id === '' ? null : Number(item.taxonomy_id);
+        if (!listingId || (!sectionId && !taxonomyId)) {
           results.push({ listing_id: listingId || null, ok: false, error: 'Geçersiz ilan veya kategori.' });
           continue;
         }
+
         try {
+          const form = new URLSearchParams();
+          if (sectionId) form.set('section_id', String(sectionId));
+          if (taxonomyId) form.set('taxonomy_id', String(taxonomyId));
+
           await etsyApiFetch(`/shops/${shopId}/listings/${listingId}`, {
-            method: 'PUT',
+            method: 'PATCH',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8' },
-            body: new URLSearchParams({ section_id: String(sectionId) }).toString(),
+            body: form.toString(),
           });
-          results.push({ listing_id: listingId, section_id: sectionId, ok: true });
+          results.push({ listing_id: listingId, section_id: sectionId, taxonomy_id: taxonomyId, ok: true });
         } catch (error) {
-          results.push({ listing_id: listingId, section_id: sectionId, ok: false, error: error instanceof Error ? error.message : 'Etsy güncellemesi başarısız' });
+          results.push({ listing_id: listingId, section_id: sectionId, taxonomy_id: taxonomyId, ok: false, error: error instanceof Error ? error.message : 'Etsy güncellemesi başarısız' });
         }
       }
 

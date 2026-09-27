@@ -19,7 +19,7 @@ const fieldStyle = { width: '100%', boxSizing: 'border-box' as const, padding: '
 const labelStyle = { display: 'block', fontWeight: 700, marginBottom: 7, fontSize: 13, color: '#f0f3f6' };
 
 function normalize(value: string) {
-  return value.toLocaleLowerCase('tr-TR').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').replace(/ı/g, 'i');
+  return value.toLocaleLowerCase('tr-TR').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ı/g, 'i');
 }
 
 function suggestSectionId(listing: EtsyListing, sections: EtsySection[]) {
@@ -79,7 +79,9 @@ export default function EtsyManager() {
       setShop(shopData); setProfile(profileData); setListings(loadedListings); setSections(loadedSections); setListingCount(Number(listingsData.listings?.count || 0));
       const initialAssignments: Record<number, number> = {};
       for (const listing of loadedListings) {
-        if (listing.section_id) initialAssignments[listing.listing_id] = Number(listing.section_id);
+        const current = Number(listing.section_id || 0);
+        const suggested = suggestSectionId(listing, loadedSections);
+        if (current || suggested) initialAssignments[listing.listing_id] = current || suggested;
       }
       setSectionAssignments(initialAssignments);
       setForm({

@@ -130,9 +130,9 @@ function nextPublishAt(publishedAt) {
 
 // Build a valid Istanbul-local schedule for each hourly product slot.
 // 18 ürün için 10:00'dan başlayıp saatlik ilerler; 00:00 sonrası ertesi takvim gününe taşınır.
-function scheduledAtForSlot(dayOffset, productIndex, startHour = 19) {
+function scheduledAtForSlot(dayOffset, productIndex, startHour = 0) {
   const targetDay = istanbulDate(new Date(Date.now() + dayOffset * 24 * 60 * 60 * 1000));
-  const base = new Date(`${targetDay}T${String(startHour).padStart(2, '0')}:00:00+03:00`);
+  const base = new Date(`${targetDay}T${String(startHour).padStart(2, '0')}:15:00+03:00`);
   base.setTime(base.getTime() + productIndex * 60 * 60 * 1000);
   return base.toISOString();
 }
@@ -202,7 +202,7 @@ async function syncQueue() {
   // is published, the next day starts the sequence again from image 1.
   const now = new Date();
   const today = istanbulDate(now);
-  const startHour = 10; // Türkiye saati; her ürün günde 1 görsel, ürünler arasında 1 saat.
+  const startHour = 0; // Türkiye saati; ilk slot 00:15, sonra saatlik.
 
   for (let productIndex = 0; productIndex < listings.length; productIndex += 1) {
     const listing = listings[productIndex];

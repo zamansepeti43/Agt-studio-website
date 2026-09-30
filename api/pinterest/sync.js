@@ -1,5 +1,8 @@
+import { createHash } from 'node:crypto';
 import { etsyApiFetch, getEtsyAccessToken, requireAdminRequest } from '../etsy/_lib.js';
 import { pinterestFetch, supabaseRest, dispatchPushNotification } from './_lib.js';
+
+const SUPABASE_CRON_TOKEN_SHA256 = 'b5915c72b16197393050acda5bb3376fb5a7fa1a6da1e68393eaf0e7dbea4ae6';
 
 function isCronAuthorized(req) {
   const secret = process.env.CRON_SECRET;
@@ -8,8 +11,15 @@ function isCronAuthorized(req) {
   return auth === `Bearer ${secret}`;
 }
 
+function isSupabaseCronAuthorized(req) {
+  const token = String(req.headers['x-agt-cron-token'] || '');
+  if (!token) return false;
+  const digest = createHash('sha256').update(token).digest('hex');
+  return digest === SUPABASE_CRON_TOKEN_SHA256;
+}
+
 async function authorize(req) {
-  if (isCronAuthorized(req)) return { role: 'cron', user: null };
+  if (isCronAuthorized(req) || isSupabaseCronAuthorized(req)) return { role: 'cron', user: null };
   const user = await requireAdminRequest(req);
   return { role: 'admin', user };
 }

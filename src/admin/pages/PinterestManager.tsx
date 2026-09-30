@@ -304,7 +304,7 @@ export default function PinterestManager() {
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
               <div>
                 <h2 style={{ margin: 0 }}>📋 Etsy → Pinterest sırası</h2>
-                <p style={{ marginBottom: 0, opacity: .72 }}>Yeni ilan geldiğinde kuyruğun sonuna eklenir. Her gün yalnızca bir sonraki ilan yayınlanır.</p>
+                <p style={{ marginBottom: 0, opacity: .72 }}>Yeni ilan geldiğinde uygun panoya eşleştirilir. Her aktif ürün günde 1 görsel yayınlar; ürünler saatlik slotlarda ilerler.</p>
               </div>
               <strong>Sonraki: {nextIndex ? `#${nextIndex}` : '—'}</strong>
             </div>
@@ -375,7 +375,7 @@ export default function PinterestManager() {
               </div>
               <div style={{ padding: 16, borderRadius: 12, border: '1px solid var(--admin-border, #e5e7eb)' }}>
                 <strong>Zamanlama</strong>
-                <p style={{ marginBottom: 0, opacity: .72 }}>Başlangıç zamanımız Türkiye saatiyle 19:00. Pinterest'teki gerçek hesap verileri oluştukça zamanlamayı kendi Analytics verimize göre değiştirebiliriz.</p>
+                <p style={{ marginBottom: 0, opacity: .72 }}>Başlangıç zamanımız Türkiye saatiyle 00:15. 18 ürün için slotlar 00:15–17:15 arasındadır; her ürünün sonraki görseli ertesi gün aynı saatte yayınlanır.</p>
               </div>
               {!data?.pinterestConnected && (
                 <a href="/api/pinterest/connect"><button type="button">🔗 Pinterest OAuth bağlantısını tamamla</button></a>

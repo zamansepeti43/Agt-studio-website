@@ -96,6 +96,31 @@ export default function PinterestManager() {
     }
   };
 
+  const syncQueueNow = async () => {
+    setRefreshing(true);
+    setError('');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('Yönetici oturumu bulunamadı. Lütfen tekrar giriş yapın.');
+
+      const res = await fetch('/api/pinterest/sync', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: 'sync' }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Pinterest kuyruğu senkronize edilemedi.');
+      setData(json);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Pinterest senkronizasyonu başarısız.');
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const enablePushNotifications = async () => {
     setError('');
     try {
@@ -219,8 +244,8 @@ export default function PinterestManager() {
           <p>Etsy ilanlarının görsellerini ürün başına günde 1 kez, saatlik aralıklarla Pinterest'e planla.</p>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <button type="button" onClick={loadQueue} disabled={refreshing}>
-            {refreshing ? 'Yenileniyor...' : '↻ Kuyruğu Yenile'}
+          <button type="button" onClick={syncQueueNow} disabled={refreshing}>
+            {refreshing ? 'Senkronize ediliyor...' : '↻ Kuyruğu Yenile'}
           </button>
           <button type="button" onClick={enablePushNotifications}>
             📱 Telefon Bildirimlerini Aç

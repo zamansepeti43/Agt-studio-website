@@ -9,7 +9,7 @@ export const PINTEREST_SCOPES = [
 ];
 
 function config() {
-  const appId = process.env.PINTEREST_APP_ID || '1612529';
+  const appId = process.env.PINTEREST_APP_ID || '1614830';
   const appSecret = process.env.PINTEREST_APP_SECRET;
   const redirectUri =
     process.env.PINTEREST_REDIRECT_URI ||

@@ -119,7 +119,7 @@ function nextPublishAt(publishedAt) {
 }
 
 // Build a valid Istanbul-local schedule for each hourly product slot.
-// Product slots can cross midnight, so never construct invalid hours such as 25:00.
+// 18 ürün için 10:00'dan başlayıp saatlik ilerler; 00:00 sonrası ertesi takvim gününe taşınır.
 function scheduledAtForSlot(dayOffset, productIndex, startHour = 19) {
   const targetDay = istanbulDate(new Date(Date.now() + dayOffset * 24 * 60 * 60 * 1000));
   const base = new Date(`${targetDay}T${String(startHour).padStart(2, '0')}:00:00+03:00`);
@@ -192,7 +192,7 @@ async function syncQueue() {
   // is published, the next day starts the sequence again from image 1.
   const now = new Date();
   const today = istanbulDate(now);
-  const startHour = 19; // Türkiye saati; 24 ürün için saatler gece yarısını geçebilir.
+  const startHour = 10; // Türkiye saati; her ürün günde 1 görsel, ürünler arasında 1 saat.
 
   for (let productIndex = 0; productIndex < listings.length; productIndex += 1) {
     const listing = listings[productIndex];
@@ -267,8 +267,8 @@ async function syncQueue() {
         continue;
       }
 
-      // The next unpublished image gets scheduled for the next available day.
-      // Future images are kept in the queue but receive their own future date.
+      // Her ürün günde yalnızca 1 görsel yayınlanır. Aynı ürünün sonraki görseli
+      // bir sonraki gün aynı saat dilimine planlanır.
       const existingSchedule = existingRow?.scheduled_at;
       const dayOffset = imageIndex + 1;
       const scheduledAt = scheduledAtForSlot(dayOffset, productIndex, startHour);

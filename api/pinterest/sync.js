@@ -118,6 +118,14 @@ function nextPublishAt(publishedAt) {
   return `${targetDay}T19:00:00+03:00`;
 }
 
+// Build a valid Istanbul-local schedule for each hourly product slot.
+// Product slots can cross midnight, so never construct invalid hours such as 25:00.
+function scheduledAtForSlot(dayOffset, productIndex, startHour = 19) {
+  const targetDay = istanbulDate(new Date(Date.now() + dayOffset * 24 * 60 * 60 * 1000));
+  const base = new Date(`${targetDay}T${String(startHour).padStart(2, '0')}:00:00+03:00`);
+  base.setTime(base.getTime() + productIndex * 60 * 60 * 1000);
+  return base.toISOString();
+}
 async function syncQueue() {
   const { shopUserId } = await getEtsyAccessToken();
   const shop = await etsyApiFetch(`/users/${shopUserId}/shops`);
@@ -184,8 +192,7 @@ async function syncQueue() {
   // is published, the next day starts the sequence again from image 1.
   const now = new Date();
   const today = istanbulDate(now);
-  const startHour = 10; // Türkiye saati; adjustable later from Pinterest Manager.
-  const slotMinutes = 60;
+  const startHour = 19; // Türkiye saati; 24 ürün için saatler gece yarısını geçebilir.
 
   for (let productIndex = 0; productIndex < listings.length; productIndex += 1) {
     const listing = listings[productIndex];
@@ -218,10 +225,7 @@ async function syncQueue() {
         const row = existing.find((item) => Number(item.image_index) === imageIndex);
         if (!row) continue;
 
-        const target = new Date(now.getTime() + (imageIndex + 1) * 24 * 60 * 60 * 1000);
-        const targetDay = istanbulDate(target);
-        const hour = startHour + productIndex;
-        const scheduledAt = `${targetDay}T${String(hour).padStart(2, '0')}:00:00+03:00`;
+        const scheduledAt = scheduledAtForSlot(imageIndex + 1, productIndex, startHour);
 
         await supabaseRest(
           `pinterest_automation?id=eq.${encodeURIComponent(row.id)}`,
@@ -267,10 +271,7 @@ async function syncQueue() {
       // Future images are kept in the queue but receive their own future date.
       const existingSchedule = existingRow?.scheduled_at;
       const dayOffset = imageIndex + 1;
-      const target = new Date(now.getTime() + dayOffset * 24 * 60 * 60 * 1000);
-      const targetDay = istanbulDate(target);
-      const hour = startHour + productIndex;
-      const scheduledAt = `${targetDay}T${String(hour).padStart(2, '0')}:00:00+03:00`;
+      const scheduledAt = scheduledAtForSlot(dayOffset, productIndex, startHour);
 
       const payload = {
         etsy_listing_id: listingId,

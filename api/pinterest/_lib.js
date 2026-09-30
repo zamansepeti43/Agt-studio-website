@@ -141,8 +141,24 @@ async function saveToken(data, existing = {}) {
     Prefer: 'return=minimal',
   };
 
-  if (existing.id) {
-    url += `?id=eq.${encodeURIComponent(existing.id)}`;
+  // Pinterest may return the same account on a repeated OAuth flow. Resolve
+  // the existing row by Pinterest user id before deciding to INSERT.
+  let existingByPinterestUser = null;
+  if (payload.pinterest_user_id) {
+    const lookupResponse = await fetch(
+      `${supabaseUrl}/rest/v1/pinterest_oauth_tokens?pinterest_user_id=eq.${encodeURIComponent(payload.pinterest_user_id)}&select=id&limit=1`,
+      { headers: supabaseHeaders(serviceRoleKey) }
+    );
+    if (lookupResponse.ok) {
+      const rows = await lookupResponse.json();
+      existingByPinterestUser = rows[0] || null;
+    }
+  }
+
+  const rowToUpdate = existingByPinterestUser || existing;
+
+  if (rowToUpdate.id) {
+    url += `?id=eq.${encodeURIComponent(rowToUpdate.id)}`;
     headers = { ...headers, Prefer: 'return=minimal' };
     const response = await fetch(url, {
       method: 'PATCH',

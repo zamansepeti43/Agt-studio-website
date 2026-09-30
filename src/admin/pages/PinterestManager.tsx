@@ -332,11 +332,11 @@ export default function PinterestManager() {
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontWeight: 800 }}>#{index + 1} · {item.etsy_title || 'Etsy ürünü'}</div>
                     <div style={{ fontSize: 12, opacity: .65, marginTop: 4 }}>Görsel {item.image_index + 1}/{item.image_count} · Pano: {item.board_name || 'Pano eşleşmesi bekliyor'}</div>
-                    <div style={{ fontSize: 12, opacity: .65, marginTop: 3 }}>Plan: {formatDate(item.scheduled_at)} · Onay: {item.approval_status === 'approved' ? '✅' : '🔔 Bekliyor'}</div>
+                    <div style={{ fontSize: 12, opacity: .65, marginTop: 3 }}>Plan: {formatDate(item.scheduled_at)} · Durum: {item.status === 'published' || item.status === 'completed' ? '🟢 Yayınlandı' : item.status === 'error' ? '🔴 Hata' : item.approval_status === 'approved' ? '🟡 Yayın için hazır' : '🔔 Onay bekliyor'}</div>
                     {item.published_at && <div style={{ fontSize: 12, opacity: .65, marginTop: 3 }}>Yayın: {formatDate(item.published_at)}</div>}
                     {item.last_error && <div style={{ fontSize: 12, color: '#fca5a5', marginTop: 3 }}>{item.last_error}</div>}
                   </div>
-                  <span style={{ fontSize: 12, fontWeight: 800, whiteSpace: 'nowrap' }}>{statusLabel(item.status)}</span>
+                  <span style={{ fontSize: 12, fontWeight: 800, whiteSpace: 'nowrap', color: item.status === 'published' || item.status === 'completed' ? '#86efac' : item.status === 'error' ? '#fca5a5' : item.approval_status === 'approved' ? '#fcd34d' : '#fde68a' }}>{statusLabel(item.status)}</span>
                 </div>
               ))}
             </div>
@@ -355,7 +355,7 @@ export default function PinterestManager() {
                   <div style={{ fontSize: 12, opacity: .6 }}>Etsy ilan #{next.etsy_listing_id}</div>
                   <h2 style={{ marginTop: 8 }}>{next.etsy_title}</h2>
                   <p><strong>Pano:</strong> {next.board_name || 'Pano eşleşmesi bekliyor'}</p>
-                  <p><strong>Durum:</strong> {statusLabel(next.status)}</p>
+                  <p><strong>Durum:</strong> {next.status === 'published' || next.status === 'completed' ? '🟢 Yayınlandı' : next.status === 'error' ? '🔴 Hata' : next.approval_status === 'approved' ? '🟡 Yayın için hazır' : '🔔 Onay bekliyor'}</p>
                   <p><strong>Yayın:</strong> Her aktif ürün için günde 1 görsel; ürünler 1 saat arayla.</p>
                   <p><strong>Sonraki yayın:</strong> {data?.nextPublishAt ? formatDate(data.nextPublishAt) : '—'}</p>
                   <p><strong>Görsel:</strong> {(next.image_index || 0) + 1}/{next.image_count}</p>

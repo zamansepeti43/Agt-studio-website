@@ -57,7 +57,7 @@ function formatDate(value?: string | null) {
 function statusLabel(status: QueueItem['status']) {
   const map: Record<QueueItem['status'], string> = {
     pending: 'Bekliyor',
-    ready: 'Sırada',
+    ready: 'Yayın için hazır',
     published: 'Yayınlandı',
     error: 'Hata',
     skipped: 'Atlandı',
@@ -233,6 +233,17 @@ export default function PinterestManager() {
 
       {error && <div style={{ marginBottom: 18, padding: 14, borderRadius: 12, border: '1px solid #7f1d1d', background: '#2b1010', color: '#fecaca' }}>{error}</div>}
 
+      {data?.pinterestConnected && (
+        <div style={{ marginBottom: 18, padding: 18, borderRadius: 16, border: '1px solid #8a6a1f', background: '#2a2110', color: '#fef3c7' }}>
+          <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>⚠️ Pinterest Standard erişimi bekleniyor</div>
+          <div style={{ lineHeight: 1.55, opacity: .92 }}>
+            Pinterest hesabın OAuth ile bağlı ve kuyruk hazır. Ancak uygulama şu anda <strong>Trial erişiminde</strong> olduğu için üretim Pinterest'te Pin yayınlama işlemi Pinterest tarafından engelleniyor.
+            <br />
+            <strong>“Yayın için hazır”</strong> görünenler henüz Pinterest'te yayınlanmış değildir. Standard erişim onaylandığında planlanan Pinler yayınlanmaya devam edecektir.
+          </div>
+        </div>
+      )}
+
       <div style={{ maxWidth: 1150 }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 18 }}>
           <div style={{ background: '#0d1117', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 14, padding: 18 }}>
@@ -372,6 +383,10 @@ export default function PinterestManager() {
               <div style={{ padding: 16, borderRadius: 12, border: '1px solid var(--admin-border, #e5e7eb)' }}>
                 <strong>Görsel</strong>
                 <p style={{ marginBottom: 0, opacity: .72 }}>Her Etsy ilanının ilk görseli alınır ve AGT Studio Pinterest kartına dönüştürülür; Pin bağlantısı doğrudan Etsy ilanına gider.</p>
+              </div>
+              <div style={{ padding: 16, borderRadius: 12, border: '1px solid #8a6a1f', background: '#2a2110' }}>
+                <strong>⚠️ Pinterest erişim durumu</strong>
+                <p style={{ marginBottom: 0, opacity: .88 }}>Uygulama şu anda Trial erişiminde. Kuyruktaki “Yayın için hazır” öğeleri Pinterest'te henüz yayınlanmış değildir; üretim Pinleri Standard erişim onayından sonra yayınlanabilir.</p>
               </div>
               <div style={{ padding: 16, borderRadius: 12, border: '1px solid var(--admin-border, #e5e7eb)' }}>
                 <strong>Zamanlama</strong>

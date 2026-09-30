@@ -502,12 +502,73 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Dashboard GET must stay fast: opening the admin page should only read
+    // the existing queue. Full Etsy/Pinterest synchronization is expensive and
+    // is reserved for cron or an explicit admin refresh action.
+    if (req.method === 'GET') {
+      const [queue, tokenRows] = await Promise.all([
+        supabaseRest('pinterest_automation?select=*&order=scheduled_at.asc,etsy_listing_id.asc,image_index.asc'),
+        supabaseRest('pinterest_oauth_tokens?select=id&limit=1'),
+      ]);
+      const rows = queue || [];
+      const latestPublished = rows
+        .filter((item) => (item.status === 'published' || item.status === 'completed') && item.published_at)
+        .sort((a, b) => new Date(b.published_at || 0).getTime() - new Date(a.published_at || 0).getTime())[0] || null;
+      const next = rows
+        .filter((item) => item.status === 'ready' && item.approval_status === 'approved')
+        .sort((a, b) => new Date(a.scheduled_at || 0).getTime() - new Date(b.scheduled_at || 0).getTime())[0] || null;
+      const pendingApproval = rows
+        .filter((item) => item.approval_status === 'pending')
+        .sort((a, b) => new Date(a.scheduled_at || 0).getTime() - new Date(b.scheduled_at || 0).getTime());
+      const completed = rows.filter((item) => item.status === 'completed');
+
+      res.setHeader('Cache-Control', 'no-store');
+      res.status(200).json({
+        ok: true,
+        pinterestConnected: Boolean(tokenRows?.length),
+        etsyListings: new Set(rows.map((item) => item.etsy_listing_id)).size,
+        queue: rows,
+        next,
+        latestPublished,
+        pendingApproval,
+        completed,
+        nextPublishAt: next?.scheduled_at || null,
+        cadence: 'Her aktif Etsy ürünü günde 1 görsel — saatlik aralıklarla',
+      });
+      return;
+    }
+
     // Admin approval actions reuse this endpoint so the Vercel Hobby
     // serverless-function limit is not increased.
     if (req.method === 'POST' && actor.role === 'admin') {
       const body = typeof req.body === 'string'
         ? JSON.parse(req.body || '{}')
         : (req.body || {});
+
+      if (body.action === 'sync') {
+        const result = await syncQueue();
+        const latestPublished = (result.queue || [])
+          .filter((item) => (item.status === 'published' || item.status === 'completed') && item.published_at)
+          .sort((a, b) => new Date(b.published_at || 0).getTime() - new Date(a.published_at || 0).getTime())[0] || null;
+        const next = (result.queue || [])
+          .filter((item) => item.status === 'ready' && item.approval_status === 'approved')
+          .sort((a, b) => new Date(a.scheduled_at || 0).getTime() - new Date(b.scheduled_at || 0).getTime())[0] || null;
+        const pendingApproval = (result.queue || []).filter((item) => item.approval_status === 'pending');
+        const completed = (result.queue || []).filter((item) => item.status === 'completed');
+        res.status(200).json({
+          ok: true,
+          pinterestConnected: result.pinterestConnected,
+          etsyListings: result.listings.length,
+          queue: result.queue,
+          next,
+          latestPublished,
+          pendingApproval,
+          completed,
+          nextPublishAt: next?.scheduled_at || null,
+          cadence: 'Her aktif Etsy ürünü günde 1 görsel — saatlik aralıklarla',
+        });
+        return;
+      }
 
       if (body.action === 'approve' || body.action === 'reject') {
         const ids = Array.isArray(body.ids) ? body.ids : [body.id];
@@ -536,39 +597,6 @@ export default async function handler(req, res) {
         res.status(200).json({ ok: true, action: body.action, count: cleanIds.length });
         return;
       }
-    }
-
-    const result = await syncQueue();
-
-    if (req.method === 'GET') {
-      const latestPublished = (result.queue || [])
-        .filter((item) => (item.status === 'published' || item.status === 'completed') && item.published_at)
-        .sort((a, b) => new Date(b.published_at || 0).getTime() - new Date(a.published_at || 0).getTime())[0] || null;
-
-      const next = (result.queue || [])
-        .filter((item) => item.status === 'ready' && item.approval_status === 'approved')
-        .sort((a, b) => new Date(a.scheduled_at || 0).getTime() - new Date(b.scheduled_at || 0).getTime())[0] || null;
-
-      const pendingApproval = (result.queue || [])
-        .filter((item) => item.approval_status === 'pending')
-        .sort((a, b) => new Date(a.scheduled_at || 0).getTime() - new Date(b.scheduled_at || 0).getTime());
-
-      const completed = (result.queue || []).filter((item) => item.status === 'completed');
-
-      res.setHeader('Cache-Control', 'no-store');
-      res.status(200).json({
-        ok: true,
-        pinterestConnected: result.pinterestConnected,
-        etsyListings: result.listings.length,
-        queue: result.queue,
-        next,
-        latestPublished,
-        pendingApproval,
-        completed,
-        nextPublishAt: next?.scheduled_at || null,
-        cadence: 'Her aktif Etsy ürünü günde 1 görsel — saatlik aralıklarla',
-      });
-      return;
     }
 
     if (actor.role !== 'cron') {

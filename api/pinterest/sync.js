@@ -66,6 +66,38 @@ async function listPinterestBoards() {
   return boards;
 }
 
+async function ensurePinterestBoards(rules, boards) {
+  const resolved = [...boards];
+
+  for (const rule of rules || []) {
+    if (rule?.board_id || !rule?.board_name) continue;
+
+    const target = normalizeName(rule.board_name);
+    const existing = resolved.find((board) => normalizeName(board.name) === target);
+    if (existing?.id) {
+      rule.board_id = existing.id;
+      rule.board_name = existing.name;
+      continue;
+    }
+
+    const created = await pinterestFetch('/boards', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: rule.board_name,
+        description: rule.description || `AGT Studio — ${rule.board_name}`,
+      }),
+    });
+
+    if (created?.id) {
+      rule.board_id = created.id;
+      rule.board_name = created.name || rule.board_name;
+      resolved.push(created);
+    }
+  }
+
+  return { rules, boards: resolved };
+}
+
 function resolveBoardRule(rule, boards) {
   if (rule?.board_id) return rule;
   const target = normalizeName(rule?.board_name);
@@ -129,7 +161,7 @@ function nextPublishAt(publishedAt) {
 }
 
 // Build a valid Istanbul-local schedule for each hourly product slot.
-// 18 ürün için 10:00'dan başlayıp saatlik ilerler; 00:00 sonrası ertesi takvim gününe taşınır.
+// 18 ürün için 00:15'ten başlayıp saatlik ilerler.
 function scheduledAtForSlot(dayOffset, productIndex, startHour = 0) {
   const targetDay = istanbulDate(new Date(Date.now() + dayOffset * 24 * 60 * 60 * 1000));
   const base = new Date(`${targetDay}T${String(startHour).padStart(2, '0')}:15:00+03:00`);
@@ -163,8 +195,10 @@ async function syncQueue() {
   let pinterestConnected = true;
 
   try {
-    const pinterestBoards = await listPinterestBoards();
-    resolvedRules = (rules || []).map((rule) => resolveBoardRule(rule, pinterestBoards));
+    let pinterestBoards = await listPinterestBoards();
+    const ensured = await ensurePinterestBoards(rules || [], pinterestBoards);
+    pinterestBoards = ensured.boards;
+    resolvedRules = (ensured.rules || []).map((rule) => resolveBoardRule(rule, pinterestBoards));
 
     for (const rule of resolvedRules) {
       if (rule.board_id && rule.description) {

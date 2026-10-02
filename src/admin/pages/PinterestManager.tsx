@@ -121,6 +121,32 @@ export default function PinterestManager() {
     }
   };
 
+  const testPublish = async () => {
+    setRefreshing(true);
+    setError('');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('Yönetici oturumu bulunamadı.');
+
+      const res = await fetch('/api/pinterest/sync', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: 'test_publish' }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Test Pin yayınlanamadı.');
+      setData(json);
+      window.alert(json.message || 'Test Pin işlemi tamamlandı.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Test Pin yayınlanamadı.');
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const enablePushNotifications = async () => {
     setError('');
     try {
@@ -250,6 +276,9 @@ export default function PinterestManager() {
           <button type="button" onClick={enablePushNotifications}>
             📱 Telefon Bildirimlerini Aç
           </button>
+          <button type="button" onClick={testPublish} disabled={refreshing}>
+            🧪 Test Pin Yayınla
+          </button>
           <a href="/api/pinterest/connect">
             <button type="button">🔗 Pinterest'e Bağlan</button>
           </a>
@@ -350,8 +379,8 @@ export default function PinterestManager() {
               {queue.map((item, index) => (
                 <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '70px 1fr auto', gap: 14, alignItems: 'center', padding: 12, border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 12 }}>
                   <div style={{ width: 70, height: 70, borderRadius: 10, overflow: 'hidden', background: '#151922' }}>
-                    {(item.generated_image_url || item.source_image_url) && (
-                      <img src={item.generated_image_url || item.source_image_url || ''} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    {(item.source_image_url || item.generated_image_url) && (
+                      <img src={item.source_image_url || item.generated_image_url || ''} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     )}
                   </div>
                   <div style={{ minWidth: 0 }}>
@@ -374,7 +403,7 @@ export default function PinterestManager() {
             {next ? (
               <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, 420px) 1fr', gap: 24, alignItems: 'start' }}>
                 <div style={{ borderRadius: 14, overflow: 'hidden', background: '#151922' }}>
-                  <img src={next.generated_image_url || next.source_image_url || ''} alt="" style={{ width: '100%', display: 'block' }} />
+                  <img src={next.source_image_url || next.generated_image_url || ''} alt="" style={{ width: '100%', display: 'block' }} />
                 </div>
                 <div>
                   <div style={{ fontSize: 12, opacity: .6 }}>Etsy ilan #{next.etsy_listing_id}</div>

@@ -395,7 +395,7 @@ function isDueNow(scheduledAt, now = new Date()) {
 }
 
 
-async function publishNext(queue) {
+async function publishNext(queue, { force = false } = {}) {
   const now = new Date();
 
   const next = (queue || [])
@@ -405,7 +405,7 @@ async function publishNext(queue) {
         item.approval_status === 'approved' &&
         item.board_id &&
         item.generated_image_url &&
-        isDueNow(item.scheduled_at, now)
+        (force || isDueNow(item.scheduled_at, now))
     )
     .sort((a, b) => new Date(a.scheduled_at || 0).getTime() - new Date(b.scheduled_at || 0).getTime())[0];
 
@@ -566,6 +566,31 @@ export default async function handler(req, res) {
           completed,
           nextPublishAt: next?.scheduled_at || null,
           cadence: 'Her aktif Etsy ürünü günde 1 görsel — saatlik aralıklarla',
+        });
+        return;
+      }
+
+      if (body.action === 'test_publish') {
+        const result = await syncQueue();
+        if (!result.pinterestConnected) {
+          res.status(400).json({ ok: false, error: 'Pinterest OAuth bağlantısı aktif değil.' });
+          return;
+        }
+
+        const publishResult = await publishNext(result.queue, { force: true });
+        const refreshedQueue = await supabaseRest(
+          'pinterest_automation?select=*&order=scheduled_at.asc,etsy_listing_id.asc,image_index.asc'
+        );
+
+        res.status(200).json({
+          ok: true,
+          ...publishResult,
+          queue: refreshedQueue || [],
+          pinterestConnected: result.pinterestConnected,
+          message:
+            publishResult.published === 1
+              ? `Test Pin yayınlandı. Pinterest Pin ID: ${publishResult.pinId || 'bilinmiyor'}`
+              : 'Test için uygun onaylı Pin bulunamadı. Önce bir ürünü onayla ve pano eşleşmesini kontrol et.',
         });
         return;
       }

@@ -32,6 +32,7 @@ export type BrainDecision = {
   priority: number;
   confidence: number;
   sample: 'YÜKSEK' | 'ORTA' | 'DÜŞÜK';
+  stage: 'ÖNCE YAP' | 'SONRA YAP' | 'DOKUNMA';
   reasons: string[];
   recommendation: string;
   metrics: {

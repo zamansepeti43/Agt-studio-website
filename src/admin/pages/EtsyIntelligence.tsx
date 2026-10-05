@@ -135,7 +135,7 @@ export default function EtsyIntelligence() {
                     : 'Başlık, etiket ve açıklamanın ilk bölümünü SEO için optimize et.';
               return <div key={d.listingId} style={{display:'grid',gridTemplateColumns:'38px minmax(220px,1fr) auto',gap:12,alignItems:'center',padding:14,borderRadius:12,border:'1px solid #28303d',background:'#10151d'}}>
                 <div style={{fontSize:20,fontWeight:800}}>{i+1}</div>
-                <div><div style={{fontWeight:800}}>{d.title}</div><div style={{fontSize:12,marginTop:5,opacity:.7}}>👁 {d.metrics.views} · ♡ {d.metrics.favorites} · {d.action} · Güven %{d.confidence}</div><div style={{fontSize:13,marginTop:6,color}}>{task}</div></div>
+                <div><div style={{fontWeight:800}}>{d.title}</div><div style={{fontSize:12,marginTop:5,opacity:.7}}>👁 {d.metrics.views} · ♡ {d.metrics.favorites} · {d.action} · Güven %{d.confidence}</div><div style={{fontSize:13,marginTop:6,color}}>{d.nextStep}</div></div>
                 <a href={d.action === 'TRAFİK' ? '/admin/pinterest' : '/admin/etsy?listing=' + encodeURIComponent(String(d.listingId))} style={{padding:'7px 10px',borderRadius:8,textDecoration:'none',border:'1px solid #4b5563',fontWeight:700,fontSize:12}}>{d.action === 'TRAFİK' ? '📌 Pinterest' : '🤖 Uygula'}</a>
               </div>;
             })}
@@ -154,7 +154,7 @@ export default function EtsyIntelligence() {
               return <div key={d.listingId} style={{display:'grid',gridTemplateColumns:'34px minmax(220px,1fr) auto',gap:12,alignItems:'center',padding:13,borderRadius:12,border:'1px solid #28303d',background:'#10151d'}}>
                 <div style={{fontSize:20,fontWeight:800}}>{i+1}</div>
                 <div><div style={{fontWeight:750}}>{d.title}</div><div style={{marginTop:4,fontSize:12,opacity:.65}}>👁 {d.metrics.views} · ♡ {d.metrics.favorites} · {d.metrics.favoriteRate.toFixed(1)}% · Örneklem {d.sample.toLowerCase()} · Güven %{d.confidence}</div></div>
-                <div style={{textAlign:'right'}}><div style={{fontSize:11,fontWeight:800,color}}>{d.action}</div><div style={{fontWeight:700,marginTop:3}}>{d.recommendation}</div><div style={{fontSize:12,opacity:.62,maxWidth:420,marginTop:4}}>{d.reasons.join(' · ')}</div><button type="button" onClick={() => { window.location.href = d.action === 'TRAFİK' ? '/admin/pinterest' : '/admin/etsy?listing=' + encodeURIComponent(String(d.listingId)); }} style={{marginTop:8,fontSize:12,padding:'6px 10px'}}>{d.action === 'TRAFİK' ? '📌 Pinterest’e geç' : '✏️ Etsy Manager’da aç'}</button></div>
+                <div style={{textAlign:'right'}}><div style={{fontSize:11,fontWeight:800,color}}>{d.action}</div><div style={{fontWeight:700,marginTop:3}}>{d.nextStep}</div><div style={{fontSize:12,opacity:.72,marginTop:3}}>{d.recommendation}</div><div style={{fontSize:12,opacity:.62,maxWidth:420,marginTop:4}}>{d.reasons.join(' · ')}</div><button type="button" onClick={() => { window.location.href = d.action === 'TRAFİK' ? '/admin/pinterest' : '/admin/etsy?listing=' + encodeURIComponent(String(d.listingId)); }} style={{marginTop:8,fontSize:12,padding:'6px 10px'}}>{d.action === 'TRAFİK' ? '📌 Pinterest’e geç' : '✏️ Etsy Manager’da aç'}</button></div>
               </div>;
             })}
           </div>
@@ -181,7 +181,7 @@ export default function EtsyIntelligence() {
                 <div>
                   <div style={{fontWeight:800,textDecoration:done?'line-through':'none'}}>{d.title}</div>
                   <div style={{fontSize:11,fontWeight:800,marginTop:4,color:d.action === 'DÖNÜŞÜM'?'#22c55e':d.action === 'TRAFİK'?'#ef4444':'#3b82f6'}}>{d.action} · Öncelik {d.priority} · Güven %{d.confidence}</div>
-                  <div style={{fontSize:13,opacity:.72,marginTop:5}}>{task}</div>
+                  <div style={{fontSize:13,opacity:.72,marginTop:5}}>{d.nextStep}</div>
                 </div>
                 <a href={href} style={{padding:'7px 10px',borderRadius:8,textDecoration:'none',border:'1px solid #4b5563',fontWeight:700,fontSize:12}}>{isTraffic?'📌 Pinterest':'🤖 Etsy’de aç'}</a>
               </div>;

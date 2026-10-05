@@ -53,7 +53,7 @@ export default function EtsyIntelligence() {
 
   const listings = data?.listings?.results || [];
   const brain = useMemo(() => analyzeEtsyStore(listings), [listings]);
-  const dailyPriorities = useMemo(() => brain.decisions.filter(d => d.stage === 'ÖNCE YAP').slice(0, 3), [brain]);
+  const dailyPriorities = useMemo(() => brain.decisions.filter(d => d.stage === 'ÖNCE YAP' && !completedTasks[d.listingId]).slice(0, 3), [brain, completedTasks]);
   const metrics = useMemo(() => {
     const views = listings.reduce((s, l) => s + Number(l.views || 0), 0);
     const favs = listings.reduce((s, l) => s + Number(l.num_favorers || 0), 0);
@@ -119,8 +119,8 @@ export default function EtsyIntelligence() {
 
         <div style={{marginTop:18,background:'#0d1117',border:'1px solid var(--admin-border,#303846)',borderRadius:16,padding:20}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,flexWrap:'wrap'}}>
-            <div><h2 style={{margin:0}}>🎯 Bugün yapılacak 3 iş</h2><p style={{margin:'6px 0 0',opacity:.65,fontSize:13}}>Brain yalnızca en yüksek etkili 3 ürünü bugünün çalışma sırasına alır. Diğer ürünler sırada bekler veya veri toplar.</p></div>
-            <strong style={{fontSize:13,opacity:.7}}>Öncelik sırası</strong>
+            <div><h2 style={{margin:0}}>🎯 Bugün yapılacak 3 iş</h2><p style={{margin:'6px 0 0',opacity:.65,fontSize:13}}>Brain yalnızca tamamlanmamış en yüksek etkili 3 ürünü bugünün çalışma sırasına alır. Bir iş tamamlandığında sıradaki ürün otomatik olarak öne çıkar.</p></div>
+            <strong style={{fontSize:13,opacity:.7}}>{dailyPriorities.length ? 'Öncelik sırası' : 'Bugünün kuyruğu tamamlandı'}</strong>
           </div>
           <div style={{display:'grid',gap:10,marginTop:14}}>
             {dailyPriorities.map((d,i) => {

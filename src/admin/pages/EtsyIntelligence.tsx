@@ -23,12 +23,13 @@ function priceOf(l: Listing) {
 function signal(l: Listing) {
   const views = Number(l.views || 0);
   const favs = Number(l.num_favorers || 0);
-  if (views >= 40 && favs >= 2) return { label: 'En güçlü aday', color: '#16a34a', text: 'Trafik ve ilgi var. Güven/demo tarafını güçlendirip satışa çevirmeliyiz.' };
-  if (views >= 25 && favs >= 1) return { label: 'Dönüşüm fırsatı', color: '#ca8a04', text: 'İlgi oluşmuş. Kapak, demo, güven ve teklif optimizasyonu öncelikli.' };
-  if (views >= 20 && favs === 0) return { label: 'İlgi zayıf', color: '#ea580c', text: 'Görüntülenme var ama favori yok. Başlık/kapak/ürün konumlandırmasını test et.' };
-  if (views < 10) return { label: 'Trafik sorunu', color: '#dc2626', text: 'Önce görünürlük ve arama trafiğini artırmak gerekiyor.' };
-  if (favs >= 1) return { label: 'İlgi var', color: '#2563eb', text: 'Favori alınmış. Teklif ve güven sinyalleriyle satın almaya taşı.' };
-  return { label: 'İzle', color: '#64748b', text: 'Veri az. Şimdilik büyük değişiklik yapma.' };
+  const favoriteRate = views > 0 ? (favs / views) * 100 : 0;
+  if (views >= 50 && favs >= 2) return { label: 'SATIŞA ZORLA', color: '#16a34a', priority: 1, rate: favoriteRate, text: 'Bu ürün güçlü ilgi alıyor. Görsel/demo/güven optimizasyonu ile satışa çevrilmeli.' };
+  if (views >= 25 && favs >= 1) return { label: 'DÖNÜŞÜM FIRSATI', color: '#ca8a04', priority: 2, rate: favoriteRate, text: 'Yeterli ilgi var. Kapak, ürün demosu, güven unsurları ve teklif öncelikli.' };
+  if (views >= 20 && favs === 0) return { label: 'KAPAK / KONUM', color: '#ea580c', priority: 3, rate: favoriteRate, text: 'Trafik geliyor fakat favori yok. İlk görsel, başlık ve konumlandırma yeniden test edilmeli.' };
+  if (views < 10) return { label: 'TRAFİK ÖNCELİĞİ', color: '#dc2626', priority: 4, rate: favoriteRate, text: 'Veri az. Önce görünürlük: başlık, etiket, kategori ve dış trafik.' };
+  if (favs >= 1) return { label: 'İLGİ VAR', color: '#2563eb', priority: 2, rate: favoriteRate, text: 'Favori alınmış. Fiyatı hemen düşürmek yerine güven, demo ve teklif test edilmeli.' };
+  return { label: 'VERİ TOPLA', color: '#64748b', priority: 5, rate: favoriteRate, text: 'Örneklem küçük. Büyük değişiklik yapmadan veri toplamaya devam et.' };
 }
 
 export default function EtsyIntelligence() {
@@ -58,7 +59,9 @@ export default function EtsyIntelligence() {
     const avgViews = listings.length ? views / listings.length : 0;
     const highInterest = [...listings].sort((a,b) => (Number(b.num_favorers||0)*10 + Number(b.views||0)) - (Number(a.num_favorers||0)*10 + Number(a.views||0))).slice(0,5);
     const traffic = [...listings].sort((a,b) => Number(b.views||0)-Number(a.views||0)).slice(0,5);
-    return { views, favs, avgViews, withViews, highInterest, traffic };
+    const decisions = [...listings].sort((a,b) => signal(a).priority-signal(b).priority || Number(b.views||0)-Number(a.views||0));
+    const counts = decisions.reduce((acc,l) => { const p=signal(l).priority; acc[p]=(acc[p]||0)+1; return acc; }, {} as Record<number,number>);
+    return { views, favs, avgViews, withViews, highInterest, traffic, decisions, counts };
   }, [listings]);
 
   if (loading) return <div className="admin-page"><h1>Etsy Intelligence</h1><p>📊 Etsy verileri analiz ediliyor...</p></div>;
@@ -82,6 +85,9 @@ export default function EtsyIntelligence() {
           ].map(([label,value]) => <div key={String(label)} style={{background:'#0d1117',border:'1px solid var(--admin-border,#303846)',borderRadius:14,padding:18}}><small style={{opacity:.65}}>{label}</small><div style={{fontSize:26,fontWeight:800,marginTop:6}}>{value}</div></div>)}
         </div>
 
+        <div style={{marginTop:18,display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:12}}>
+          {[['🟢 Satışa zorla',metrics.counts[1]||0],['🟡 Dönüşüm fırsatı',metrics.counts[2]||0],['🟠 Kapak / konum',metrics.counts[3]||0],['🔴 Trafik önceliği',metrics.counts[4]||0]].map(([label,value])=><div key={String(label)} style={{background:'#0d1117',border:'1px solid #303846',borderRadius:12,padding:14}}><small style={{opacity:.65}}>{label}</small><div style={{fontSize:22,fontWeight:800,marginTop:5}}>{value}</div></div>)}
+        </div>
         <div style={{marginTop:18,display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(320px,1fr))',gap:18}}>
           <div style={{background:'#0d1117',border:'1px solid var(--admin-border,#303846)',borderRadius:16,padding:20}}>
             <h2 style={{marginTop:0}}>🚨 Şu an neyi düzeltmeliyiz?</h2>
@@ -98,11 +104,11 @@ export default function EtsyIntelligence() {
         </div>
 
         <div style={{marginTop:18,background:'#0d1117',border:'1px solid var(--admin-border,#303846)',borderRadius:16,padding:20}}>
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,flexWrap:'wrap'}}><div><h2 style={{margin:0}}>📈 Ürün teşhis tablosu</h2><p style={{margin:'6px 0 0',opacity:.65,fontSize:13}}>Görüntülenme ve favori sinyaline göre otomatik önceliklendirme.</p></div><span style={{fontSize:12,opacity:.55}}>Etsy API verisi</span></div>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,flexWrap:'wrap'}}><div><h2 style={{margin:0}}>📈 Ürün teşhis tablosu</h2><p style={{margin:'6px 0 0',opacity:.65,fontSize:13}}>Öncelik motoru: trafik → favori → ürün sayfası dönüşüm sinyali. Gerçek sipariş eşleşmesi, Etsy'nin işlem yetkisi açıldığında ayrıca eklenecek.</p></div><span style={{fontSize:12,opacity:.55}}>Etsy API verisi · sipariş eşleşmesi bekliyor</span></div>
           <div style={{overflowX:'auto',marginTop:14}}>
             <table style={{width:'100%',borderCollapse:'collapse',fontSize:14}}>
-              <thead><tr>{['Ürün','Görüntülenme','Favori','Fiyat','Sinyal','Aksiyon'].map(h=><th key={h} style={{textAlign:'left',padding:'10px 8px',borderBottom:'1px solid #303846'}}>{h}</th>)}</tr></thead>
-              <tbody>{[...listings].sort((a,b)=>Number(b.views||0)-Number(a.views||0)).map(l=>{const s=signal(l);return <tr key={l.listing_id}><td style={{padding:'12px 8px',minWidth:280,fontWeight:650}}>{l.title}</td><td style={{padding:'12px 8px'}}>{l.views||0}</td><td style={{padding:'12px 8px'}}>{l.num_favorers||0}</td><td style={{padding:'12px 8px'}}>{priceOf(l).toFixed(2)} {l.price?.currency_code||''}</td><td style={{padding:'12px 8px',color:s.color,fontWeight:700}}>{s.label}</td><td style={{padding:'12px 8px',minWidth:320,opacity:.82}}>{s.text}</td></tr>})}</tbody>
+              <thead><tr>{['Ürün','Görüntülenme','Favori','Favori oranı','Fiyat','Sinyal','Aksiyon'].map(h=><th key={h} style={{textAlign:'left',padding:'10px 8px',borderBottom:'1px solid #303846'}}>{h}</th>)}</tr></thead>
+              <tbody>{[...listings].sort((a,b)=>Number(b.views||0)-Number(a.views||0)).map(l=>{const s=signal(l);return <tr key={l.listing_id}><td style={{padding:'12px 8px',minWidth:280,fontWeight:650}}>{l.title}</td><td style={{padding:'12px 8px'}}>{l.views||0}</td><td style={{padding:'12px 8px'}}>{l.num_favorers||0}</td><td style={{padding:'12px 8px'}}>{s.rate.toFixed(1)}%</td><td style={{padding:'12px 8px'}}>{priceOf(l).toFixed(2)} {l.price?.currency_code||''}</td><td style={{padding:'12px 8px',color:s.color,fontWeight:700}}>{s.label}</td><td style={{padding:'12px 8px',minWidth:320,opacity:.82}}>{s.text}</td></tr>})}</tbody>
             </table>
           </div>
         </div>

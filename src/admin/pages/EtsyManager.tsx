@@ -124,9 +124,40 @@ export default function EtsyManager() {
     catch { setStatus({ connected: false, error: 'Durum alınamadı.' }); }
     finally { setLoading(false); }
   };
+  const loadOptimization = async (listingId: number) => {
+    if (!listingId) return;
+    setOptimizationLoading(true); setOptimizationMessage(''); setError('');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('Yönetici oturumu bulunamadı.');
+      const res = await fetch('/api/etsy/listings?listing_id=' + encodeURIComponent(String(listingId)), { headers: { Authorization: 'Bearer ' + session.access_token }, cache: 'no-store' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'SEO önerisi alınamadı.');
+      setOptimization(data);
+    } catch (err) { setOptimization(null); setError(err instanceof Error ? err.message : 'SEO önerisi alınamadı.'); }
+    finally { setOptimizationLoading(false); }
+  };
+
+  const applyOptimization = async () => {
+    if (!optimization) return;
+    setOptimizationApplying(true); setOptimizationMessage(''); setError('');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('Yönetici oturumu bulunamadı.');
+      const res = await fetch('/api/etsy/listings?listing_id=' + encodeURIComponent(String(optimization.listing_id)), { method:'POST', headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token}, body:JSON.stringify({action:'apply',proposed:optimization.proposed}) });
+      const data=await res.json();
+      if (!res.ok) throw new Error(data.error || 'SEO önerisi Etsy’ye uygulanamadı.');
+      setOptimization(data.recommendation); setOptimizationMessage('✅ Onaylandı ve Etsy’ye uygulandı.'); await loadData();
+    } catch(err) { setError(err instanceof Error ? err.message : 'SEO önerisi Etsy’ye uygulanamadı.'); }
+    finally { setOptimizationApplying(false); }
+  };
   useEffect(() => { loadStatus(); }, []);
 
   useEffect(() => {
+    if (selectedListingId && listings.length) {
+      const exists = listings.some((listing) => listing.listing_id === selectedListingId);
+      if (exists) loadOptimization(selectedListingId);
+    }
     if (!selectedListingId || !listings.length) return;
     const exists = listings.some((listing) => listing.listing_id === selectedListingId);
     if (!exists) return;
@@ -263,6 +294,19 @@ export default function EtsyManager() {
             <div><small>Değerlendirme</small><h3>{shop?.review_count != null ? String(shop.review_count) + ' (' + Number(shop.review_average || 0).toFixed(1) + ')' : '—'}</h3></div>
           </div>
 
+          {selectedListingId > 0 && optimization && (
+            <div style={{ marginTop: 20, background: '#0d1117', border: '2px solid #f59e0b', borderRadius: 16, padding: 24 }}>
+              <h2 style={{ marginTop: 0 }}>🤖 Seçili Ürün SEO Optimizasyonu</h2>
+              <p style={{ fontSize:13, opacity:.72 }}>Mevcut veriyi analiz ettik. Aşağıdaki öneri Etsy’ye ancak sen onaylarsan uygulanır.</p>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
+                <div style={{padding:14,background:'#151b23',borderRadius:12}}><h3>Mevcut</h3><b>Başlık</b><p>{optimization.current.title}</p><b>Etiketler</b><p>{optimization.current.tags.join(' · ')}</p><b>Açıklama</b><div style={{whiteSpace:'pre-wrap',maxHeight:180,overflow:'auto',fontSize:12}}>{optimization.current.description || 'Boş'}</div></div>
+                <div style={{padding:14,background:'#102117',borderRadius:12}}><h3>Önerilen</h3><b>Başlık</b><p>{optimization.proposed.title}</p><b>Etiketler</b><p>{optimization.proposed.tags.join(' · ')}</p><b>Açıklama</b><div style={{whiteSpace:'pre-wrap',maxHeight:180,overflow:'auto',fontSize:12}}>{optimization.proposed.description}</div></div>
+              </div>
+              <div style={{marginTop:14}}><b>🎯 Neden?</b><ul>{optimization.reasons.map(r=><li key={r}>{r}</li>)}</ul></div>
+              {optimizationMessage && <p style={{color:'#22c55e',fontWeight:700}}>{optimizationMessage}</p>}
+              <button type="button" onClick={applyOptimization} disabled={optimizationApplying}>{optimizationApplying?'Etsy’ye uygulanıyor...':'🚀 Onayla ve Etsy’ye Uygula'}</button>
+            </div>
+          )}
           <div style={{ marginTop: 20, background: '#0d1117', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 24 }}>
             <h2 style={{ marginTop: 0 }}>👤 Etsy Profili</h2>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>

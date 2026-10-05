@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { analyzeEtsyStore } from '../intelligence/EtsyBrain';
 
 type Listing = {
   listing_id: number;
@@ -63,17 +64,14 @@ export default function EtsyIntelligence() {
   useEffect(() => { load(); }, []);
 
   const listings = data?.listings?.results || [];
+  const brain = useMemo(() => analyzeEtsyStore(listings), [listings]);
   const metrics = useMemo(() => {
     const views = listings.reduce((s, l) => s + Number(l.views || 0), 0);
     const favs = listings.reduce((s, l) => s + Number(l.num_favorers || 0), 0);
-    const withViews = listings.filter(l => Number(l.views || 0) > 0);
     const avgViews = listings.length ? views / listings.length : 0;
     const highInterest = [...listings].sort((a,b) => (Number(b.num_favorers||0)*10 + Number(b.views||0)) - (Number(a.num_favorers||0)*10 + Number(a.views||0))).slice(0,5);
-    const traffic = [...listings].sort((a,b) => Number(b.views||0)-Number(a.views||0)).slice(0,5);
-    const decisions = [...listings].sort((a,b) => signal(a).priority-signal(b).priority || Number(b.views||0)-Number(a.views||0));
-    const counts = decisions.reduce((acc,l) => { const p=signal(l).priority; acc[p]=(acc[p]||0)+1; return acc; }, {} as Record<number,number>);
-    return { views, favs, avgViews, withViews, highInterest, traffic, decisions, counts };
-  }, [listings]);
+    return { views, favs, avgViews, highInterest, decisions: brain.decisions };
+  }, [listings, brain]);
 
   if (loading) return <div className="admin-page"><h1>Etsy Intelligence</h1><p>📊 Etsy verileri analiz ediliyor...</p></div>;
 
@@ -116,11 +114,18 @@ export default function EtsyIntelligence() {
 
         <div style={{marginTop:18,background:'#0d1117',border:'1px solid var(--admin-border,#303846)',borderRadius:16,padding:20}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,flexWrap:'wrap'}}>
-            <div><h2 style={{margin:0}}>🎯 Bugün yapılacaklar</h2><p style={{margin:'6px 0 0',opacity:.65,fontSize:13}}>Karar motoru en yüksek etkili ürünleri üste çıkarıyor. Amaç daha fazla ürün eklemek değil, mevcut ilgiyi satışa çevirmek.</p></div>
-            <strong style={{fontSize:13,opacity:.7}}>{metrics.decisions.filter(l => signal(l).priority <= 2).length} öncelikli ürün</strong>
+            <div><h2 style={{margin:0}}>🎯 Bugün yapılacaklar</h2><p style={{margin:'6px 0 0',opacity:.65,fontSize:13}}>AGT Etsy Brain; mağaza referanslarını, trafik, favori ve SEO sinyallerini birlikte değerlendirip en yüksek etkili ürünleri üste çıkarıyor. Amaç daha fazla ürün eklemek değil, mevcut ilgiyi satışa çevirmek.</p></div>
+            <strong style={{fontSize:13,opacity:.7}}>{brain.decisions.filter(d => d.priority >= 88).length} öncelikli ürün</strong>
           </div>
           <div style={{display:'grid',gap:10,marginTop:14}}>
-            {metrics.decisions.slice(0,5).map((l,i) => { const s=signal(l); const a=nextAction(l); return <div key={l.listing_id} style={{display:'grid',gridTemplateColumns:'34px minmax(220px,1fr) auto',gap:12,alignItems:'center',padding:13,borderRadius:12,border:'1px solid #28303d',background:'#10151d'}}><div style={{fontSize:20,fontWeight:800}}>{i+1}</div><div><div style={{fontWeight:750}}>{l.title}</div><div style={{marginTop:4,fontSize:12,opacity:.65}}>👁 {l.views||0} · ♡ {l.num_favorers||0} · {s.rate.toFixed(1)}% favori oranı</div></div><div style={{textAlign:'right'}}><div style={{fontSize:11,fontWeight:800,color:s.color}}>{a.tag}</div><div style={{fontWeight:700,marginTop:3}}>{a.title}</div><div style={{fontSize:12,opacity:.62,maxWidth:360,marginTop:3}}>{a.detail}</div><button type="button" onClick={() => { window.location.href = '/admin/etsy?listing=' + encodeURIComponent(String(l.listing_id)); }} style={{marginTop:8,fontSize:12,padding:'6px 10px'}}>✏️ Etsy Manager'da aç</button></div></div>; })}
+            {brain.topDecisions.map((d,i) => {
+              const color = d.action === 'DÖNÜŞÜM' ? '#16a34a' : d.action === 'TRAFİK' ? '#dc2626' : d.action === 'KAPAK_SEO' ? '#ea580c' : d.action === 'SEO' ? '#2563eb' : '#64748b';
+              return <div key={d.listingId} style={{display:'grid',gridTemplateColumns:'34px minmax(220px,1fr) auto',gap:12,alignItems:'center',padding:13,borderRadius:12,border:'1px solid #28303d',background:'#10151d'}}>
+                <div style={{fontSize:20,fontWeight:800}}>{i+1}</div>
+                <div><div style={{fontWeight:750}}>{d.title}</div><div style={{marginTop:4,fontSize:12,opacity:.65}}>👁 {d.metrics.views} · ♡ {d.metrics.favorites} · {d.metrics.favoriteRate.toFixed(1)}% · Güven %{d.confidence}</div></div>
+                <div style={{textAlign:'right'}}><div style={{fontSize:11,fontWeight:800,color}}>{d.action}</div><div style={{fontWeight:700,marginTop:3}}>{d.recommendation}</div><div style={{fontSize:12,opacity:.62,maxWidth:420,marginTop:4}}>{d.reasons.join(' · ')}</div><button type="button" onClick={() => { window.location.href = '/admin/etsy?listing=' + encodeURIComponent(String(d.listingId)); }} style={{marginTop:8,fontSize:12,padding:'6px 10px'}}>✏️ Etsy Manager'da aç</button></div>
+              </div>;
+            })}
           </div>
         </div>
 

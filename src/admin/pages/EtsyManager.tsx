@@ -308,7 +308,10 @@ export default function EtsyManager() {
 
           {selectedListingId > 0 && optimization && !optimizationLoading && (
             <div id="etsy-seo" style={{ marginTop: 20, background: '#0d1117', border: '2px solid #f59e0b', borderRadius: 16, padding: 24 }}>
-              <h2 style={{ marginTop: 0 }}>🤖 Seçili Ürün SEO Optimizasyonu</h2>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,flexWrap:'wrap'}}>
+                <h2 style={{ marginTop: 0, marginBottom: 0 }}>🤖 Seçili Ürün SEO Optimizasyonu</h2>
+                {selectedBrainDecision && <span style={{fontSize:12,fontWeight:800,padding:'6px 9px',borderRadius:999,background:'#172033',border:'1px solid #334155'}}>🧠 Brain bağlı</span>}
+              </div>
               {optimizationLoading && <p>🔎 Analiz ediliyor...</p>}
               <p style={{ fontSize:13, opacity:.72 }}>Mevcut veriyi analiz ettik. Aşağıdaki öneri Etsy’ye ancak sen onaylarsan uygulanır.</p>
               {selectedBrainDecision && (

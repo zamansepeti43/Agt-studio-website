@@ -9,6 +9,7 @@ export function recommend(listing: BrainListing, benchmarks: StoreBenchmarks): B
   let priority = 60;
   let confidence = sample === 'YÜKSEK' ? 78 : sample === 'ORTA' ? 66 : 45;
   let recommendation = 'Şimdilik büyük değişiklik yapma; daha fazla görüntülenme ve favori verisi topla.';
+  let nextStep = 'Yeni görüntülenme ve favori verisi oluşana kadar bekle.';
 
   if (s.views === 0) {
     action = 'VERİ_TOPLA';
@@ -16,6 +17,7 @@ export function recommend(listing: BrainListing, benchmarks: StoreBenchmarks): B
     confidence = 92;
     reasons.push('Henüz ilan görüntülenmesi yok; performans teşhisi için veri yetersiz.');
     recommendation = 'Ürünü değiştirmeden önce görünürlük verisi oluştur. Başlık/etiketleri kontrol et ve ücretsiz dış trafik testi uygula.';
+    nextStep = 'Önce başlık/etiketleri kontrol et; sonra Pinterest üzerinden dış trafik testi başlat.';
   } else if (s.views >= Math.max(20, benchmarks.medianViews * 1.25) && s.favorites >= 1) {
     action = 'DÖNÜŞÜM';
     priority = 98;
@@ -23,6 +25,7 @@ export function recommend(listing: BrainListing, benchmarks: StoreBenchmarks): B
     reasons.push('İlan görüntülenmesi mağaza medyanının belirgin üzerinde.');
     reasons.push('Favori sinyali var; ürün sayfasında ilgi oluştuğu görülüyor.');
     recommendation = 'İlk olarak kapak, demo ekranları, fayda ve güven mesajını test et. Fiyatı tek başına düşürme.';
+    nextStep = 'Etsy Manager’da kapak, demo ve fayda/güven sunumunu iyileştir; fiyatı şimdilik koru.';
   } else if (s.views >= Math.max(20, benchmarks.medianViews * 1.25) && s.favorites === 0) {
     action = 'KAPAK_SEO';
     priority = 93;
@@ -30,6 +33,7 @@ export function recommend(listing: BrainListing, benchmarks: StoreBenchmarks): B
     reasons.push('Yüksek görüntülenme var ancak favori sinyali yok.');
     reasons.push('İlk temasın (kapak + başlık + teklif) güçlendirilmesi daha mantıklı.');
     recommendation = 'Kapak görselini ve başlığı fayda odaklı yeniden düzenle; ürünün kime ne kazandırdığı ilk görselde net olsun.';
+    nextStep = 'Kapak görselini ve başlığı yeniden konumlandır; ilk görselde hedef müşteri + faydayı göster.';
   } else if (s.views < Math.max(8, benchmarks.medianViews * 0.45)) {
     action = 'TRAFİK';
     priority = s.views < 5 ? 86 : 88;
@@ -37,21 +41,25 @@ export function recommend(listing: BrainListing, benchmarks: StoreBenchmarks): B
     reasons.push('Görüntülenme mağaza referansının belirgin altında.');
     reasons.push(sample === 'DÜŞÜK' ? 'Örneklem küçük; kesin dönüşüm hükmü verilmemeli.' : 'Görünürlük sorunu ürün sayfası dönüşümünden önce geliyor.');
     recommendation = 'Arama niyetini, başlık/etiket uyumunu ve kategori seçimini düzelt; ardından ücretsiz Pinterest/dış trafik testi yap.';
+    nextStep = 'Başlık + etiket arama niyetini düzelt; ardından Pinterest’te trafik testi başlat.';
   } else if (s.seo < 70) {
     action = 'SEO';
     priority = 78;
     confidence = Math.min(84, confidence + 8);
     reasons.push(`SEO sinyali düşük (${s.seo}/100).`);
     recommendation = 'Başlık, etiketler ve açıklamanın ilk bölümünü arama niyetine göre güçlendir; sonra yeniden ölç.';
+    nextStep = 'Etsy Manager’da başlık, etiketler ve açıklamanın ilk bölümünü optimize et.';
   } else if (s.favorites >= 1) {
     action = 'DÖNÜŞÜM';
     priority = 74;
     confidence = Math.min(82, confidence + 6);
     reasons.push('Favori sinyali var ancak henüz güçlü trafik örneklemi yok.');
     recommendation = 'Büyük değişiklik yerine güven, demo ve teklif sunumunu iyileştir; yeni veriyi bekle.';
+    nextStep = 'Etsy Manager’da güven ve demo sunumunu iyileştir; ardından yeni veriyi bekle.';
   } else {
     reasons.push('Henüz güçlü bir performans sinyali oluşmadı.');
     recommendation = 'Ürüne dokunmadan veri toplamaya devam et; küçük örneklemde agresif değişiklik yapma.';
+    nextStep = 'Ürüne dokunma; yeni performans verisi oluşmasını bekle.';
   }
 
   const stage: BrainDecision['stage'] =
@@ -69,6 +77,7 @@ export function recommend(listing: BrainListing, benchmarks: StoreBenchmarks): B
     stage,
     reasons,
     recommendation,
+    nextStep,
     metrics: {
       views: s.views,
       favorites: s.favorites,

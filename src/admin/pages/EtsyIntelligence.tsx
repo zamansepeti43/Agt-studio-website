@@ -32,6 +32,17 @@ function signal(l: Listing) {
   return { label: 'VERİ TOPLA', color: '#64748b', priority: 5, rate: favoriteRate, text: 'Örneklem küçük. Büyük değişiklik yapmadan veri toplamaya devam et.' };
 }
 
+function nextAction(l: Listing) {
+  const views = Number(l.views || 0);
+  const favs = Number(l.num_favorers || 0);
+  if (views >= 50 && favs >= 2) return { title: 'Dönüşümü test et', detail: 'Kapak + demo + güven kanıtını güçlendir. Ürünü daha fazla trafik almadan önce satışa çevirmeye odaklan.', tag: 'DÖNÜŞÜM' };
+  if (views >= 25 && favs >= 1) return { title: 'Teklif ve güveni test et', detail: 'Favori geliyor; fiyatı sürekli düşürme. İlk görsel, kullanım örneği, teslimat içeriği ve güven mesajını iyileştir.', tag: 'TEKLİF' };
+  if (views >= 20 && favs === 0) return { title: 'Kapak + başlığı yenile', detail: 'Trafik var ama ilgi yok. İlk görseli daha net fayda odaklı yap ve başlığı sadeleştir.', tag: 'KAPAK / SEO' };
+  if (views < 10) return { title: 'Trafik getir', detail: 'Veri yetersiz. Arama niyetine uygun başlık/etiketleri kontrol et ve dış trafik testi yap.', tag: 'TRAFİK' };
+  if (favs >= 1) return { title: 'İlgiyi satışa çevir', detail: 'Favori sinyali var. Ürün sayfası güveni, demo ve teklif üzerinde kontrollü test yap.', tag: 'DÖNÜŞÜM' };
+  return { title: 'Veri toplamaya devam et', detail: 'Şimdilik büyük değişiklik yapma; daha fazla görüntülenme gelmesini bekle.', tag: 'VERİ' };
+}
+
 export default function EtsyIntelligence() {
   const [data, setData] = useState<ApiData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -109,7 +120,7 @@ export default function EtsyIntelligence() {
             <strong style={{fontSize:13,opacity:.7}}>{metrics.decisions.filter(l => signal(l).priority <= 2).length} öncelikli ürün</strong>
           </div>
           <div style={{display:'grid',gap:10,marginTop:14}}>
-            {metrics.decisions.slice(0,5).map((l,i) => { const s=signal(l); const a=nextAction(l); return <div key={l.listing_id} style={{display:'grid',gridTemplateColumns:'34px minmax(220px,1fr) auto',gap:12,alignItems:'center',padding:13,borderRadius:12,border:'1px solid #28303d',background:'#10151d'}}><div style={{fontSize:20,fontWeight:800}}>{i+1}</div><div><div style={{fontWeight:750}}>{l.title}</div><div style={{marginTop:4,fontSize:12,opacity:.65}}>👁 {l.views||0} · ♡ {l.num_favorers||0} · {s.rate.toFixed(1)}% favori oranı</div></div><div style={{textAlign:'right'}}><div style={{fontSize:11,fontWeight:800,color:s.color}}>{a.tag}</div><div style={{fontWeight:700,marginTop:3}}>{a.title}</div><div style={{fontSize:12,opacity:.62,maxWidth:360,marginTop:3}}>{a.detail}</div></div></div>; })}
+            {metrics.decisions.slice(0,5).map((l,i) => { const s=signal(l); const a=nextAction(l); return <div key={l.listing_id} style={{display:'grid',gridTemplateColumns:'34px minmax(220px,1fr) auto',gap:12,alignItems:'center',padding:13,borderRadius:12,border:'1px solid #28303d',background:'#10151d'}}><div style={{fontSize:20,fontWeight:800}}>{i+1}</div><div><div style={{fontWeight:750}}>{l.title}</div><div style={{marginTop:4,fontSize:12,opacity:.65}}>👁 {l.views||0} · ♡ {l.num_favorers||0} · {s.rate.toFixed(1)}% favori oranı</div></div><div style={{textAlign:'right'}}><div style={{fontSize:11,fontWeight:800,color:s.color}}>{a.tag}</div><div style={{fontWeight:700,marginTop:3}}>{a.title}</div><div style={{fontSize:12,opacity:.62,maxWidth:360,marginTop:3}}>{a.detail}</div><button type="button" onClick={() => { window.location.href = '/admin/etsy?listing=' + encodeURIComponent(String(l.listing_id)); }} style={{marginTop:8,fontSize:12,padding:'6px 10px'}}>✏️ Etsy Manager'da aç</button></div></div>; })}
           </div>
         </div>
 

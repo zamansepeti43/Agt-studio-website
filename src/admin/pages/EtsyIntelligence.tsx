@@ -135,7 +135,7 @@ export default function EtsyIntelligence() {
               return <div key={d.listingId} style={{display:'grid',gridTemplateColumns:'38px minmax(220px,1fr) auto',gap:12,alignItems:'center',padding:14,borderRadius:12,border:'1px solid #28303d',background:'#10151d'}}>
                 <div style={{fontSize:20,fontWeight:800}}>{i+1}</div>
                 <div><div style={{fontWeight:800}}>{d.title}</div><div style={{fontSize:12,marginTop:5,opacity:.7}}>👁 {d.metrics.views} · ♡ {d.metrics.favorites} · {d.action} · Güven %{d.confidence}</div><div style={{fontSize:13,marginTop:6,color}}>{task}</div></div>
-                <a href={'/admin/etsy?listing=' + encodeURIComponent(String(d.listingId))} style={{padding:'7px 10px',borderRadius:8,textDecoration:'none',border:'1px solid #4b5563',fontWeight:700,fontSize:12}}>🤖 Uygula</a>
+                <a href={d.action === 'TRAFİK' ? '/admin/pinterest' : '/admin/etsy?listing=' + encodeURIComponent(String(d.listingId))} style={{padding:'7px 10px',borderRadius:8,textDecoration:'none',border:'1px solid #4b5563',fontWeight:700,fontSize:12}}>{d.action === 'TRAFİK' ? '📌 Pinterest' : '🤖 Uygula'}</a>
               </div>;
             })}
             {dailyPriorities.length === 0 && <div style={{padding:14,borderRadius:12,background:'#101b14'}}><strong>✅ Bugün acil ürün yok</strong><p style={{margin:'6px 0 0',opacity:.75}}>Yeni değişiklik yapmak yerine veri toplamaya devam et.</p></div>}

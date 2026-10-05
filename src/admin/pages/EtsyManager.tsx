@@ -15,6 +15,12 @@ type EtsyShop = {
 type EtsyProfile = { user_id?: number; primary_email?: string; first_name?: string; last_name?: string; image_url_75x75?: string; };
 type EtsyListing = { listing_id: number; title: string; state: string; section_id?: number | null; shop_section_id?: number | null; taxonomy_id?: number | null; price?: { amount?: number; divisor?: number; currency_code?: string }; quantity?: number; url?: string; };
 type EtsySection = { shop_section_id: number; title: string; rank?: number; active_listing_count?: number; };
+type ListingOptimization = {
+  listing_id: number;
+  current: { title: string; tags: string[]; description: string };
+  proposed: { title: string; tags: string[]; description: string };
+  reasons: string[];
+};
 
 const fieldStyle = { width: '100%', boxSizing: 'border-box' as const, padding: '11px 12px', borderRadius: 10, border: '1px solid var(--admin-border, #e5e7eb)', background: '#0d1117', color: 'inherit' };
 const labelStyle = { display: 'block', fontWeight: 700, marginBottom: 7, fontSize: 13, color: '#f0f3f6' };
@@ -75,6 +81,10 @@ export default function EtsyManager() {
   const [error, setError] = useState('');
   const [saved, setSaved] = useState('');
   const [form, setForm] = useState({ title: '', announcement: '', sale_message: '', digital_sale_message: '' });
+  const [optimization, setOptimization] = useState<ListingOptimization | null>(null);
+  const [optimizationLoading, setOptimizationLoading] = useState(false);
+  const [optimizationApplying, setOptimizationApplying] = useState(false);
+  const [optimizationMessage, setOptimizationMessage] = useState('');
 
   const loadData = async () => {
     setDataLoading(true); setError('');

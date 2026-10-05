@@ -95,7 +95,7 @@ export default function EtsyIntelligence() {
         <div style={{marginTop:18,display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(320px,1fr))',gap:18}}>
           <div style={{background:'#0d1117',border:'1px solid var(--admin-border,#303846)',borderRadius:16,padding:20}}>
             <h2 style={{marginTop:0}}>🚨 Brain teşhisi</h2>
-            <p style={{margin:'6px 0 14px',opacity:.62,fontSize:13}}>Bu bölüm sabit yorum yapmaz; mevcut ilanların kendi mağaza referansına göre öncelik üretir.</p>
+            <p style={{margin:'6px 0 14px',opacity:.62,fontSize:13}}>Sabit yorum yerine mevcut ilanların kendi mağaza referansına göre öncelik üretiyoruz.</p>
             <div style={{display:'grid',gap:12}}>
               {[
                 {key:'donusum',label:'Dönüşüm fırsatı',count:metrics.counts.donusum,bg:'#162417',text:'Trafik ve favori sinyali alan ürünlerde kapak, demo, fayda ve güven mesajını test et.'},
@@ -106,8 +106,61 @@ export default function EtsyIntelligence() {
               {brain.decisions.every(d => d.priority < 88) && <div style={{padding:14,borderRadius:12,background:'#101b14'}}><strong>✅ Acil Brain görevi yok</strong><p style={{margin:'6px 0 0',opacity:.78}}>Öncelik 88+ seviyesinde bir ürün bulunmuyor. Yeni değişiklik yapmak yerine veri toplamaya devam et.</p></div>}
             </div>
           </div>
+          <div style={{background:'#0d1117',border:'1px solid var(--admin-border,#303846)',borderRadius:16,padding:20}}>
+            <h2 style={{marginTop:0}}>🏆 Öncelikli ürünler</h2>
+            {metrics.highInterest.map(l => {
+              const d = brain.decisions.find(item => item.listingId === l.listing_id);
+              const color = d?.action === 'DÖNÜŞÜM' ? '#16a34a' : d?.action === 'TRAFİK' ? '#dc2626' : d?.action === 'KAPAK_SEO' ? '#ea580c' : d?.action === 'SEO' ? '#2563eb' : '#64748b';
+              return <div key={l.listing_id} style={{padding:'12px 0',borderBottom:'1px solid #202733'}}><div style={{fontWeight:750}}>{l.title}</div><div style={{display:'flex',gap:10,marginTop:5,fontSize:13,opacity:.8}}><span>👁 {l.views||0}</span><span>♡ {l.num_favorers||0}</span><span>{priceOf(l).toFixed(2)} {l.price?.currency_code||''}</span></div><div style={{marginTop:7,color,fontWeight:700}}>{d?.action || 'VERİ_TOPLA'}</div></div>;
+            })}
+          </div>
+        </div>
 
-</div>
+        <div style={{marginTop:18,background:'#0d1117',border:'1px solid var(--admin-border,#303846)',borderRadius:16,padding:20}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,flexWrap:'wrap'}}>
+            <div><h2 style={{margin:0}}>🎯 Bugün yapılacaklar</h2><p style={{margin:'6px 0 0',opacity:.65,fontSize:13}}>AGT Etsy Brain; mağaza referanslarını, trafik, favori ve SEO sinyallerini birlikte değerlendirip en yüksek etkili ürünleri üste çıkarıyor. Amaç daha fazla ürün eklemek değil, mevcut ilgiyi satışa çevirmek.</p></div>
+            <strong style={{fontSize:13,opacity:.7}}>{brain.decisions.filter(d => d.priority >= 88).length} öncelikli ürün</strong>
+          </div>
+          <div style={{display:'grid',gap:10,marginTop:14}}>
+            {brain.topDecisions.map((d,i) => {
+              const color = d.action === 'DÖNÜŞÜM' ? '#16a34a' : d.action === 'TRAFİK' ? '#dc2626' : d.action === 'KAPAK_SEO' ? '#ea580c' : d.action === 'SEO' ? '#2563eb' : '#64748b';
+              return <div key={d.listingId} style={{display:'grid',gridTemplateColumns:'34px minmax(220px,1fr) auto',gap:12,alignItems:'center',padding:13,borderRadius:12,border:'1px solid #28303d',background:'#10151d'}}>
+                <div style={{fontSize:20,fontWeight:800}}>{i+1}</div>
+                <div><div style={{fontWeight:750}}>{d.title}</div><div style={{marginTop:4,fontSize:12,opacity:.65}}>👁 {d.metrics.views} · ♡ {d.metrics.favorites} · {d.metrics.favoriteRate.toFixed(1)}% · Güven %{d.confidence}</div></div>
+                <div style={{textAlign:'right'}}><div style={{fontSize:11,fontWeight:800,color}}>{d.action}</div><div style={{fontWeight:700,marginTop:3}}>{d.recommendation}</div><div style={{fontSize:12,opacity:.62,maxWidth:420,marginTop:4}}>{d.reasons.join(' · ')}</div><button type="button" onClick={() => { window.location.href = '/admin/etsy?listing=' + encodeURIComponent(String(d.listingId)); }} style={{marginTop:8,fontSize:12,padding:'6px 10px'}}>✏️ Etsy Manager'da aç</button></div>
+              </div>;
+            })}
+          </div>
+        </div>
+
+        <div style={{marginTop:18,background:'#0d1117',border:'1px solid #303846',borderRadius:16,padding:20}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,flexWrap:'wrap'}}>
+            <div><h2 style={{margin:0}}>⚡ Aksiyon Merkezi</h2><p style={{margin:'6px 0 0',opacity:.65,fontSize:13}}>Brain kararlarını yapılacak gerçek görevlere çeviriyoruz. Tamamlandı işaretleri bu tarayıcıda saklanır.</p></div>
+            <strong style={{fontSize:13,opacity:.7}}>{brain.decisions.filter(d => d.priority >= 88 && !completedTasks[d.listingId]).length} açık görev</strong>
+          </div>
+          <div style={{display:'grid',gap:10,marginTop:14}}>
+            {brain.decisions.filter(d => d.priority >= 88).map(d => {
+              const done = !!completedTasks[d.listingId];
+              const isTraffic = d.action === 'TRAFİK';
+              const isConversion = d.action === 'DÖNÜŞÜM';
+              const task = isTraffic
+                ? 'Başlık + etiket arama niyetini düzelt ve Pinterest/dış trafik testi planla.'
+                : isConversion
+                  ? 'Kapak, demo görselleri, fayda ve güven mesajını iyileştir; fiyatı hemen düşürme.'
+                  : 'Başlık, etiket ve açıklamanın ilk bölümünü SEO için optimize et.';
+              const href = isTraffic ? '/admin/pinterest' : '/admin/etsy?listing=' + encodeURIComponent(String(d.listingId));
+              return <div key={d.listingId} style={{display:'grid',gridTemplateColumns:'auto 1fr auto',gap:12,alignItems:'center',padding:14,borderRadius:12,border:'1px solid #28303d',background:done?'#101b14':'#10151d',opacity:done?.7:1}}>
+                <button type="button" onClick={() => toggleTask(d.listingId)} aria-label={done ? 'Görevi geri aç' : 'Görevi tamamla'} style={{width:34,height:34,borderRadius:9,fontSize:17}}>{done?'✓':'○'}</button>
+                <div>
+                  <div style={{fontWeight:800,textDecoration:done?'line-through':'none'}}>{d.title}</div>
+                  <div style={{fontSize:11,fontWeight:800,marginTop:4,color:d.action === 'DÖNÜŞÜM'?'#22c55e':d.action === 'TRAFİK'?'#ef4444':'#3b82f6'}}>{d.action} · Öncelik {d.priority} · Güven %{d.confidence}</div>
+                  <div style={{fontSize:13,opacity:.72,marginTop:5}}>{task}</div>
+                </div>
+                <a href={href} style={{padding:'7px 10px',borderRadius:8,textDecoration:'none',border:'1px solid #4b5563',fontWeight:700,fontSize:12}}>{isTraffic?'📌 Pinterest':'🤖 Etsy’de aç'}</a>
+              </div>;
+            })}
+          </div>
+        </div>
 
         <div style={{marginTop:18,background:'#0d1117',border:'1px solid var(--admin-border,#303846)',borderRadius:16,padding:20}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,flexWrap:'wrap'}}><div><h2 style={{margin:0}}>📈 Ürün teşhis tablosu</h2><p style={{margin:'6px 0 0',opacity:.65,fontSize:13}}>Öncelik motoru: trafik → favori → ürün sayfası dönüşüm sinyali. Bu tablo gerçek satışları ürün bazında eşleştirmez; satış sayısı yalnızca mağaza toplamıdır.</p></div><span style={{fontSize:12,opacity:.55}}>Görüntülenme = ilan görüntülenmesi, ziyaret (visit) değil</span></div>

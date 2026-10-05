@@ -294,9 +294,9 @@ export default function EtsyManager() {
             <div><small>Değerlendirme</small><h3>{shop?.review_count != null ? String(shop.review_count) + ' (' + Number(shop.review_average || 0).toFixed(1) + ')' : '—'}</h3></div>
           </div>
 
-          {selectedListingId > 0 && optimization && (
+          {selectedListingId > 0 && optimization && !optimizationLoading && (
             <div style={{ marginTop: 20, background: '#0d1117', border: '2px solid #f59e0b', borderRadius: 16, padding: 24 }}>
-              <h2 style={{ marginTop: 0 }}>🤖 Seçili Ürün SEO Optimizasyonu</h2>
+              <h2 style={{ marginTop: 0 }}>🤖 Seçili Ürün SEO Optimizasyonu</h2>\n              {optimizationLoading && <p>🔎 Analiz ediliyor...</p>}
               <p style={{ fontSize:13, opacity:.72 }}>Mevcut veriyi analiz ettik. Aşağıdaki öneri Etsy’ye ancak sen onaylarsan uygulanır.</p>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
                 <div style={{padding:14,background:'#151b23',borderRadius:12}}><h3>Mevcut</h3><b>Başlık</b><p>{optimization.current.title}</p><b>Etiketler</b><p>{optimization.current.tags.join(' · ')}</p><b>Açıklama</b><div style={{whiteSpace:'pre-wrap',maxHeight:180,overflow:'auto',fontSize:12}}>{optimization.current.description || 'Boş'}</div></div>

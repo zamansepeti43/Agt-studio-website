@@ -10,10 +10,7 @@ const median = (values: number[]) => {
 export function buildBenchmarks(listings: BrainListing[]): StoreBenchmarks {
   const views = listings.map(l => Number(l.views || 0));
   const favorites = listings.map(l => Number(l.num_favorers || 0));
-  const rates = listings.map(l => {
-    const v = Number(l.views || 0);
-    return v ? (Number(l.num_favorers || 0) / v) * 100 : 0;
-  });
+  const rates = listings.filter(l => Number(l.views || 0) > 0).map(l => (Number(l.num_favorers || 0) / Number(l.views || 0)) * 100);
   const prices = listings.map(l => {
     const amount = Number(l.price?.amount || 0);
     const divisor = Number(l.price?.divisor || 100);
@@ -29,6 +26,7 @@ export function buildBenchmarks(listings: BrainListing[]): StoreBenchmarks {
     avgFavorites: favorites.length ? favorites.reduce((a, b) => a + b, 0) / favorites.length : 0,
     medianFavorites: median(favorites),
     avgFavoriteRate: rates.length ? rates.reduce((a, b) => a + b, 0) / rates.length : 0,
+    medianFavoriteRate: median(rates),
     medianPrice: median(prices),
   };
 }

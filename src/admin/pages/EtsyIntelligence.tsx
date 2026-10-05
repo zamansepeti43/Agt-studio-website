@@ -79,7 +79,7 @@ export default function EtsyIntelligence() {
         </div>
 
         <div style={{marginTop:18,display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:12}}>
-          {[['🟢 Dönüşüm',metrics.counts.donusum],['🟠 Kapak / konum',metrics.counts.kapakSeo],['🔵 SEO',metrics.counts.seo],['🔴 Trafik',metrics.counts.trafik],['⚪ Veri topla',metrics.counts.veri]].map(([label,value])=><div key={String(label)} style={{background:'#0d1117',border:'1px solid #303846',borderRadius:12,padding:14}}><small style={{opacity:.65}}>{label}</small><div style={{fontSize:22,fontWeight:800,marginTop:5}}>{value}</div></div>)} style={{background:'#0d1117',border:'1px solid #303846',borderRadius:12,padding:14}}><small style={{opacity:.65}}>{label}</small><div style={{fontSize:22,fontWeight:800,marginTop:5}}>{value}</div></div>)}
+          {[['🟢 Dönüşüm',metrics.counts.donusum],['🟠 Kapak / konum',metrics.counts.kapakSeo],['🔵 SEO',metrics.counts.seo],['🔴 Trafik',metrics.counts.trafik],['⚪ Veri topla',metrics.counts.veri]].map(([label,value])=><div key={String(label)} style={{background:'#0d1117',border:'1px solid #303846',borderRadius:12,padding:14}}><small style={{opacity:.65}}>{label}</small><div style={{fontSize:22,fontWeight:800,marginTop:5}}>{value}</div></div>)}
         </div>
         <div style={{marginTop:18,display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(320px,1fr))',gap:18}}>
           <div style={{background:'#0d1117',border:'1px solid var(--admin-border,#303846)',borderRadius:16,padding:20}}>

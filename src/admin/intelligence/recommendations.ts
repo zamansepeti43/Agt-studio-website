@@ -4,47 +4,54 @@ import { scoreListing } from './scoring';
 export function recommend(listing: BrainListing, benchmarks: StoreBenchmarks): BrainDecision {
   const s = scoreListing(listing, benchmarks);
   const reasons: string[] = [];
+  const sample: BrainDecision['sample'] = s.views >= 30 ? 'YÜKSEK' : s.views >= 10 ? 'ORTA' : 'DÜŞÜK';
   let action: BrainDecision['action'] = 'VERİ_TOPLA';
-  let priority = 70;
-  let confidence = 55;
-  let recommendation = 'Büyük değişiklik yapmadan daha fazla veri topla.';
+  let priority = 60;
+  let confidence = sample === 'YÜKSEK' ? 78 : sample === 'ORTA' ? 66 : 45;
+  let recommendation = 'Şimdilik büyük değişiklik yapma; daha fazla görüntülenme ve favori verisi topla.';
 
-  if (s.views >= Math.max(10, benchmarks.medianViews * 1.15) && s.favorites >= 1) {
+  if (s.views === 0) {
+    action = 'VERİ_TOPLA';
+    priority = 55;
+    confidence = 92;
+    reasons.push('Henüz ilan görüntülenmesi yok; performans teşhisi için veri yetersiz.');
+    recommendation = 'Ürünü değiştirmeden önce görünürlük verisi oluştur. Başlık/etiketleri kontrol et ve Pinterest gibi ücretsiz dış trafik testi uygula.';
+  } else if (s.views >= Math.max(20, benchmarks.medianViews * 1.25) && s.favorites >= 1) {
     action = 'DÖNÜŞÜM';
     priority = 98;
-    confidence = Math.min(95, 72 + Math.round(Math.min(18, s.viewRatio * 8)));
-    reasons.push('Mağaza medyanının üzerinde trafik var.');
-    reasons.push('Ürün en az bir favori almış; ilgi sinyali doğrulanmış.');
-    recommendation = 'Önce kapak görseli, demo/ekran görüntüleri, fayda anlatımı ve güven mesajını test et. Fiyatı hemen düşürme.';
-  } else if (s.views >= Math.max(10, benchmarks.medianViews * 1.15) && s.favorites === 0) {
+    confidence = Math.min(96, confidence + 15);
+    reasons.push('İlan görüntülenmesi mağaza medyanının belirgin üzerinde.');
+    reasons.push('Favori sinyali var; ürün sayfasında ilgi oluştuğu görülüyor.');
+    recommendation = 'İlk olarak kapak, demo ekranları, fayda ve güven mesajını test et. Fiyatı tek başına düşürme.';
+  } else if (s.views >= Math.max(20, benchmarks.medianViews * 1.25) && s.favorites === 0) {
     action = 'KAPAK_SEO';
-    priority = 92;
-    confidence = 84;
-    reasons.push('Trafik geliyor ancak favori sinyali oluşmamış.');
-    reasons.push('İlk temas (kapak + başlık + konumlandırma) zayıf olabilir.');
-    recommendation = 'İlk görseli ve başlığı fayda odaklı yeniden test et; ürünün kime ve ne kazandırdığı ilk ekranda anlaşılmalı.';
+    priority = 93;
+    confidence = Math.min(92, confidence + 10);
+    reasons.push('Yüksek görüntülenme var ancak favori sinyali yok.');
+    reasons.push('İlk temasın (kapak + başlık + teklif) güçlendirilmesi daha mantıklı.');
+    recommendation = 'Kapak görselini ve başlığı fayda odaklı yeniden düzenle; ürünün kime ne kazandırdığı ilk görselde net olsun.';
   } else if (s.views < Math.max(8, benchmarks.medianViews * 0.45)) {
     action = 'TRAFİK';
-    priority = 88;
-    confidence = 82;
+    priority = s.views < 5 ? 86 : 88;
+    confidence = Math.min(88, confidence + 12);
     reasons.push('Görüntülenme mağaza referansının belirgin altında.');
-    reasons.push('Örneklem küçük olduğu için satış/dönüşüm hakkında kesin hüküm verilemez.');
-    recommendation = 'Önce arama niyeti, başlık, etiket ve kategori uyumunu düzelt; ardından Pinterest/dış trafik testi yap.';
+    reasons.push(sample === 'DÜŞÜK' ? 'Örneklem küçük; kesin dönüşüm hükmü verilmemeli.' : 'Görünürlük sorunu ürün sayfası dönüşümünden önce geliyor.');
+    recommendation = 'Arama niyetini, başlık/etiket uyumunu ve kategori seçimini düzelt; ardından ücretsiz Pinterest/dış trafik testi yap.';
   } else if (s.seo < 70) {
     action = 'SEO';
     priority = 78;
-    confidence = 76;
-    reasons.push(`SEO sinyali düşük (${s.seo}/100): başlık, etiket veya açıklama eksik.`);
-    recommendation = 'Arama niyetine uygun başlık/etiketleri ve açıklamanın ilk bölümünü güçlendir; sonra yeniden ölç.';
+    confidence = Math.min(84, confidence + 8);
+    reasons.push(`SEO sinyali düşük (${s.seo}/100).`);
+    recommendation = 'Başlık, etiketler ve açıklamanın ilk bölümünü arama niyetine göre güçlendir; sonra yeniden ölç.';
   } else if (s.favorites >= 1) {
     action = 'DÖNÜŞÜM';
-    priority = 76;
-    confidence = 68;
-    reasons.push('Favori sinyali var.');
-    recommendation = 'Güven, demo ve teklif sunumunu test et; fiyatı tek başına değiştirme.';
+    priority = 74;
+    confidence = Math.min(82, confidence + 6);
+    reasons.push('Favori sinyali var ancak henüz güçlü trafik örneklemi yok.');
+    recommendation = 'Büyük değişiklik yerine güven, demo ve teklif sunumunu iyileştir; yeni veriyi bekle.';
   } else {
-    reasons.push('Mağaza referansına göre henüz güçlü bir sinyal oluşmadı.');
-    recommendation = 'Veri toplamaya devam et; küçük örneklemde agresif değişiklik yapma.';
+    reasons.push('Henüz güçlü bir performans sinyali oluşmadı.');
+    recommendation = 'Ürüne dokunmadan veri toplamaya devam et; küçük örneklemde agresif değişiklik yapma.';
   }
 
   return {
@@ -53,6 +60,7 @@ export function recommend(listing: BrainListing, benchmarks: StoreBenchmarks): B
     action,
     priority,
     confidence,
+    sample,
     reasons,
     recommendation,
     metrics: {

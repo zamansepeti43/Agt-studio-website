@@ -15,7 +15,7 @@ export function recommend(listing: BrainListing, benchmarks: StoreBenchmarks): B
     priority = 55;
     confidence = 92;
     reasons.push('Henüz ilan görüntülenmesi yok; performans teşhisi için veri yetersiz.');
-    recommendation = 'Ürünü değiştirmeden önce görünürlük verisi oluştur. Başlık/etiketleri kontrol et ve Pinterest gibi ücretsiz dış trafik testi uygula.';
+    recommendation = 'Ürünü değiştirmeden önce görünürlük verisi oluştur. Başlık/etiketleri kontrol et ve ücretsiz dış trafik testi uygula.';
   } else if (s.views >= Math.max(20, benchmarks.medianViews * 1.25) && s.favorites >= 1) {
     action = 'DÖNÜŞÜM';
     priority = 98;
@@ -54,6 +54,11 @@ export function recommend(listing: BrainListing, benchmarks: StoreBenchmarks): B
     recommendation = 'Ürüne dokunmadan veri toplamaya devam et; küçük örneklemde agresif değişiklik yapma.';
   }
 
+  const stage: BrainDecision['stage'] =
+    priority >= 88 ? 'ÖNCE YAP' :
+    priority >= 74 ? 'SONRA YAP' :
+    'DOKUNMA';
+
   return {
     listingId: listing.listing_id,
     title: listing.title,
@@ -61,6 +66,7 @@ export function recommend(listing: BrainListing, benchmarks: StoreBenchmarks): B
     priority,
     confidence,
     sample,
+    stage,
     reasons,
     recommendation,
     metrics: {

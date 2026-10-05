@@ -35,6 +35,7 @@ export type BrainDecision = {
   stage: 'ÖNCE YAP' | 'SONRA YAP' | 'DOKUNMA';
   reasons: string[];
   recommendation: string;
+  nextStep: string;
   metrics: {
     views: number;
     favorites: number;

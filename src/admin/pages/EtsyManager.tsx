@@ -85,6 +85,9 @@ export default function EtsyManager() {
   const [optimizationLoading, setOptimizationLoading] = useState(false);
   const [optimizationApplying, setOptimizationApplying] = useState(false);
   const [optimizationMessage, setOptimizationMessage] = useState('');
+  const [listingFilter, setListingFilter] = useState('all');
+  const [listingSort, setListingSort] = useState('views');
+  const [listingSearch, setListingSearch] = useState('');
 
   const loadData = async () => {
     setDataLoading(true); setError('');
@@ -371,9 +374,39 @@ export default function EtsyManager() {
               <span style={{padding:'7px 10px',borderRadius:999,background:'#151b23',border:'1px solid #303846'}}>👁 {listings.reduce((n,l)=>n+Number(l.views||0),0)} görüntülenme</span>
               <span style={{padding:'7px 10px',borderRadius:999,background:'#151b23',border:'1px solid #303846'}}>♡ {listings.reduce((n,l)=>n+Number(l.num_favorers||0),0)} favori</span>
             </div>}
+            {!dataLoading && listings.length > 0 && (() => {
+              const filtered = listings.filter((l) => {
+                const q = normalize(listingSearch);
+                const title = normalize(l.title || '');
+                if (q && !title.includes(q) && !String(l.listing_id).includes(q)) return false;
+                const views = Number(l.views || 0), favs = Number(l.num_favorers || 0);
+                if (listingFilter === 'traffic' && views < 25) return false;
+                if (listingFilter === 'favorite' && favs < 1) return false;
+                if (listingFilter === 'conversion' && !(views >= 25 && favs >= 1)) return false;
+                if (listingFilter === 'attention' && !(views < 10)) return false;
+                return true;
+              }).sort((a,b) => {
+                const av=Number(a.views||0), bv=Number(b.views||0), af=Number(a.num_favorers||0), bf=Number(b.num_favorers||0);
+                if (listingSort === 'favorites') return bf-af;
+                if (listingSort === 'price') return (Number(b.price?.amount||0)/(Number(b.price?.divisor)||1))-(Number(a.price?.amount||0)/(Number(a.price?.divisor)||1));
+                return bv-av;
+              });
+              return <div style={{marginTop:18,padding:14,borderRadius:12,background:'#111820',border:'1px solid #303846'}}>
+                <div style={{display:'grid',gridTemplateColumns:'minmax(220px,1fr) 180px 180px',gap:10}}>
+                  <input aria-label="Ürün ara" placeholder="🔎 Ürün ara..." value={listingSearch} onChange={e=>setListingSearch(e.target.value)} style={fieldStyle}/>
+                  <select value={listingFilter} onChange={e=>setListingFilter(e.target.value)} style={fieldStyle}>
+                    <option value="all">Tümü</option><option value="traffic">🔥 Trafik 25+</option><option value="favorite">♡ Favorisi var</option><option value="conversion">🎯 Dönüşüm fırsatı</option><option value="attention">🔴 0-9 görüntülenme</option>
+                  </select>
+                  <select value={listingSort} onChange={e=>setListingSort(e.target.value)} style={fieldStyle}>
+                    <option value="views">Görüntülenme ↓</option><option value="favorites">Favori ↓</option><option value="price">Fiyat ↓</option>
+                  </select>
+                </div>
+                <div style={{marginTop:10,fontSize:12,opacity:.65}}>{filtered.length} ürün gösteriliyor</div>
+              </div>;
+            })()}
             {dataLoading && <p>İlanlar Etsy’den getiriliyor...</p>}
             {!dataLoading && listings.length === 0 && <p>Aktif ilan bulunamadı.</p>}
-            {!dataLoading && listings.map((listing) => {
+            {!dataLoading ? null : (() => { const filteredIds = new Set(listings.filter((l) => { const q=normalize(listingSearch); const title=normalize(l.title||''); if(q && !title.includes(q) && !String(l.listing_id).includes(q)) return false; const v=Number(l.views||0), f=Number(l.num_favorers||0); if(listingFilter==='traffic'&&v<25)return false; if(listingFilter==='favorite'&&f<1)return false; if(listingFilter==='conversion'&&!(v>=25&&f>=1))return false; if(listingFilter==='attention'&&v>=10)return false; return true; }).map(l=>l.listing_id)); return listings.filter(l=>filteredIds.has(l.listing_id)).map((listing) => {
   const p = listing.price?.amount != null && listing.price?.divisor ? listing.price.amount / listing.price.divisor : null;
   const views = Number(listing.views || 0);
   const favs = Number(listing.num_favorers || 0);
@@ -398,7 +431,7 @@ export default function EtsyManager() {
       </div>
     </div>
   </div>;
-})}
+})})()}
           </div>
         </>}
       </div>

@@ -33,17 +33,6 @@ function signal(l: Listing) {
   return { label: 'VERİ TOPLA', color: '#64748b', priority: 5, rate: favoriteRate, text: 'Örneklem küçük. Büyük değişiklik yapmadan veri toplamaya devam et.' };
 }
 
-function nextAction(l: Listing) {
-  const views = Number(l.views || 0);
-  const favs = Number(l.num_favorers || 0);
-  if (views >= 50 && favs >= 2) return { title: 'Dönüşümü test et', detail: 'Kapak + demo + güven kanıtını güçlendir. Ürünü daha fazla trafik almadan önce satışa çevirmeye odaklan.', tag: 'DÖNÜŞÜM' };
-  if (views >= 25 && favs >= 1) return { title: 'Teklif ve güveni test et', detail: 'Favori geliyor; fiyatı sürekli düşürme. İlk görsel, kullanım örneği, teslimat içeriği ve güven mesajını iyileştir.', tag: 'TEKLİF' };
-  if (views >= 20 && favs === 0) return { title: 'Kapak + başlığı yenile', detail: 'Trafik var ama ilgi yok. İlk görseli daha net fayda odaklı yap ve başlığı sadeleştir.', tag: 'KAPAK / SEO' };
-  if (views < 10) return { title: 'Trafik getir', detail: 'Veri yetersiz. Arama niyetine uygun başlık/etiketleri kontrol et ve dış trafik testi yap.', tag: 'TRAFİK' };
-  if (favs >= 1) return { title: 'İlgiyi satışa çevir', detail: 'Favori sinyali var. Ürün sayfası güveni, demo ve teklif üzerinde kontrollü test yap.', tag: 'DÖNÜŞÜM' };
-  return { title: 'Veri toplamaya devam et', detail: 'Şimdilik büyük değişiklik yapma; daha fazla görüntülenme gelmesini bekle.', tag: 'VERİ' };
-}
-
 export default function EtsyIntelligence() {
   const [data, setData] = useState<ApiData | null>(null);
   const [loading, setLoading] = useState(true);

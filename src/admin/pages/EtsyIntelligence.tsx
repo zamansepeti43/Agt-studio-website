@@ -25,6 +25,17 @@ export default function EtsyIntelligence() {
   const [data, setData] = useState<ApiData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [completedTasks, setCompletedTasks] = useState<Record<number, boolean>>(() => {
+    try { return JSON.parse(localStorage.getItem('agt-etsy-brain-tasks') || '{}'); } catch { return {}; }
+  });
+
+  const toggleTask = (listingId: number) => {
+    setCompletedTasks(prev => {
+      const next = { ...prev, [listingId]: !prev[listingId] };
+      localStorage.setItem('agt-etsy-brain-tasks', JSON.stringify(next));
+      return next;
+    });
+  };
 
   const load = async () => {
     setLoading(true); setError('');
@@ -112,6 +123,35 @@ export default function EtsyIntelligence() {
                 <div style={{fontSize:20,fontWeight:800}}>{i+1}</div>
                 <div><div style={{fontWeight:750}}>{d.title}</div><div style={{marginTop:4,fontSize:12,opacity:.65}}>👁 {d.metrics.views} · ♡ {d.metrics.favorites} · {d.metrics.favoriteRate.toFixed(1)}% · Güven %{d.confidence}</div></div>
                 <div style={{textAlign:'right'}}><div style={{fontSize:11,fontWeight:800,color}}>{d.action}</div><div style={{fontWeight:700,marginTop:3}}>{d.recommendation}</div><div style={{fontSize:12,opacity:.62,maxWidth:420,marginTop:4}}>{d.reasons.join(' · ')}</div><button type="button" onClick={() => { window.location.href = '/admin/etsy?listing=' + encodeURIComponent(String(d.listingId)); }} style={{marginTop:8,fontSize:12,padding:'6px 10px'}}>✏️ Etsy Manager'da aç</button></div>
+              </div>;
+            })}
+          </div>
+        </div>
+
+        <div style={{marginTop:18,background:'#0d1117',border:'1px solid #303846',borderRadius:16,padding:20}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,flexWrap:'wrap'}}>
+            <div><h2 style={{margin:0}}>⚡ Aksiyon Merkezi</h2><p style={{margin:'6px 0 0',opacity:.65,fontSize:13}}>Brain kararlarını yapılacak gerçek görevlere çeviriyoruz. Tamamlandı işaretleri bu tarayıcıda saklanır.</p></div>
+            <strong style={{fontSize:13,opacity:.7}}>{brain.decisions.filter(d => d.priority >= 88 && !completedTasks[d.listingId]).length} açık görev</strong>
+          </div>
+          <div style={{display:'grid',gap:10,marginTop:14}}>
+            {brain.decisions.filter(d => d.priority >= 88).map(d => {
+              const done = !!completedTasks[d.listingId];
+              const isTraffic = d.action === 'TRAFİK';
+              const isConversion = d.action === 'DÖNÜŞÜM';
+              const task = isTraffic
+                ? 'Başlık + etiket arama niyetini düzelt ve Pinterest/dış trafik testi planla.'
+                : isConversion
+                  ? 'Kapak, demo görselleri, fayda ve güven mesajını iyileştir; fiyatı hemen düşürme.'
+                  : 'Başlık, etiket ve açıklamanın ilk bölümünü SEO için optimize et.';
+              const href = isTraffic ? '/admin/pinterest' : '/admin/etsy?listing=' + encodeURIComponent(String(d.listingId));
+              return <div key={d.listingId} style={{display:'grid',gridTemplateColumns:'auto 1fr auto',gap:12,alignItems:'center',padding:14,borderRadius:12,border:'1px solid #28303d',background:done?'#101b14':'#10151d',opacity:done?.7:1}}>
+                <button type="button" onClick={() => toggleTask(d.listingId)} aria-label={done ? 'Görevi geri aç' : 'Görevi tamamla'} style={{width:34,height:34,borderRadius:9,fontSize:17}}>{done?'✓':'○'}</button>
+                <div>
+                  <div style={{fontWeight:800,textDecoration:done?'line-through':'none'}}>{d.title}</div>
+                  <div style={{fontSize:11,fontWeight:800,marginTop:4,color:d.action === 'DÖNÜŞÜM'?'#22c55e':d.action === 'TRAFİK'?'#ef4444':'#3b82f6'}}>{d.action} · Öncelik {d.priority} · Güven %{d.confidence}</div>
+                  <div style={{fontSize:13,opacity:.72,marginTop:5}}>{task}</div>
+                </div>
+                <a href={href} style={{padding:'7px 10px',borderRadius:8,textDecoration:'none',border:'1px solid #4b5563',fontWeight:700,fontSize:12}}>{isTraffic?'📌 Pinterest':'🤖 Etsy’de aç'}</a>
               </div>;
             })}
           </div>

@@ -13,7 +13,7 @@ type EtsyShop = {
   policy_shipping?: string | null; policy_refunds?: string | null; policy_privacy?: string | null;
 };
 type EtsyProfile = { user_id?: number; primary_email?: string; first_name?: string; last_name?: string; image_url_75x75?: string; };
-type EtsyListing = { listing_id: number; title: string; state: string; section_id?: number | null; shop_section_id?: number | null; taxonomy_id?: number | null; price?: { amount?: number; divisor?: number; currency_code?: string }; quantity?: number; url?: string; };
+type EtsyListing = { listing_id: number; title: string; state: string; section_id?: number | null; shop_section_id?: number | null; taxonomy_id?: number | null; price?: { amount?: number; divisor?: number; currency_code?: string }; quantity?: number; url?: string; views?: number; num_favorers?: number; tags?: string[]; description?: string; };
 type EtsySection = { shop_section_id: number; title: string; rank?: number; active_listing_count?: number; };
 type ListingOptimization = {
   listing_id: number;
@@ -365,10 +365,40 @@ export default function EtsyManager() {
               <h2 style={{ marginTop: 0, marginBottom: 0 }}>Aktif İlanlar</h2>
               <button type="button" onClick={applyTargetedSeoOptimization} disabled={saving}>🎯 2 Ürünün SEO'sunu Uygula</button>
             </div>
-            <p style={{ marginTop: 10, fontSize: 13, opacity: .75 }}>Sıfır görüntülenmede kalan iki ürün için hazırlanan SEO değişikliklerini uygular. Fiyat ve görseller değiştirilmez; diğer ilanlara dokunulmaz.</p>
+            <p style={{ marginTop: 10, fontSize: 13, opacity: .75 }}>18 aktif ürünü performans, ilgi, fiyat ve SEO sinyalleriyle tek ekranda yönet. “Optimize Et” yalnızca öneriyi açar; Etsy’ye gerçek değişiklik yapmak için ayrıca onay gerekir.</p>
+            {!dataLoading && listings.length > 0 && <div style={{display:'flex',gap:10,flexWrap:'wrap',marginTop:14}}>
+              <span style={{padding:'7px 10px',borderRadius:999,background:'#151b23',border:'1px solid #303846'}}>📦 {listings.length} ürün</span>
+              <span style={{padding:'7px 10px',borderRadius:999,background:'#151b23',border:'1px solid #303846'}}>👁 {listings.reduce((n,l)=>n+Number(l.views||0),0)} görüntülenme</span>
+              <span style={{padding:'7px 10px',borderRadius:999,background:'#151b23',border:'1px solid #303846'}}>♡ {listings.reduce((n,l)=>n+Number(l.num_favorers||0),0)} favori</span>
+            </div>}
             {dataLoading && <p>İlanlar Etsy’den getiriliyor...</p>}
             {!dataLoading && listings.length === 0 && <p>Aktif ilan bulunamadı.</p>}
-            {!dataLoading && listings.map((listing) => { const p = listing.price?.amount != null && listing.price?.divisor ? listing.price.amount / listing.price.divisor : null; return <div id={`etsy-listing-${listing.listing_id}`} key={listing.listing_id} style={{ display: 'flex', justifyContent: 'space-between', gap: 14, padding: 14, borderBottom: '1px solid var(--admin-border, #e5e7eb)', outline: selectedListingId === listing.listing_id ? '2px solid #f59e0b' : 'none', borderRadius: selectedListingId === listing.listing_id ? 10 : 0, background: selectedListingId === listing.listing_id ? '#211a0d' : 'transparent' }}><div><strong>{listing.title}</strong><div style={{ fontSize: 13, opacity: .7 }}>ID: {listing.listing_id} · Stok: {listing.quantity ?? '—'}</div></div><strong>{p != null ? p.toFixed(2) + ' ' + (listing.price?.currency_code || '') : '—'}</strong></div>; })}
+            {!dataLoading && listings.map((listing) => {
+  const p = listing.price?.amount != null && listing.price?.divisor ? listing.price.amount / listing.price.divisor : null;
+  const views = Number(listing.views || 0);
+  const favs = Number(listing.num_favorers || 0);
+  const engagement = views > 0 ? (favs / views) * 100 : 0;
+  const seoScore = (listing.title?.length >= 35 ? 1 : 0) + ((listing.tags?.length || 0) >= 10 ? 1 : 0) + ((listing.description?.length || 0) >= 800 ? 1 : 0);
+  const seoLabel = seoScore >= 3 ? '🟢 Güçlü' : seoScore === 2 ? '🟡 İyileştir' : '🔴 Zayıf';
+  const action = views >= 50 && favs >= 2 ? 'DÖNÜŞÜM' : views >= 25 && favs >= 1 ? 'TEKLİF' : views >= 20 && favs === 0 ? 'KAPAK / SEO' : views < 10 ? 'TRAFİK' : favs >= 1 ? 'DÖNÜŞÜM' : 'VERİ';
+  const sectionId = Number(listing.shop_section_id ?? listing.section_id ?? 0);
+  const sectionName = sections.find((s) => s.shop_section_id === sectionId)?.title || 'Bölüm yok';
+  return <div id={`etsy-listing-${listing.listing_id}`} key={listing.listing_id} style={{ padding: 16, borderBottom: '1px solid var(--admin-border, #e5e7eb)', outline: selectedListingId === listing.listing_id ? '2px solid #f59e0b' : 'none', borderRadius: selectedListingId === listing.listing_id ? 12 : 0, background: selectedListingId === listing.listing_id ? '#211a0d' : 'transparent' }}>
+    <div style={{ display:'grid', gridTemplateColumns:'minmax(280px,2fr) repeat(5,minmax(90px,1fr)) minmax(210px,1.4fr)', gap:12, alignItems:'center' }}>
+      <div><strong>{listing.title}</strong><div style={{ fontSize: 12, opacity: .6, marginTop: 5 }}>ID: {listing.listing_id} · Stok: {listing.quantity ?? '—'} · {sectionName}</div></div>
+      <div><small style={{opacity:.6}}>👁 Görüntülenme</small><div style={{fontWeight:800,marginTop:3}}>{views}</div></div>
+      <div><small style={{opacity:.6}}>♡ Favori</small><div style={{fontWeight:800,marginTop:3}}>{favs}</div></div>
+      <div><small style={{opacity:.6}}>📈 İlgi</small><div style={{fontWeight:800,marginTop:3}}>{engagement.toFixed(1)}%</div></div>
+      <div><small style={{opacity:.6}}>💰 Fiyat</small><div style={{fontWeight:800,marginTop:3}}>{p != null ? p.toFixed(2) + ' ' + (listing.price?.currency_code || '') : '—'}</div></div>
+      <div><small style={{opacity:.6}}>🔎 SEO</small><div style={{fontWeight:800,marginTop:3}}>{seoLabel}</div></div>
+      <div style={{display:'flex',gap:8,justifyContent:'flex-end',flexWrap:'wrap'}}>
+        <span style={{padding:'5px 8px',borderRadius:999,background:'#151b23',border:'1px solid #303846',fontSize:11,fontWeight:700}}>{action}</span>
+        <a href={`/admin/etsy?listing=${listing.listing_id}#etsy-seo`} style={{padding:'7px 10px',borderRadius:8,textDecoration:'none',border:'1px solid #4b5563',fontWeight:700,fontSize:12}}>🤖 Optimize Et</a>
+        {listing.url && <a href={listing.url} target="_blank" rel="noreferrer" style={{padding:'7px 10px',borderRadius:8,textDecoration:'none',border:'1px solid #4b5563',fontWeight:700,fontSize:12}}>↗ Etsy</a>}
+      </div>
+    </div>
+  </div>;
+})}
           </div>
         </>}
       </div>

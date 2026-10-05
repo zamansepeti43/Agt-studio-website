@@ -126,13 +126,6 @@ export default function EtsyIntelligence() {
           <div style={{display:'grid',gap:10,marginTop:14}}>
             {dailyPriorities.map((d,i) => {
               const color = d.action === 'DÖNÜŞÜM' ? '#16a34a' : d.action === 'TRAFİK' ? '#dc2626' : d.action === 'KAPAK_SEO' ? '#ea580c' : '#2563eb';
-              const task = d.action === 'TRAFİK'
-                ? 'Arama niyetini, başlık ve etiketleri düzelt; ardından ücretsiz Pinterest testi yap.'
-                : d.action === 'DÖNÜŞÜM'
-                  ? 'Kapak + demo + fayda/güven mesajını iyileştir; fiyatı hemen düşürme.'
-                  : d.action === 'KAPAK_SEO'
-                    ? 'Kapak ve başlığı yeniden konumlandır; ürünün faydasını ilk görselde netleştir.'
-                    : 'Başlık, etiket ve açıklamanın ilk bölümünü SEO için optimize et.';
               return <div key={d.listingId} style={{display:'grid',gridTemplateColumns:'38px minmax(220px,1fr) auto',gap:12,alignItems:'center',padding:14,borderRadius:12,border:'1px solid #28303d',background:'#10151d'}}>
                 <div style={{fontSize:20,fontWeight:800}}>{i+1}</div>
                 <div><div style={{fontWeight:800}}>{d.title}</div><div style={{fontSize:12,marginTop:5,opacity:.7}}>👁 {d.metrics.views} · ♡ {d.metrics.favorites} · {d.action} · Güven %{d.confidence}</div><div style={{fontSize:13,marginTop:6,color}}>{d.nextStep}</div></div>

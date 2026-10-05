@@ -21,6 +21,7 @@ export type StoreBenchmarks = {
   avgFavorites: number;
   medianFavorites: number;
   avgFavoriteRate: number;
+  medianFavoriteRate: number;
   medianPrice: number;
 };
 
@@ -30,6 +31,7 @@ export type BrainDecision = {
   action: BrainAction;
   priority: number;
   confidence: number;
+  sample: 'YÜKSEK' | 'ORTA' | 'DÜŞÜK';
   reasons: string[];
   recommendation: string;
   metrics: {

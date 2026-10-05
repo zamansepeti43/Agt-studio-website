@@ -90,6 +90,10 @@ export default function EtsyManager() {
   const [listingSort, setListingSort] = useState('views');
   const [listingSearch, setListingSearch] = useState('');
   const brain = useMemo(() => analyzeEtsyStore(listings), [listings]);
+  const selectedBrainDecision = useMemo(
+    () => brain.decisions.find((d) => d.listingId === selectedListingId) || null,
+    [brain, selectedListingId]
+  );
 
   const loadData = async () => {
     setDataLoading(true); setError('');
@@ -307,6 +311,18 @@ export default function EtsyManager() {
               <h2 style={{ marginTop: 0 }}>🤖 Seçili Ürün SEO Optimizasyonu</h2>
               {optimizationLoading && <p>🔎 Analiz ediliyor...</p>}
               <p style={{ fontSize:13, opacity:.72 }}>Mevcut veriyi analiz ettik. Aşağıdaki öneri Etsy’ye ancak sen onaylarsan uygulanır.</p>
+              {selectedBrainDecision && (
+                <div style={{marginBottom:14,padding:12,borderRadius:10,background:'#111827',border:'1px solid #374151'}}>
+                  <div style={{display:'flex',gap:10,flexWrap:'wrap',alignItems:'center'}}>
+                    <strong>🧠 Brain:</strong>
+                    <span>{selectedBrainDecision.action}</span>
+                    <span>Öncelik {selectedBrainDecision.priority}</span>
+                    <span>Güven %{selectedBrainDecision.confidence}</span>
+                    <span>Örneklem {selectedBrainDecision.sample.toLowerCase()}</span>
+                  </div>
+                  <div style={{marginTop:7,fontSize:13}}><strong>Sonraki adım:</strong> {selectedBrainDecision.nextStep}</div>
+                </div>
+              )}
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
                 <div style={{padding:14,background:'#151b23',borderRadius:12}}><h3>Mevcut</h3><b>Başlık</b><p>{optimization.current.title}</p><b>Etiketler</b><p>{optimization.current.tags.join(' · ')}</p><b>Açıklama</b><div style={{whiteSpace:'pre-wrap',maxHeight:180,overflow:'auto',fontSize:12}}>{optimization.current.description || 'Boş'}</div></div>
                 <div style={{padding:14,background:'#102117',borderRadius:12}}><h3>Önerilen</h3><b>Başlık</b><p>{optimization.proposed.title}</p><b>Etiketler</b><p>{optimization.proposed.tags.join(' · ')}</p><b>Açıklama</b><div style={{whiteSpace:'pre-wrap',maxHeight:180,overflow:'auto',fontSize:12}}>{optimization.proposed.description}</div></div>

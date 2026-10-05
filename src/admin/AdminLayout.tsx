@@ -12,6 +12,9 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/portfolio': 'Portföy Yönetimi',
   '/admin/requests': 'Proje Talepleri',
   '/admin/settings': 'Site Ayarları',
+  '/admin/etsy': 'Etsy Yönetimi',
+  '/admin/etsy-intelligence': 'Etsy Intelligence',
+  '/admin/pinterest': 'Pinterest Yönetimi',
 };
 
 export default function AdminLayout() {
@@ -34,7 +37,7 @@ export default function AdminLayout() {
             <button onClick={logout} style={{ background: 'transparent', border: '1px solid rgba(248,81,73,0.25)', color: '#f85149', padding: '5px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 500, cursor: 'pointer', transition: 'all 0.18s' }} onMouseEnter={(e) => { (e.target as HTMLButtonElement).style.background = 'rgba(248,81,73,0.12)'; }} onMouseLeave={(e) => { (e.target as HTMLButtonElement).style.background = 'transparent'; }} title={session?.user?.email}>Çıkış Yap</button>
           </div>
         </header>
-        <main className="admin-page"><Outlet /></main>
+        <main className="admin-content"><Outlet /></main>
       </div>
     </div>
   );

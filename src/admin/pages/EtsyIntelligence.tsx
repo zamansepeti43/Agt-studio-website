@@ -53,6 +53,7 @@ export default function EtsyIntelligence() {
 
   const listings = data?.listings?.results || [];
   const brain = useMemo(() => analyzeEtsyStore(listings), [listings]);
+  const dailyPriorities = useMemo(() => brain.decisions.filter(d => d.stage === 'ÖNCE YAP').slice(0, 3), [brain]);
   const metrics = useMemo(() => {
     const views = listings.reduce((s, l) => s + Number(l.views || 0), 0);
     const favs = listings.reduce((s, l) => s + Number(l.num_favorers || 0), 0);
@@ -122,7 +123,7 @@ export default function EtsyIntelligence() {
             <strong style={{fontSize:13,opacity:.7}}>Öncelik sırası</strong>
           </div>
           <div style={{display:'grid',gap:10,marginTop:14}}>
-            {brain.decisions.filter(d => d.stage === 'ÖNCE YAP').slice(0,3).map((d,i) => {
+            {dailyPriorities.map((d,i) => {
               const color = d.action === 'DÖNÜŞÜM' ? '#16a34a' : d.action === 'TRAFİK' ? '#dc2626' : d.action === 'KAPAK_SEO' ? '#ea580c' : '#2563eb';
               const task = d.action === 'TRAFİK'
                 ? 'Arama niyetini, başlık ve etiketleri düzelt; ardından ücretsiz Pinterest testi yap.'
@@ -137,7 +138,7 @@ export default function EtsyIntelligence() {
                 <a href={'/admin/etsy?listing=' + encodeURIComponent(String(d.listingId))} style={{padding:'7px 10px',borderRadius:8,textDecoration:'none',border:'1px solid #4b5563',fontWeight:700,fontSize:12}}>🤖 Uygula</a>
               </div>;
             })}
-            {brain.decisions.filter(d => d.stage === 'ÖNCE YAP').length === 0 && <div style={{padding:14,borderRadius:12,background:'#101b14'}}><strong>✅ Bugün acil ürün yok</strong><p style={{margin:'6px 0 0',opacity:.75}}>Yeni değişiklik yapmak yerine veri toplamaya devam et.</p></div>}
+            {dailyPriorities.length === 0 && <div style={{padding:14,borderRadius:12,background:'#101b14'}}><strong>✅ Bugün acil ürün yok</strong><p style={{margin:'6px 0 0',opacity:.75}}>Yeni değişiklik yapmak yerine veri toplamaya devam et.</p></div>}
           </div>
         </div>
 
@@ -161,10 +162,10 @@ export default function EtsyIntelligence() {
         <div style={{marginTop:18,background:'#0d1117',border:'1px solid #303846',borderRadius:16,padding:20}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,flexWrap:'wrap'}}>
             <div><h2 style={{margin:0}}>⚡ Aksiyon Merkezi</h2><p style={{margin:'6px 0 0',opacity:.65,fontSize:13}}>Brain kararlarını yapılacak gerçek görevlere çeviriyoruz. Tamamlandı işaretleri bu tarayıcıda saklanır.</p></div>
-            <strong style={{fontSize:13,opacity:.7}}>{brain.decisions.filter(d => d.priority >= 88 && !completedTasks[d.listingId]).length} açık görev</strong>
+            <strong style={{fontSize:13,opacity:.7}}>{dailyPriorities.filter(d => !completedTasks[d.listingId]).length} açık görev</strong>
           </div>
           <div style={{display:'grid',gap:10,marginTop:14}}>
-            {brain.decisions.filter(d => d.priority >= 88).map(d => {
+            {dailyPriorities.map(d => {
               const done = !!completedTasks[d.listingId];
               const isTraffic = d.action === 'TRAFİK';
               const isConversion = d.action === 'DÖNÜŞÜM';

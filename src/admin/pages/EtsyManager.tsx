@@ -272,8 +272,11 @@ export default function EtsyManager() {
         <div><h1>Etsy Yönetimi</h1><p>AGT Studio Etsy mağazanı buradan yönet.</p></div>
         {status?.connected && <button type="button" onClick={loadData} disabled={dataLoading}>{dataLoading ? 'Yükleniyor...' : '↻ Yenile'}</button>}
       </div>
-      <div style={{ maxWidth: 1100 }}>
-        <div style={{ background: '#0d1117', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 24 }}>
+      <div className="etsy-command-center" style={{ maxWidth: 1280 }}>
+        {status?.connected && <div className="etsy-command-nav">
+          <a href="#etsy-overview">📊 Özet</a><a href="#etsy-seo">🤖 SEO</a><a href="#etsy-shop">🏪 Mağaza</a><a href="#etsy-sections">📁 Bölümler</a><a href="#etsy-listings">🛍️ Ürünler</a>
+        </div>}
+        <div id="etsy-overview" style={{ background: '#0d1117', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
             <div><h2 style={{ margin: 0 }}>Etsy Bağlantısı</h2><p style={{ marginTop: 8 }}>{status?.connected ? 'Etsy mağazan AGT Studio’ya bağlı ve API erişimi aktif.' : 'Henüz Etsy mağazası bağlanmadı.'}</p></div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
@@ -295,8 +298,9 @@ export default function EtsyManager() {
           </div>
 
           {selectedListingId > 0 && optimization && !optimizationLoading && (
-            <div style={{ marginTop: 20, background: '#0d1117', border: '2px solid #f59e0b', borderRadius: 16, padding: 24 }}>
-              <h2 style={{ marginTop: 0 }}>🤖 Seçili Ürün SEO Optimizasyonu</h2>\n              {optimizationLoading && <p>🔎 Analiz ediliyor...</p>}
+            <div id="etsy-seo" style={{ marginTop: 20, background: '#0d1117', border: '2px solid #f59e0b', borderRadius: 16, padding: 24 }}>
+              <h2 style={{ marginTop: 0 }}>🤖 Seçili Ürün SEO Optimizasyonu</h2>
+              {optimizationLoading && <p>🔎 Analiz ediliyor...</p>}
               <p style={{ fontSize:13, opacity:.72 }}>Mevcut veriyi analiz ettik. Aşağıdaki öneri Etsy’ye ancak sen onaylarsan uygulanır.</p>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
                 <div style={{padding:14,background:'#151b23',borderRadius:12}}><h3>Mevcut</h3><b>Başlık</b><p>{optimization.current.title}</p><b>Etiketler</b><p>{optimization.current.tags.join(' · ')}</p><b>Açıklama</b><div style={{whiteSpace:'pre-wrap',maxHeight:180,overflow:'auto',fontSize:12}}>{optimization.current.description || 'Boş'}</div></div>
@@ -307,7 +311,7 @@ export default function EtsyManager() {
               <button type="button" onClick={applyOptimization} disabled={optimizationApplying}>{optimizationApplying?'Etsy’ye uygulanıyor...':'🚀 Onayla ve Etsy’ye Uygula'}</button>
             </div>
           )}
-          <div style={{ marginTop: 20, background: '#0d1117', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 24 }}>
+          <div id="etsy-profile" style={{ marginTop: 20, background: '#0d1117', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 24 }}>
             <h2 style={{ marginTop: 0 }}>👤 Etsy Profili</h2>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
               {profile?.image_url_75x75 && <img src={profile.image_url_75x75} alt="" width="75" height="75" style={{ borderRadius: '50%', objectFit: 'cover' }} />}
@@ -316,7 +320,7 @@ export default function EtsyManager() {
             <p style={{ marginBottom: 0, marginTop: 12, fontSize: 13, opacity: .7 }}>Profil verileri Etsy API üzerinden okunuyor. Bu panelde güvenli olarak mağaza alanlarını düzenleyebiliyoruz.</p>
           </div>
 
-          <div style={{ marginTop: 20, background: '#0d1117', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 24 }}>
+          <div id="etsy-shop" style={{ marginTop: 20, background: '#0d1117', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 24 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
               <h2 style={{ marginTop: 0, marginBottom: 0 }}>🏪 Mağaza Ana Sayfası</h2>
               <button type="button" onClick={applyPremiumSetup} disabled={saving}>✨ Premium Mağaza Kurulumunu Uygula</button>
@@ -332,7 +336,7 @@ export default function EtsyManager() {
             <p style={{ marginBottom: 0, marginTop: 14, fontSize: 12, opacity: .65 }}>Kaydet butonu gerçek Etsy API'sine PUT gönderir; mevcut alanları değiştirmeden yalnızca bu dört alanı günceller.</p>
           </div>
 
-          <div style={{ marginTop: 20, background: '#0d1117', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 24 }}>
+          <div id="etsy-sections" style={{ marginTop: 20, background: '#0d1117', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 24 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
               <div><h2 style={{ marginTop: 0, marginBottom: 4 }}>📁 Ürünleri Mağaza Bölümlerine Dağıt</h2><p style={{ margin: 0, fontSize: 13, opacity: .75 }}>Senin için ürünleri başlıklarına göre ben sınıflandırıyorum. Sen sadece son dağılımı onaylıyorsun. Etsy kategorilerine kesinlikle dokunulmuyor.</p></div>
               <button type="button" onClick={applySectionAssignments} disabled={applyingSections || !sections.length}>{applyingSections ? 'Etsy’ye uygulanıyor...' : '✅ Bölüm Dağılımını Onayla ve Etsy’ye Uygula'}</button>
@@ -356,7 +360,7 @@ export default function EtsyManager() {
               })}
             </div>}
           </div>
-          <div style={{ marginTop: 20, background: '#0d1117', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 24 }}>
+          <div id="etsy-listings" style={{ marginTop: 20, background: '#0d1117', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 24 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
               <h2 style={{ marginTop: 0, marginBottom: 0 }}>Aktif İlanlar</h2>
               <button type="button" onClick={applyTargetedSeoOptimization} disabled={saving}>🎯 2 Ürünün SEO'sunu Uygula</button>

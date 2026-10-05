@@ -104,6 +104,16 @@ export default function EtsyIntelligence() {
         </div>
 
         <div style={{marginTop:18,background:'#0d1117',border:'1px solid var(--admin-border,#303846)',borderRadius:16,padding:20}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,flexWrap:'wrap'}}>
+            <div><h2 style={{margin:0}}>🎯 Bugün yapılacaklar</h2><p style={{margin:'6px 0 0',opacity:.65,fontSize:13}}>Karar motoru en yüksek etkili ürünleri üste çıkarıyor. Amaç daha fazla ürün eklemek değil, mevcut ilgiyi satışa çevirmek.</p></div>
+            <strong style={{fontSize:13,opacity:.7}}>{metrics.decisions.filter(l => signal(l).priority <= 2).length} öncelikli ürün</strong>
+          </div>
+          <div style={{display:'grid',gap:10,marginTop:14}}>
+            {metrics.decisions.slice(0,5).map((l,i) => { const s=signal(l); const a=nextAction(l); return <div key={l.listing_id} style={{display:'grid',gridTemplateColumns:'34px minmax(220px,1fr) auto',gap:12,alignItems:'center',padding:13,borderRadius:12,border:'1px solid #28303d',background:'#10151d'}}><div style={{fontSize:20,fontWeight:800}}>{i+1}</div><div><div style={{fontWeight:750}}>{l.title}</div><div style={{marginTop:4,fontSize:12,opacity:.65}}>👁 {l.views||0} · ♡ {l.num_favorers||0} · {s.rate.toFixed(1)}% favori oranı</div></div><div style={{textAlign:'right'}}><div style={{fontSize:11,fontWeight:800,color:s.color}}>{a.tag}</div><div style={{fontWeight:700,marginTop:3}}>{a.title}</div><div style={{fontSize:12,opacity:.62,maxWidth:360,marginTop:3}}>{a.detail}</div></div></div>; })}
+          </div>
+        </div>
+
+        <div style={{marginTop:18,background:'#0d1117',border:'1px solid var(--admin-border,#303846)',borderRadius:16,padding:20}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,flexWrap:'wrap'}}><div><h2 style={{margin:0}}>📈 Ürün teşhis tablosu</h2><p style={{margin:'6px 0 0',opacity:.65,fontSize:13}}>Öncelik motoru: trafik → favori → ürün sayfası dönüşüm sinyali. Gerçek sipariş eşleşmesi, Etsy'nin işlem yetkisi açıldığında ayrıca eklenecek.</p></div><span style={{fontSize:12,opacity:.55}}>Etsy API verisi · sipariş eşleşmesi bekliyor</span></div>
           <div style={{overflowX:'auto',marginTop:14}}>
             <table style={{width:'100%',borderCollapse:'collapse',fontSize:14}}>

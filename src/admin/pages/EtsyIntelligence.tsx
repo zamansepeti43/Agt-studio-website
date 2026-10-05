@@ -118,7 +118,32 @@ export default function EtsyIntelligence() {
 
         <div style={{marginTop:18,background:'#0d1117',border:'1px solid var(--admin-border,#303846)',borderRadius:16,padding:20}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,flexWrap:'wrap'}}>
-            <div><h2 style={{margin:0}}>🎯 Bugün yapılacaklar</h2><p style={{margin:'6px 0 0',opacity:.65,fontSize:13}}>AGT Etsy Brain; mağaza referanslarını, trafik, favori ve SEO sinyallerini birlikte değerlendirip en yüksek etkili ürünleri üste çıkarıyor. Amaç daha fazla ürün eklemek değil, mevcut ilgiyi satışa çevirmek.</p></div>
+            <div><h2 style={{margin:0}}>🎯 Bugün yapılacak 3 iş</h2><p style={{margin:'6px 0 0',opacity:.65,fontSize:13}}>Brain yalnızca en yüksek etkili 3 ürünü bugünün çalışma sırasına alır. Diğer ürünler sırada bekler veya veri toplar.</p></div>
+            <strong style={{fontSize:13,opacity:.7}}>Öncelik sırası</strong>
+          </div>
+          <div style={{display:'grid',gap:10,marginTop:14}}>
+            {brain.decisions.filter(d => d.stage === 'ÖNCE YAP').slice(0,3).map((d,i) => {
+              const color = d.action === 'DÖNÜŞÜM' ? '#16a34a' : d.action === 'TRAFİK' ? '#dc2626' : d.action === 'KAPAK_SEO' ? '#ea580c' : '#2563eb';
+              const task = d.action === 'TRAFİK'
+                ? 'Arama niyetini, başlık ve etiketleri düzelt; ardından ücretsiz Pinterest testi yap.'
+                : d.action === 'DÖNÜŞÜM'
+                  ? 'Kapak + demo + fayda/güven mesajını iyileştir; fiyatı hemen düşürme.'
+                  : d.action === 'KAPAK_SEO'
+                    ? 'Kapak ve başlığı yeniden konumlandır; ürünün faydasını ilk görselde netleştir.'
+                    : 'Başlık, etiket ve açıklamanın ilk bölümünü SEO için optimize et.';
+              return <div key={d.listingId} style={{display:'grid',gridTemplateColumns:'38px minmax(220px,1fr) auto',gap:12,alignItems:'center',padding:14,borderRadius:12,border:'1px solid #28303d',background:'#10151d'}}>
+                <div style={{fontSize:20,fontWeight:800}}>{i+1}</div>
+                <div><div style={{fontWeight:800}}>{d.title}</div><div style={{fontSize:12,marginTop:5,opacity:.7}}>👁 {d.metrics.views} · ♡ {d.metrics.favorites} · {d.action} · Güven %{d.confidence}</div><div style={{fontSize:13,marginTop:6,color}}>{task}</div></div>
+                <a href={'/admin/etsy?listing=' + encodeURIComponent(String(d.listingId))} style={{padding:'7px 10px',borderRadius:8,textDecoration:'none',border:'1px solid #4b5563',fontWeight:700,fontSize:12}}>🤖 Uygula</a>
+              </div>;
+            })}
+            {brain.decisions.filter(d => d.stage === 'ÖNCE YAP').length === 0 && <div style={{padding:14,borderRadius:12,background:'#101b14'}}><strong>✅ Bugün acil ürün yok</strong><p style={{margin:'6px 0 0',opacity:.75}}>Yeni değişiklik yapmak yerine veri toplamaya devam et.</p></div>}
+          </div>
+        </div>
+
+        <div style={{marginTop:18,background:'#0d1117',border:'1px solid var(--admin-border,#303846)',borderRadius:16,padding:20}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,flexWrap:'wrap'}}>
+            <div><h2 style={{margin:0}}>🎯 Brain detayları</h2><p style={{margin:'6px 0 0',opacity:.65,fontSize:13}}>AGT Etsy Brain; mağaza referanslarını, trafik, favori ve SEO sinyallerini birlikte değerlendirip en yüksek etkili ürünleri üste çıkarıyor. Amaç daha fazla ürün eklemek değil, mevcut ilgiyi satışa çevirmek.</p></div>
             <strong style={{fontSize:13,opacity:.7}}>{brain.decisions.filter(d => d.priority >= 88).length} öncelikli ürün</strong>
           </div>
           <div style={{display:'grid',gap:10,marginTop:14}}>

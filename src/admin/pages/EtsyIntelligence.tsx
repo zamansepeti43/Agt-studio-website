@@ -25,14 +25,15 @@ export default function EtsyIntelligence() {
   const [data, setData] = useState<ApiData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const taskStorageKey = 'agt-etsy-brain-tasks-' + new Date().toISOString().slice(0, 10);
   const [completedTasks, setCompletedTasks] = useState<Record<number, boolean>>(() => {
-    try { return JSON.parse(localStorage.getItem('agt-etsy-brain-tasks') || '{}'); } catch { return {}; }
+    try { return JSON.parse(localStorage.getItem(taskStorageKey) || '{}'); } catch { return {}; }
   });
 
   const toggleTask = (listingId: number) => {
     setCompletedTasks(prev => {
       const next = { ...prev, [listingId]: !prev[listingId] };
-      localStorage.setItem('agt-etsy-brain-tasks', JSON.stringify(next));
+      localStorage.setItem(taskStorageKey, JSON.stringify(next));
       return next;
     });
   };
@@ -161,7 +162,7 @@ export default function EtsyIntelligence() {
 
         <div style={{marginTop:18,background:'#0d1117',border:'1px solid #303846',borderRadius:16,padding:20}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,flexWrap:'wrap'}}>
-            <div><h2 style={{margin:0}}>⚡ Aksiyon Merkezi</h2><p style={{margin:'6px 0 0',opacity:.65,fontSize:13}}>Brain kararlarını yapılacak gerçek görevlere çeviriyoruz. Tamamlandı işaretleri bu tarayıcıda saklanır.</p></div>
+            <div><h2 style={{margin:0}}>⚡ Aksiyon Merkezi</h2><p style={{margin:'6px 0 0',opacity:.65,fontSize:13}}>Brain kararlarını yapılacak gerçek görevlere çeviriyoruz. Tamamlandı işaretleri bu tarayıcıda yalnızca bugünün çalışma kuyruğu için saklanır.</p></div>
             <strong style={{fontSize:13,opacity:.7}}>{dailyPriorities.filter(d => !completedTasks[d.listingId]).length} açık görev</strong>
           </div>
           <div style={{display:'grid',gap:10,marginTop:14}}>

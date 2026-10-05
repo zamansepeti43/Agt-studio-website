@@ -12,6 +12,7 @@ import PortfolioManager from './pages/PortfolioManager';
 import ProjectRequests from './pages/ProjectRequests';
 import SiteSettings from './pages/SiteSettings';
 import EtsyManager from './pages/EtsyManager';
+import EtsyIntelligence from './pages/EtsyIntelligence';
 import PinterestManager from './pages/PinterestManager';
 
 export default function AdminApp() {
@@ -28,6 +29,7 @@ export default function AdminApp() {
         <Route path="requests" element={<ProjectRequests />} />
         <Route path="settings" element={<SiteSettings />} />
         <Route path="etsy" element={<EtsyManager />} />
+        <Route path="etsy-intelligence" element={<EtsyIntelligence />} />
         <Route path="pinterest" element={<PinterestManager />} />
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Route>

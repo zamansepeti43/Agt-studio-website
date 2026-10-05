@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { analyzeEtsyStore } from '../intelligence/EtsyBrain';
 import { useSearchParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 
@@ -88,6 +89,7 @@ export default function EtsyManager() {
   const [listingFilter, setListingFilter] = useState('all');
   const [listingSort, setListingSort] = useState('views');
   const [listingSearch, setListingSearch] = useState('');
+  const brain = useMemo(() => analyzeEtsyStore(listings), [listings]);
 
   const loadData = async () => {
     setDataLoading(true); setError('');
@@ -277,7 +279,7 @@ export default function EtsyManager() {
       </div>
       <div className="etsy-command-center" style={{ maxWidth: 1280 }}>
         {status?.connected && <div className="etsy-command-nav">
-          <a href="#etsy-overview">📊 Özet</a><a href="#etsy-seo">🤖 SEO</a><a href="#etsy-shop">🏪 Mağaza</a><a href="#etsy-sections">📁 Bölümler</a><a href="#etsy-listings">🛍️ Ürünler</a>
+          <a href="#etsy-overview">📊 Özet</a><a href="#etsy-seo">🤖 SEO</a><a href="#etsy-shop">🏪 Mağaza</a><a href="#etsy-sections">📁 Bölümler</a><a href="#etsy-brain">🧠 Brain</a><a href="#etsy-listings">🛍️ Ürünler</a>
         </div>}
         <div id="etsy-overview" style={{ background: '#0d1117', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
@@ -363,6 +365,23 @@ export default function EtsyManager() {
               })}
             </div>}
           </div>
+          <div id="etsy-brain" style={{ marginTop: 20, background: '#0d1117', border: '1px solid #303846', borderRadius: 16, padding: 24 }}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,flexWrap:'wrap'}}>
+              <div><h2 style={{margin:0}}>🧠 Etsy Brain — Uygulanabilir Kararlar</h2><p style={{margin:'7px 0 0',fontSize:13,opacity:.7}}>Brain (karar motoru) mağazanın kendi referanslarını kullanır; öneri üretir, değişikliği sen onaylarsın.</p></div>
+              <div style={{fontSize:12,opacity:.65}}>Medyan görüntülenme: {brain.benchmarks.medianViews.toFixed(1)} · Ort. favori oranı: {brain.benchmarks.avgFavoriteRate.toFixed(1)}%</div>
+            </div>
+            <div style={{display:'grid',gap:10,marginTop:14}}>
+              {brain.topDecisions.map((d,i) => {
+                const color = d.action === 'DÖNÜŞÜM' ? '#22c55e' : d.action === 'TRAFİK' ? '#ef4444' : d.action === 'KAPAK_SEO' ? '#f97316' : d.action === 'SEO' ? '#3b82f6' : '#94a3b8';
+                return <div key={d.listingId} style={{display:'grid',gridTemplateColumns:'28px minmax(220px,1fr) minmax(220px,1.2fr) auto',gap:12,alignItems:'center',padding:13,border:'1px solid #28303d',borderRadius:12,background:'#10151d'}}>
+                  <strong>{i+1}</strong>
+                  <div><strong>{d.title}</strong><div style={{fontSize:12,opacity:.6,marginTop:4}}>👁 {d.metrics.views} · ♡ {d.metrics.favorites} · İlgi %{d.metrics.favoriteRate.toFixed(1)} · Güven %{d.confidence}</div></div>
+                  <div><div style={{color,fontSize:11,fontWeight:800}}>{d.action}</div><div style={{fontWeight:700,marginTop:3}}>{d.recommendation}</div><div style={{fontSize:11,opacity:.55,marginTop:4}}>{d.reasons.join(' · ')}</div></div>
+                  <a href={`/admin/etsy?listing=${d.listingId}#etsy-seo`} style={{padding:'7px 10px',borderRadius:8,textDecoration:'none',border:'1px solid #4b5563',fontWeight:700,fontSize:12}}>🤖 İncele / Uygula</a>
+                </div>;
+              })}
+            </div>
+          </div>
           <div id="etsy-listings" style={{ marginTop: 20, background: '#0d1117', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 24 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
               <h2 style={{ marginTop: 0, marginBottom: 0 }}>Aktif İlanlar</h2>
@@ -406,7 +425,7 @@ export default function EtsyManager() {
             })()}
             {dataLoading && <p>İlanlar Etsy’den getiriliyor...</p>}
             {!dataLoading && listings.length === 0 && <p>Aktif ilan bulunamadı.</p>}
-            {!dataLoading ? null : (() => { const filteredIds = new Set(listings.filter((l) => { const q=normalize(listingSearch); const title=normalize(l.title||''); if(q && !title.includes(q) && !String(l.listing_id).includes(q)) return false; const v=Number(l.views||0), f=Number(l.num_favorers||0); if(listingFilter==='traffic'&&v<25)return false; if(listingFilter==='favorite'&&f<1)return false; if(listingFilter==='conversion'&&!(v>=25&&f>=1))return false; if(listingFilter==='attention'&&v>=10)return false; return true; }).map(l=>l.listing_id)); return listings.filter(l=>filteredIds.has(l.listing_id)).map((listing) => {
+            {!dataLoading ? (() => { const filteredIds = new Set(listings.filter((l) => { const q=normalize(listingSearch); const title=normalize(l.title||''); if(q && !title.includes(q) && !String(l.listing_id).includes(q)) return false; const v=Number(l.views||0), f=Number(l.num_favorers||0); if(listingFilter==='traffic'&&v<25)return false; if(listingFilter==='favorite'&&f<1)return false; if(listingFilter==='conversion'&&!(v>=25&&f>=1))return false; if(listingFilter==='attention'&&v>=10)return false; return true; }).map(l=>l.listing_id)); return listings.filter(l=>filteredIds.has(l.listing_id)).map((listing) => {
   const p = listing.price?.amount != null && listing.price?.divisor ? listing.price.amount / listing.price.divisor : null;
   const views = Number(listing.views || 0);
   const favs = Number(listing.num_favorers || 0);
@@ -431,7 +450,7 @@ export default function EtsyManager() {
       </div>
     </div>
   </div>;
-})})()}
+})})() : null}
           </div>
         </>}
       </div>

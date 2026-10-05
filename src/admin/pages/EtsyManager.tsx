@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 
 type EtsyStatus = { connected: boolean; shopUserId?: number | null; scope?: string | null; connectedAt?: string | null; updatedAt?: string | null; error?: string; };
@@ -58,6 +59,8 @@ function sectionReason(listing: EtsyListing) {
 }
 
 export default function EtsyManager() {
+  const [searchParams] = useSearchParams();
+  const selectedListingId = Number(searchParams.get('listing') || 0);
   const [status, setStatus] = useState<EtsyStatus | null>(null);
   const [shop, setShop] = useState<EtsyShop | null>(null);
   const [profile, setProfile] = useState<EtsyProfile | null>(null);
@@ -112,6 +115,14 @@ export default function EtsyManager() {
     finally { setLoading(false); }
   };
   useEffect(() => { loadStatus(); }, []);
+
+  useEffect(() => {
+    if (!selectedListingId || !listings.length) return;
+    const exists = listings.some((listing) => listing.listing_id === selectedListingId);
+    if (!exists) return;
+    const el = document.getElementById(`etsy-listing-${selectedListingId}`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [selectedListingId, listings]);
 
   const applyPremiumSetup = async () => {
     setSaving(true); setError(''); setSaved('');
@@ -299,7 +310,7 @@ export default function EtsyManager() {
             <p style={{ marginTop: 10, fontSize: 13, opacity: .75 }}>Sıfır görüntülenmede kalan iki ürün için hazırlanan SEO değişikliklerini uygular. Fiyat ve görseller değiştirilmez; diğer ilanlara dokunulmaz.</p>
             {dataLoading && <p>İlanlar Etsy’den getiriliyor...</p>}
             {!dataLoading && listings.length === 0 && <p>Aktif ilan bulunamadı.</p>}
-            {!dataLoading && listings.map((listing) => { const p = listing.price?.amount != null && listing.price?.divisor ? listing.price.amount / listing.price.divisor : null; return <div key={listing.listing_id} style={{ display: 'flex', justifyContent: 'space-between', gap: 14, padding: 14, borderBottom: '1px solid var(--admin-border, #e5e7eb)' }}><div><strong>{listing.title}</strong><div style={{ fontSize: 13, opacity: .7 }}>ID: {listing.listing_id} · Stok: {listing.quantity ?? '—'}</div></div><strong>{p != null ? p.toFixed(2) + ' ' + (listing.price?.currency_code || '') : '—'}</strong></div>; })}
+            {!dataLoading && listings.map((listing) => { const p = listing.price?.amount != null && listing.price?.divisor ? listing.price.amount / listing.price.divisor : null; return <div id={`etsy-listing-${listing.listing_id}`} key={listing.listing_id} style={{ display: 'flex', justifyContent: 'space-between', gap: 14, padding: 14, borderBottom: '1px solid var(--admin-border, #e5e7eb)', outline: selectedListingId === listing.listing_id ? '2px solid #f59e0b' : 'none', borderRadius: selectedListingId === listing.listing_id ? 10 : 0, background: selectedListingId === listing.listing_id ? '#211a0d' : 'transparent' }}><div><strong>{listing.title}</strong><div style={{ fontSize: 13, opacity: .7 }}>ID: {listing.listing_id} · Stok: {listing.quantity ?? '—'}</div></div><strong>{p != null ? p.toFixed(2) + ' ' + (listing.price?.currency_code || '') : '—'}</strong></div>; })}
           </div>
         </>}
       </div>

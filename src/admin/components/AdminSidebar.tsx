@@ -24,20 +24,6 @@ const NAV_GROUPS = [
   ]},
 ];
 
-const NAV_ITEMS = [
-  { to: '/admin', label: 'Dashboard', icon: '📊', end: true },
-  { to: '/admin/requests', label: 'Proje Talepleri', icon: '📩' },
-  { to: '/admin/sections', label: 'Bölüm Yönetimi', icon: '📋' },
-  { to: '/admin/services', label: 'Hizmet Yönetimi', icon: '🎨' },
-  { to: '/admin/jobs', label: 'İş Listesi', icon: '💼' },
-  { to: '/admin/packages', label: 'Paket Yönetimi', icon: '📦' },
-  { to: '/admin/portfolio', label: 'Portföy', icon: '🖼️' },
-  { to: '/admin/etsy', label: 'Etsy Yönetimi', icon: '🛍️' },
-  { to: '/admin/etsy-intelligence', label: 'Etsy Intelligence', icon: '🧠' },
-  { to: '/admin/pinterest', label: 'Pinterest Yönetimi', icon: '📌' },
-  { to: '/admin/settings', label: 'Site Ayarları', icon: '⚙️' },
-];
-
 export default function AdminSidebar({ open, onClose }: Props) {
   return (
     <>
@@ -52,7 +38,7 @@ export default function AdminSidebar({ open, onClose }: Props) {
             <NavLink key={item.to} to={item.to} end={item.end} className={({ isActive }) => `admin-nav-link${isActive ? ' active' : ''}`} onClick={onClose}>
               <span className="admin-nav-icon">{item.icon}</span>{item.label}
             </NavLink>
-          ))}</div>}
+          ))}</div>))}
         </nav>
         <div className="admin-sidebar-footer"><Link to="/" target="_blank" rel="noopener noreferrer">↗ Siteyi Görüntüle</Link></div>
       </aside>

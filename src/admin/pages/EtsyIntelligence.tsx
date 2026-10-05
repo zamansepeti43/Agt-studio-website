@@ -59,7 +59,13 @@ export default function EtsyIntelligence() {
     const favs = listings.reduce((s, l) => s + Number(l.num_favorers || 0), 0);
     const avgViews = listings.length ? views / listings.length : 0;
     const highInterest = [...listings].sort((a,b) => (Number(b.num_favorers||0)*10 + Number(b.views||0)) - (Number(a.num_favorers||0)*10 + Number(a.views||0))).slice(0,5);
-    return { views, favs, avgViews, highInterest, decisions: brain.decisions };
+    const counts = {
+      donusum: brain.decisions.filter(d => d.action === 'DÖNÜŞÜM').length,
+      kapakSeo: brain.decisions.filter(d => d.action === 'KAPAK_SEO' || d.action === 'SEO').length,
+      kapak: brain.decisions.filter(d => d.action === 'KAPAK_SEO').length,
+      trafik: brain.decisions.filter(d => d.action === 'TRAFİK').length,
+    };
+    return { views, favs, avgViews, highInterest, counts };
   }, [listings, brain]);
 
   if (loading) return <div className="admin-page"><h1>Etsy Intelligence</h1><p>📊 Etsy verileri analiz ediliyor...</p></div>;
@@ -84,7 +90,7 @@ export default function EtsyIntelligence() {
         </div>
 
         <div style={{marginTop:18,display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:12}}>
-          {[['🟢 Satışa zorla',metrics.counts[1]||0],['🟡 Dönüşüm fırsatı',metrics.counts[2]||0],['🟠 Kapak / konum',metrics.counts[3]||0],['🔴 Trafik önceliği',metrics.counts[4]||0]].map(([label,value])=><div key={String(label)} style={{background:'#0d1117',border:'1px solid #303846',borderRadius:12,padding:14}}><small style={{opacity:.65}}>{label}</small><div style={{fontSize:22,fontWeight:800,marginTop:5}}>{value}</div></div>)}
+          {[['🟢 Satışa zorla',metrics.counts.donusum],['🟡 Dönüşüm fırsatı',metrics.counts.donusum],['🟠 Kapak / konum',metrics.counts.kapak],['🔴 Trafik önceliği',metrics.counts.trafik]].map(([label,value])=><div key={String(label)} style={{background:'#0d1117',border:'1px solid #303846',borderRadius:12,padding:14}}><small style={{opacity:.65}}>{label}</small><div style={{fontSize:22,fontWeight:800,marginTop:5}}>{value}</div></div>)}
         </div>
         <div style={{marginTop:18,display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(320px,1fr))',gap:18}}>
           <div style={{background:'#0d1117',border:'1px solid var(--admin-border,#303846)',borderRadius:16,padding:20}}>
@@ -126,10 +132,6 @@ export default function EtsyIntelligence() {
               <tbody>{[...listings].sort((a,b)=>Number(b.views||0)-Number(a.views||0)).map(l=>{const s=signal(l);return <tr key={l.listing_id}><td style={{padding:'12px 8px',minWidth:280,fontWeight:650}}>{l.title}</td><td style={{padding:'12px 8px'}}>{l.views||0}</td><td style={{padding:'12px 8px'}}>{l.num_favorers||0}</td><td style={{padding:'12px 8px'}}>{s.rate.toFixed(1)}%</td><td style={{padding:'12px 8px'}}>{priceOf(l).toFixed(2)} {l.price?.currency_code||''}</td><td style={{padding:'12px 8px',color:s.color,fontWeight:700}}>{s.label}</td><td style={{padding:'12px 8px',minWidth:320,opacity:.82}}>{s.text}</td></tr>})}</tbody>
             </table>
           </div>
-        </div>
-
-        <div style={{marginTop:18,padding:16,borderRadius:14,background:'#111827',border:'1px solid #374151',fontSize:13,opacity:.9}}>
-          <strong>⚠️ Veri sınırı:</strong> Buradaki görüntülenme/favori değerleri Etsy listing API'sinden gelen ürün verileridir. Bunları Etsy'nin “Visits / Ziyaretler” metriği gibi göstermiyoruz. Etsy Shop Stats'taki arama terimleri, trafik kaynakları ve gerçek conversion rate için ayrıca yetkili Etsy Stats verisi gerekir; ekran kazıma (scraping) kullanmıyoruz.
         </div>
       </div>
     </div>

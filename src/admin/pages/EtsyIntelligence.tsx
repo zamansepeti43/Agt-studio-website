@@ -21,18 +21,6 @@ function priceOf(l: Listing) {
   return l.price?.amount != null && l.price?.divisor ? l.price.amount / l.price.divisor : 0;
 }
 
-function signal(l: Listing) {
-  const views = Number(l.views || 0);
-  const favs = Number(l.num_favorers || 0);
-  const favoriteRate = views > 0 ? (favs / views) * 100 : 0;
-  if (views >= 50 && favs >= 2) return { label: 'SATIŞA ZORLA', color: '#16a34a', priority: 1, rate: favoriteRate, text: 'Bu ürün güçlü ilgi alıyor. Görsel/demo/güven optimizasyonu ile satışa çevrilmeli.' };
-  if (views >= 25 && favs >= 1) return { label: 'DÖNÜŞÜM FIRSATI', color: '#ca8a04', priority: 2, rate: favoriteRate, text: 'Yeterli ilgi var. Kapak, ürün demosu, güven unsurları ve teklif öncelikli.' };
-  if (views >= 20 && favs === 0) return { label: 'KAPAK / KONUM', color: '#ea580c', priority: 3, rate: favoriteRate, text: 'Trafik geliyor fakat favori yok. İlk görsel, başlık ve konumlandırma yeniden test edilmeli.' };
-  if (views < 10) return { label: 'TRAFİK ÖNCELİĞİ', color: '#dc2626', priority: 4, rate: favoriteRate, text: 'Veri az. Önce görünürlük: başlık, etiket, kategori ve dış trafik.' };
-  if (favs >= 1) return { label: 'İLGİ VAR', color: '#2563eb', priority: 2, rate: favoriteRate, text: 'Favori alınmış. Fiyatı hemen düşürmek yerine güven, demo ve teklif test edilmeli.' };
-  return { label: 'VERİ TOPLA', color: '#64748b', priority: 5, rate: favoriteRate, text: 'Örneklem küçük. Büyük değişiklik yapmadan veri toplamaya devam et.' };
-}
-
 export default function EtsyIntelligence() {
   const [data, setData] = useState<ApiData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,9 +49,10 @@ export default function EtsyIntelligence() {
     const highInterest = [...listings].sort((a,b) => (Number(b.num_favorers||0)*10 + Number(b.views||0)) - (Number(a.num_favorers||0)*10 + Number(a.views||0))).slice(0,5);
     const counts = {
       donusum: brain.decisions.filter(d => d.action === 'DÖNÜŞÜM').length,
-      kapakSeo: brain.decisions.filter(d => d.action === 'KAPAK_SEO' || d.action === 'SEO').length,
-      kapak: brain.decisions.filter(d => d.action === 'KAPAK_SEO').length,
+      kapakSeo: brain.decisions.filter(d => d.action === 'KAPAK_SEO').length,
+      seo: brain.decisions.filter(d => d.action === 'SEO').length,
       trafik: brain.decisions.filter(d => d.action === 'TRAFİK').length,
+      veri: brain.decisions.filter(d => d.action === 'VERİ_TOPLA').length,
     };
     return { views, favs, avgViews, highInterest, counts };
   }, [listings, brain]);
@@ -90,7 +79,7 @@ export default function EtsyIntelligence() {
         </div>
 
         <div style={{marginTop:18,display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:12}}>
-          {[['🟢 Satışa zorla',metrics.counts.donusum],['🟡 Dönüşüm fırsatı',metrics.counts.donusum],['🟠 Kapak / konum',metrics.counts.kapak],['🔴 Trafik önceliği',metrics.counts.trafik]].map(([label,value])=><div key={String(label)} style={{background:'#0d1117',border:'1px solid #303846',borderRadius:12,padding:14}}><small style={{opacity:.65}}>{label}</small><div style={{fontSize:22,fontWeight:800,marginTop:5}}>{value}</div></div>)}
+          {[['🟢 Dönüşüm',metrics.counts.donusum],['🟠 Kapak / konum',metrics.counts.kapakSeo],['🔵 SEO',metrics.counts.seo],['🔴 Trafik',metrics.counts.trafik],['⚪ Veri topla',metrics.counts.veri]].map(([label,value])=><div key={String(label)} style={{background:'#0d1117',border:'1px solid #303846',borderRadius:12,padding:14}}><small style={{opacity:.65}}>{label}</small><div style={{fontSize:22,fontWeight:800,marginTop:5}}>{value}</div></div>)} style={{background:'#0d1117',border:'1px solid #303846',borderRadius:12,padding:14}}><small style={{opacity:.65}}>{label}</small><div style={{fontSize:22,fontWeight:800,marginTop:5}}>{value}</div></div>)}
         </div>
         <div style={{marginTop:18,display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(320px,1fr))',gap:18}}>
           <div style={{background:'#0d1117',border:'1px solid var(--admin-border,#303846)',borderRadius:16,padding:20}}>
@@ -103,7 +92,11 @@ export default function EtsyIntelligence() {
           </div>
           <div style={{background:'#0d1117',border:'1px solid var(--admin-border,#303846)',borderRadius:16,padding:20}}>
             <h2 style={{marginTop:0}}>🏆 Öncelikli ürünler</h2>
-            {metrics.highInterest.map(l => { const s=signal(l); return <div key={l.listing_id} style={{padding:'12px 0',borderBottom:'1px solid #202733'}}><div style={{fontWeight:750}}>{l.title}</div><div style={{display:'flex',gap:10,marginTop:5,fontSize:13,opacity:.8}}><span>👁 {l.views||0}</span><span>♡ {l.num_favorers||0}</span><span>{priceOf(l).toFixed(2)} {l.price?.currency_code||''}</span></div><div style={{marginTop:7,color:s.color,fontWeight:700}}>{s.label}</div></div>; })}
+            {metrics.highInterest.map(l => {
+              const d = brain.decisions.find(item => item.listingId === l.listing_id);
+              const color = d?.action === 'DÖNÜŞÜM' ? '#16a34a' : d?.action === 'TRAFİK' ? '#dc2626' : d?.action === 'KAPAK_SEO' ? '#ea580c' : d?.action === 'SEO' ? '#2563eb' : '#64748b';
+              return <div key={l.listing_id} style={{padding:'12px 0',borderBottom:'1px solid #202733'}}><div style={{fontWeight:750}}>{l.title}</div><div style={{display:'flex',gap:10,marginTop:5,fontSize:13,opacity:.8}}><span>👁 {l.views||0}</span><span>♡ {l.num_favorers||0}</span><span>{priceOf(l).toFixed(2)} {l.price?.currency_code||''}</span></div><div style={{marginTop:7,color,fontWeight:700}}>{d?.action || 'VERİ_TOPLA'}</div></div>;
+            })}
           </div>
         </div>
 
@@ -129,7 +122,11 @@ export default function EtsyIntelligence() {
           <div style={{overflowX:'auto',marginTop:14}}>
             <table style={{width:'100%',borderCollapse:'collapse',fontSize:14}}>
               <thead><tr>{['Ürün','Görüntülenme','Favori','Favori oranı','Fiyat','Sinyal','Aksiyon'].map(h=><th key={h} style={{textAlign:'left',padding:'10px 8px',borderBottom:'1px solid #303846'}}>{h}</th>)}</tr></thead>
-              <tbody>{[...listings].sort((a,b)=>Number(b.views||0)-Number(a.views||0)).map(l=>{const s=signal(l);return <tr key={l.listing_id}><td style={{padding:'12px 8px',minWidth:280,fontWeight:650}}>{l.title}</td><td style={{padding:'12px 8px'}}>{l.views||0}</td><td style={{padding:'12px 8px'}}>{l.num_favorers||0}</td><td style={{padding:'12px 8px'}}>{s.rate.toFixed(1)}%</td><td style={{padding:'12px 8px'}}>{priceOf(l).toFixed(2)} {l.price?.currency_code||''}</td><td style={{padding:'12px 8px',color:s.color,fontWeight:700}}>{s.label}</td><td style={{padding:'12px 8px',minWidth:320,opacity:.82}}>{s.text}</td></tr>})}</tbody>
+              <tbody>{brain.decisions.map(d => {
+                const listing = listings.find(l => l.listing_id === d.listingId);
+                const color = d.action === 'DÖNÜŞÜM' ? '#16a34a' : d.action === 'TRAFİK' ? '#dc2626' : d.action === 'KAPAK_SEO' ? '#ea580c' : d.action === 'SEO' ? '#2563eb' : '#64748b';
+                return <tr key={d.listingId}><td style={{padding:'12px 8px',minWidth:280,fontWeight:650}}>{d.title}</td><td style={{padding:'12px 8px'}}>{d.metrics.views}</td><td style={{padding:'12px 8px'}}>{d.metrics.favorites}</td><td style={{padding:'12px 8px'}}>{d.metrics.favoriteRate.toFixed(1)}%</td><td style={{padding:'12px 8px'}}>{d.metrics.price.toFixed(2)} {listing?.price?.currency_code || ''}</td><td style={{padding:'12px 8px',color,fontWeight:700}}>{d.action}</td><td style={{padding:'12px 8px',minWidth:360,opacity:.82}}>{d.recommendation}<div style={{marginTop:6,fontSize:12,opacity:.7}}>{d.reasons.join(' · ')}</div><a href={'/admin/etsy?listing=' + encodeURIComponent(String(d.listingId))} style={{display:'inline-block',marginTop:8,fontWeight:700}}>🤖 Etsy Manager'da aç</a></td></tr>;
+              })}</tbody>
             </table>
           </div>
         </div>

@@ -162,7 +162,6 @@ export default function EtsyIntelligence() {
             {dailyPriorities.map(d => {
               const done = !!completedTasks[d.listingId];
               const isTraffic = d.action === 'TRAFİK';
-              const isConversion = d.action === 'DÖNÜŞÜM';
               const href = isTraffic ? '/admin/pinterest' : '/admin/etsy?listing=' + encodeURIComponent(String(d.listingId));
               return <div key={d.listingId} style={{display:'grid',gridTemplateColumns:'auto 1fr auto',gap:12,alignItems:'center',padding:14,borderRadius:12,border:'1px solid #28303d',background:done?'#101b14':'#10151d',opacity:done?.7:1}}>
                 <button type="button" onClick={() => toggleTask(d.listingId)} aria-label={done ? 'Görevi geri aç' : 'Görevi tamamla'} style={{width:34,height:34,borderRadius:9,fontSize:17}}>{done?'✓':'○'}</button>

@@ -1,4 +1,5 @@
 const PINTEREST_API = 'https://api.pinterest.com/v5';
+const PINTEREST_SANDBOX_API = 'https://api-sandbox.pinterest.com/v5';
 
 export const PINTEREST_SCOPES = [
   'boards:read',
@@ -50,7 +51,7 @@ export function buildOAuthUrl(state) {
   return `https://www.pinterest.com/oauth/?${params.toString()}`;
 }
 
-export async function exchangeCode(code) {
+export async function exchangeCode(code, environment = 'production') {
   const { appId, appSecret, redirectUri } = config();
   const basic = Buffer.from(`${appId}:${appSecret}`).toString('base64');
   const body = new URLSearchParams({
@@ -59,7 +60,8 @@ export async function exchangeCode(code) {
     redirect_uri: redirectUri,
   });
 
-  const response = await fetch(`${PINTEREST_API}/oauth/token`, {
+  const apiBase = environment === 'sandbox' ? PINTEREST_SANDBOX_API : PINTEREST_API;
+  const response = await fetch(`${apiBase}/oauth/token`, {
     method: 'POST',
     headers: {
       Authorization: `Basic ${basic}`,
@@ -81,11 +83,12 @@ export async function exchangeCode(code) {
   return data;
 }
 
-export async function pinterestFetch(path, options = {}) {
+export async function pinterestFetch(path, options = {}, environment = 'production') {
   const { supabaseUrl, serviceRoleKey } = config();
-  const token = await getValidToken();
+  const token = await getValidToken(environment);
+  const apiBase = environment === 'sandbox' ? PINTEREST_SANDBOX_API : PINTEREST_API;
 
-  const response = await fetch(`${PINTEREST_API}${path}`, {
+  const response = await fetch(`${apiBase}${path}`, {
     ...options,
     headers: {
       Accept: 'application/json',
@@ -181,7 +184,7 @@ async function saveToken(data, existing = {}) {
   }
 }
 
-export async function storeOAuthToken(tokenData) {
+export async function storeOAuthToken(tokenData, environment = 'production') {
   let pinterestUserId = null;
   try {
     const account = await fetch(`${PINTEREST_API}/user_account`, {
@@ -195,12 +198,36 @@ export async function storeOAuthToken(tokenData) {
     // The token itself is still valid even if profile lookup is temporarily unavailable.
   }
 
+  if (environment === 'sandbox') {
+    const row = await getTokenRow();
+    const { supabaseUrl, serviceRoleKey } = config();
+    if (!row?.id) throw new Error('Production Pinterest bağlantısı bulunamadı. Önce normal Pinterest OAuth bağlantısını tamamla.');
+    const payload = {
+      sandbox_access_token: tokenData.access_token,
+      sandbox_refresh_token: tokenData.refresh_token || null,
+      sandbox_expires_at: tokenData.expires_in ? new Date(Date.now() + Number(tokenData.expires_in) * 1000).toISOString() : null,
+      sandbox_pinterest_user_id: pinterestUserId,
+      updated_at: new Date().toISOString(),
+    };
+    const response = await fetch(`${supabaseUrl}/rest/v1/pinterest_oauth_tokens?id=eq.${encodeURIComponent(row.id)}`, {
+      method: 'PATCH',
+      headers: { ...supabaseHeaders(serviceRoleKey), Prefer: 'return=minimal' },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) throw new Error(`Pinterest sandbox token save failed (${response.status}): ${await response.text()}`);
+    return pinterestUserId;
+  }
+
   await saveToken({ ...tokenData, pinterest_user_id: pinterestUserId });
   return pinterestUserId;
 }
 
-async function getValidToken() {
+async function getValidToken(environment = 'production') {
   const row = await getTokenRow();
+  if (environment === 'sandbox') {
+    if (!row?.sandbox_access_token) throw new Error('Pinterest Sandbox OAuth bağlantısı bulunamadı.');
+    return { access_token: row.sandbox_access_token, refresh_token: row.sandbox_refresh_token, expires_at: row.sandbox_expires_at };
+  }
   if (!row?.access_token) {
     throw new Error('Pinterest OAuth bağlantısı bulunamadı.');
   }

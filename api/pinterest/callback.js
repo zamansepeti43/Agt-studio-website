@@ -21,6 +21,9 @@ export default async function handler(req, res) {
       .split(';')
       .map((part) => part.trim())
       .find((part) => part.startsWith('pinterest_oauth_state='));
+    const expectedState = stateCookie
+      ? decodeURIComponent(stateCookie.split('=').slice(1).join('='))
+      : '';
     const environmentCookie = cookieHeader
       .split(';')
       .map((part) => part.trim())

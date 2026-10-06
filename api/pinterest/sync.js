@@ -385,6 +385,66 @@ async function syncQueue() {
   return { listings, queue: queue || [], pinterestConnected };
 }
 
+async function getPinterestConnectionFlags() {
+  const rows = await supabaseRest(
+    'pinterest_oauth_tokens?select=access_token,sandbox_access_token&order=updated_at.desc&limit=1'
+  );
+  const row = rows?.[0] || {};
+  return {
+    pinterestConnected: Boolean(row.access_token),
+    pinterestSandboxConnected: Boolean(row.sandbox_access_token),
+  };
+}
+
+async function publishSandboxTestPin(queue) {
+  const next = (queue || [])
+    .filter((item) => item.approval_status === 'approved' && item.board_id && (item.generated_image_url || item.source_image_url))
+    .sort((a, b) => new Date(a.scheduled_at || 0).getTime() - new Date(b.scheduled_at || 0).getTime())[0];
+
+  if (!next) {
+    throw new Error('Sandbox testi için onaylı ve görselli bir Pin bulunamadı.');
+  }
+
+  const boards = await pinterestFetch('/boards?page_size=100', {}, 'sandbox');
+  const targetName = 'AGT Studio Sandbox Demo';
+  let board = (boards?.items || []).find((item) => normalizeName(item.name) === normalizeName(targetName));
+
+  if (!board?.id) {
+    board = await pinterestFetch('/boards', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: targetName,
+        description: 'AGT Studio Pinterest API Standard Access demo — Sandbox test board.',
+      }),
+    }, 'sandbox');
+  }
+
+  const pin = await pinterestFetch('/pins', {
+    method: 'POST',
+    body: JSON.stringify({
+      board_id: board.id,
+      title: 'AGT Studio Demo — ' + (next.pin_title || next.etsy_title || 'Etsy product'),
+      description: 'AGT Studio Pinterest API Sandbox integration test.',
+      link: next.etsy_url,
+      media_source: {
+        source_type: 'image_url',
+        url: next.generated_image_url || next.source_image_url,
+        is_standard: true,
+      },
+    }),
+  }, 'sandbox');
+
+  return {
+    sandboxTested: true,
+    sandboxBoardId: board.id,
+    sandboxBoardName: board.name || targetName,
+    sandboxPinId: pin?.id || null,
+    sourceListingId: next.etsy_listing_id,
+    sourceTitle: next.etsy_title,
+    sourceEtsyUrl: next.etsy_url,
+  };
+}
+
 function isSameIstanbulDay(a, b = new Date()) {
   return istanbulDate(a) === istanbulDate(b);
 }
@@ -525,7 +585,8 @@ export default async function handler(req, res) {
       res.setHeader('Cache-Control', 'no-store');
       res.status(200).json({
         ok: true,
-        pinterestConnected: Boolean(tokenRows?.length),
+        pinterestConnected: Boolean(tokenRows?.length && tokenRows[0]?.access_token),
+        pinterestSandboxConnected: Boolean(tokenRows?.length && tokenRows[0]?.sandbox_access_token),
         etsyListings: new Set(rows.map((item) => item.etsy_listing_id)).size,
         queue: rows,
         next,
@@ -545,6 +606,29 @@ export default async function handler(req, res) {
         ? JSON.parse(req.body || '{}')
         : (req.body || {});
 
+      if (body.action === 'sandbox_test') {
+        const flags = await getPinterestConnectionFlags();
+        if (!flags.pinterestSandboxConnected) {
+          res.status(400).json({
+            ok: false,
+            error: 'Pinterest Sandbox OAuth bağlantısı yok. Önce “Sandbox’a Bağlan” ile Pinterest yetkilendirmesini tamamla.',
+          });
+          return;
+        }
+
+        const queue = await supabaseRest(
+          'pinterest_automation?select=*&order=scheduled_at.asc,etsy_listing_id.asc,image_index.asc'
+        );
+        const result = await publishSandboxTestPin(queue || []);
+        res.status(200).json({
+          ok: true,
+          ...flags,
+          ...result,
+          message: 'Sandbox Pin başarıyla oluşturuldu. Pinterest tarafındaki Sandbox panosunda görülebilir.',
+        });
+        return;
+      }
+
       if (body.action === 'sync') {
         const result = await syncQueue();
         const latestPublished = (result.queue || [])
@@ -558,6 +642,7 @@ export default async function handler(req, res) {
         res.status(200).json({
           ok: true,
           pinterestConnected: result.pinterestConnected,
+          pinterestSandboxConnected: (await getPinterestConnectionFlags()).pinterestSandboxConnected,
           etsyListings: result.listings.length,
           queue: result.queue,
           next,

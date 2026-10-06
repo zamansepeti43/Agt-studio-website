@@ -568,7 +568,7 @@ export default async function handler(req, res) {
     if (req.method === 'GET') {
       const [queue, tokenRows] = await Promise.all([
         supabaseRest('pinterest_automation?select=*&order=scheduled_at.asc,etsy_listing_id.asc,image_index.asc'),
-        supabaseRest('pinterest_oauth_tokens?select=id&limit=1'),
+        supabaseRest('pinterest_oauth_tokens?select=id,access_token,sandbox_access_token&limit=1'),
       ]);
       const rows = queue || [];
       const latestPublished = rows

@@ -277,9 +277,12 @@ export default function PinterestManager() {
           <button type="button" onClick={enablePushNotifications}>
             📱 Telefon Bildirimlerini Aç
           </button>
-          <button type="button" onClick={testPublish} disabled={refreshing}>
-            🧪 Test Pin Yayınla
+          <button type="button" onClick={sandboxTestPublish} disabled={refreshing}>
+            🧪 Sandbox Pin Testi
           </button>
+          <a href="/api/pinterest/connect?environment=sandbox">
+            <button type="button">🧪 Sandbox'a Bağlan</button>
+          </a>
           <a href="/api/pinterest/connect">
             <button type="button">🔗 Pinterest'e Bağlan</button>
           </a>
@@ -450,7 +453,6 @@ export default function PinterestManager() {
                 <strong>🧪 API entegrasyonu / Sandbox</strong>
                 <p style={{ marginBottom: 8, opacity: .9 }}>Pinterest'in istediği demo için OAuth ve gerçek API çağrısını Sandbox ortamında test edebilirsin. Sandbox'ta oluşturulan pano ve Pinler yalnızca geliştirici tarafından görülebilir.</p>
                 <p style={{ marginBottom: 0, opacity: .78 }}><strong>Durum:</strong> {data?.pinterestSandboxConnected ? '🟢 Sandbox OAuth bağlı — Pin testi hazır' : '🟠 Sandbox OAuth bağlantısı bekleniyor'}</p>
-              </div>
               </div>
               <div style={{ padding: 16, borderRadius: 12, border: '1px solid var(--admin-border, #e5e7eb)' }}>
                 <strong>Zamanlama</strong>

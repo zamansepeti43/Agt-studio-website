@@ -16,7 +16,9 @@ export default async function handler(req, res) {
 
   try {
     const state = crypto.randomBytes(24).toString('hex');
+    const environment = String(req.query.environment || 'production') === 'sandbox' ? 'sandbox' : 'production';
     setCookie(res, 'pinterest_oauth_state', state);
+    setCookie(res, 'pinterest_oauth_environment', environment);
     res.redirect(302, buildOAuthUrl(state));
   } catch (error) {
     res.status(500).json({

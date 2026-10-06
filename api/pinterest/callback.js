@@ -1,10 +1,10 @@
 import { exchangeCode, storeOAuthToken } from './_lib.js';
 
 function clearStateCookie(res) {
-  res.setHeader(
-    'Set-Cookie',
-    'pinterest_oauth_state=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0'
-  );
+  res.setHeader('Set-Cookie', [
+    'pinterest_oauth_state=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
+    'pinterest_oauth_environment=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
+  ]);
 }
 
 export default async function handler(req, res) {
@@ -21,20 +21,24 @@ export default async function handler(req, res) {
       .split(';')
       .map((part) => part.trim())
       .find((part) => part.startsWith('pinterest_oauth_state='));
-    const expectedState = stateCookie
-      ? decodeURIComponent(stateCookie.split('=').slice(1).join('='))
-      : '';
+    const environmentCookie = cookieHeader
+      .split(';')
+      .map((part) => part.trim())
+      .find((part) => part.startsWith('pinterest_oauth_environment='));
+    const environment = environmentCookie
+      ? decodeURIComponent(environmentCookie.split('=').slice(1).join('='))
+      : 'production';
 
     if (!code || !returnedState || returnedState !== expectedState) {
       res.status(400).json({ error: 'Pinterest OAuth state doğrulaması başarısız.' });
       return;
     }
 
-    const tokenData = await exchangeCode(code);
-    await storeOAuthToken(tokenData);
+    const tokenData = await exchangeCode(code, environment);
+    await storeOAuthToken(tokenData, environment);
     clearStateCookie(res);
 
-    res.redirect(302, '/admin/pinterest?connected=1');
+    res.redirect(302, `/admin/pinterest?connected=${environment === 'sandbox' ? 'sandbox' : '1'}`);
   } catch (error) {
     clearStateCookie(res);
     res.status(500).json({

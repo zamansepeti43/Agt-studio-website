@@ -423,7 +423,7 @@ async function publishSandboxTestPin(queue) {
     method: 'POST',
     body: JSON.stringify({
       board_id: board.id,
-      title: 'AGT Studio Demo — ' + (next.pin_title || next.etsy_title || 'Etsy product'),
+      title: ('AGT Studio Demo — ' + (next.pin_title || next.etsy_title || 'Etsy product')).slice(0, 100),
       description: 'AGT Studio Pinterest API Sandbox integration test.',
       link: next.etsy_url,
       media_source: {

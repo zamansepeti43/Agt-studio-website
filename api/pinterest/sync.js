@@ -428,7 +428,7 @@ async function publishSandboxTestPin(queue) {
       link: next.etsy_url,
       media_source: {
         source_type: 'image_url',
-        url: next.generated_image_url || next.source_image_url,
+        url: next.source_image_url || next.generated_image_url,
         is_standard: true,
       },
     }),

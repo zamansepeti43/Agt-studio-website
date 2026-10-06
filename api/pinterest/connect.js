@@ -2,10 +2,10 @@ import crypto from 'node:crypto';
 import { buildOAuthUrl } from './_lib.js';
 
 function setCookie(res, name, value) {
-  res.setHeader(
-    'Set-Cookie',
-    `${name}=${encodeURIComponent(value)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=600`
-  );
+  const cookie = name + '=' + encodeURIComponent(value) + '; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=600';
+  const existing = res.getHeader('Set-Cookie');
+  const cookies = Array.isArray(existing) ? existing : existing ? [String(existing)] : [];
+  res.setHeader('Set-Cookie', [...cookies, cookie]);
 }
 
 export default async function handler(req, res) {

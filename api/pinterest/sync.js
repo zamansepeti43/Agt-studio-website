@@ -398,7 +398,7 @@ async function getPinterestConnectionFlags() {
 
 async function publishSandboxTestPin(queue) {
   const next = (queue || [])
-    .filter((item) => item.approval_status === 'approved' && item.board_id && (item.generated_image_url || item.source_image_url))
+    .filter((item) => item.approval_status === 'approved' && (item.generated_image_url || item.source_image_url))
     .sort((a, b) => new Date(a.scheduled_at || 0).getTime() - new Date(b.scheduled_at || 0).getTime())[0];
 
   if (!next) {

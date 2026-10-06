@@ -36,6 +36,12 @@ type PinterestResponse = {
   error?: string;
   pendingApproval?: QueueItem[];
   completed?: QueueItem[];
+  sandboxTested?: boolean;
+  sandboxBoardId?: string | null;
+  sandboxBoardName?: string | null;
+  sandboxPinId?: string | null;
+  sourceTitle?: string | null;
+  sourceEtsyUrl?: string | null;
 };
 
 const tabs = [
@@ -290,6 +296,18 @@ export default function PinterestManager() {
       </div>
 
       {error && <div style={{ marginBottom: 18, padding: 14, borderRadius: 12, border: '1px solid #7f1d1d', background: '#2b1010', color: '#fecaca' }}>{error}</div>}
+
+      {data?.sandboxTested && (
+        <div style={{ marginBottom: 18, padding: 18, borderRadius: 16, border: '1px solid #315d3e', background: '#10251a', color: '#dcfce7' }}>
+          <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>🟢 Pinterest Sandbox API testi başarılı</div>
+          <div style={{ lineHeight: 1.55 }}>
+            <div><strong>Pin ID:</strong> {data.sandboxPinId || 'oluşturuldu'}</div>
+            <div><strong>Pano:</strong> {data.sandboxBoardName || 'AGT Studio Sandbox Demo'}</div>
+            <div><strong>Ürün:</strong> {data.sourceTitle || 'Etsy ürünü'}</div>
+            <div style={{ marginTop: 6, opacity: .8 }}>Bu sonuç Pinterest API üzerinden gerçek bir Sandbox Pin oluşturulduğunu gösterir. Sandbox varlıkları yalnızca geliştirici tarafından görünür.</div>
+          </div>
+        </div>
+      )}
 
       {data?.pinterestConnected && (
         <div style={{ marginBottom: 18, padding: 18, borderRadius: 16, border: '1px solid #8a6a1f', background: '#2a2110', color: '#fef3c7' }}>

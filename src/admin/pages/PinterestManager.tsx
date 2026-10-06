@@ -139,7 +139,7 @@ export default function PinterestManager() {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Sandbox Pin testi başarısız.');
-      setData(json);
+      setData((current) => current ? { ...current, ...json } : json);
       window.alert(json.message || 'Sandbox Pin testi tamamlandı.');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Sandbox Pin testi başarısız.');

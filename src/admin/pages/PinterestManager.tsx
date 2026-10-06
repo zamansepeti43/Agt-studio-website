@@ -26,6 +26,7 @@ type QueueItem = {
 type PinterestResponse = {
   ok: boolean;
   pinterestConnected: boolean;
+  pinterestSandboxConnected?: boolean;
   etsyListings: number;
   queue: QueueItem[];
   next?: QueueItem | null;
@@ -121,7 +122,7 @@ export default function PinterestManager() {
     }
   };
 
-  const testPublish = async () => {
+  const sandboxTestPublish = async () => {
     setRefreshing(true);
     setError('');
     try {
@@ -134,14 +135,14 @@ export default function PinterestManager() {
           Authorization: `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ action: 'test_publish' }),
+        body: JSON.stringify({ action: 'sandbox_test' }),
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error || 'Test Pin yayınlanamadı.');
+      if (!res.ok) throw new Error(json.error || 'Sandbox Pin testi başarısız.');
       setData(json);
-      window.alert(json.message || 'Test Pin işlemi tamamlandı.');
+      window.alert(json.message || 'Sandbox Pin testi tamamlandı.');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Test Pin yayınlanamadı.');
+      setError(err instanceof Error ? err.message : 'Sandbox Pin testi başarısız.');
     } finally {
       setRefreshing(false);
     }
@@ -315,6 +316,9 @@ export default function PinterestManager() {
           <div style={{ background: '#0d1117', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 14, padding: 18 }}>
             <small>Pinterest bağlantısı</small><h2 style={{ margin: '6px 0 0', fontSize: 18 }}>{data?.pinterestConnected ? '🟢 Aktif' : '🟠 Bekliyor'}</h2>
           </div>
+          <div style={{ background: data?.pinterestSandboxConnected ? '#10251a' : '#0d1117', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 14, padding: 18 }}>
+            <small>Sandbox API</small><h2 style={{ margin: '6px 0 0', fontSize: 18 }}>{data?.pinterestSandboxConnected ? '🟢 Bağlı' : '🟠 Bağlanmadı'}</h2>
+          </div>
         </div>
 
         <div style={{ display: 'flex', gap: 8, overflowX: 'auto', marginBottom: 16, paddingBottom: 4 }}>
@@ -441,6 +445,12 @@ export default function PinterestManager() {
               <div style={{ padding: 16, borderRadius: 12, border: '1px solid #8a6a1f', background: '#2a2110' }}>
                 <strong>⚠️ Pinterest erişim durumu</strong>
                 <p style={{ marginBottom: 0, opacity: .88 }}>Uygulama şu anda Trial erişiminde. Kuyruktaki “Yayın için hazır” öğeleri Pinterest'te henüz yayınlanmış değildir; üretim Pinleri Standard erişim onayından sonra yayınlanabilir.</p>
+              </div>
+              <div style={{ padding: 16, borderRadius: 12, border: '1px solid #315d3e', background: '#10251a' }}>
+                <strong>🧪 API entegrasyonu / Sandbox</strong>
+                <p style={{ marginBottom: 8, opacity: .9 }}>Pinterest'in istediği demo için OAuth ve gerçek API çağrısını Sandbox ortamında test edebilirsin. Sandbox'ta oluşturulan pano ve Pinler yalnızca geliştirici tarafından görülebilir.</p>
+                <p style={{ marginBottom: 0, opacity: .78 }}><strong>Durum:</strong> {data?.pinterestSandboxConnected ? '🟢 Sandbox OAuth bağlı — Pin testi hazır' : '🟠 Sandbox OAuth bağlantısı bekleniyor'}</p>
+              </div>
               </div>
               <div style={{ padding: 16, borderRadius: 12, border: '1px solid var(--admin-border, #e5e7eb)' }}>
                 <strong>Zamanlama</strong>

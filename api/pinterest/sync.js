@@ -483,7 +483,8 @@ async function publishNext(queue, { force = false } = {}) {
         link: next.etsy_url,
         media_source: {
           source_type: 'image_url',
-          url: next.generated_image_url,
+          // Pinterest rejects the generated SVG endpoint as broken; use Etsy's original image URL.
+          url: next.source_image_url || next.generated_image_url,
           is_standard: true,
         },
       }),

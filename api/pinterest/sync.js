@@ -714,6 +714,8 @@ export default async function handler(req, res) {
       return;
     }
 
+    // Refresh Etsy listings, board mappings, and queue before each scheduled publish.
+    const result = await syncQueue();
     let publishResult = { published: 0, skippedReason: 'pinterest_disconnected' };
     if (result.pinterestConnected) {
       try {

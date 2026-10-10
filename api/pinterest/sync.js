@@ -113,8 +113,8 @@ function resolveBoardRule(rule, boards) {
     : rule;
 }
 
-function pinterestImageUrl(listing, title, price) {
-  const source = listing.images?.[0]?.url_760xN || listing.images?.[0]?.url_570xN;
+function pinterestImageUrl(listing, title, price, sourceOverride = null) {
+  const source = sourceOverride || listing.images?.[0]?.url_760xN || listing.images?.[0]?.url_570xN;
   if (!source) return null;
 
   const params = new URLSearchParams({ title, src: source });
@@ -278,7 +278,7 @@ async function syncQueue() {
             headers: { Prefer: 'return=minimal' },
             body: JSON.stringify({
               source_image_url: images[imageIndex],
-              generated_image_url: pinterestImageUrl(listing, title, formatPrice(listing)),
+              generated_image_url: pinterestImageUrl(listing, title, formatPrice(listing), images[imageIndex]),
               image_count: imageCount,
               scheduled_at: scheduledAt,
               status: 'ready',
@@ -304,7 +304,7 @@ async function syncQueue() {
     // Keep existing image rows; add/update only missing images.
     for (let imageIndex = 0; imageIndex < imageCount; imageIndex += 1) {
       const sourceImageUrl = images[imageIndex];
-      const generatedImageUrl = pinterestImageUrl(listing, title, formatPrice(listing));
+      const generatedImageUrl = pinterestImageUrl(listing, title, formatPrice(listing), sourceImageUrl);
       const existingRow = (cycleRows || []).find((item) => Number(item.image_index) === imageIndex);
 
       if (existingRow?.status === 'published' || existingRow?.status === 'completed') {

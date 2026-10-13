@@ -337,10 +337,11 @@ async function syncQueue() {
         image_index: imageIndex,
         image_count: imageCount,
         scheduled_at: existingSchedule || scheduledAt,
-        status: 'ready',
+        // Keep failed rows out of the automatic publish loop until explicitly retried.
+        status: existingRow?.status === 'error' ? 'error' : 'ready',
         approval_status: existingRow?.approval_status || 'pending',
         last_synced_at: new Date().toISOString(),
-        last_error: null,
+        last_error: existingRow?.status === 'error' ? (existingRow.last_error || null) : null,
       };
 
       if (!existingRow) {

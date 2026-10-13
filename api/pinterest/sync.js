@@ -122,6 +122,13 @@ function pinterestImageUrl(listing, title, price, sourceOverride = null) {
   return `https://agt-studio.vercel.app/api/pinterest/image?${params.toString()}`;
 }
 
+function normalizePinTitle(value) {
+  const title = String(value || 'AGT Studio Digital Tool').replace(/\\s+/g, ' ').trim();
+  const chars = Array.from(title);
+  if (chars.length <= 100) return title;
+  return `${chars.slice(0, 99).join('').trimEnd()}…`;
+}
+
 function formatPrice(listing) {
   const amount = listing.price?.amount;
   if (typeof amount !== 'number') return '';
@@ -323,7 +330,7 @@ async function syncQueue() {
         etsy_url: etsyUrl,
         source_image_url: sourceImageUrl,
         generated_image_url: generatedImageUrl,
-        pin_title: title,
+        pin_title: normalizePinTitle(title),
         pin_description: `${title} — AGT Studio digital product on Etsy.`,
         board_id: board?.board_id || null,
         board_name: board?.board_name || null,
@@ -423,7 +430,7 @@ async function publishSandboxTestPin(queue) {
     method: 'POST',
     body: JSON.stringify({
       board_id: board.id,
-      title: ('AGT Studio Demo — ' + (next.pin_title || next.etsy_title || 'Etsy product')).slice(0, 100),
+      title: normalizePinTitle('AGT Studio Demo — ' + (next.pin_title || next.etsy_title || 'Etsy product')),
       description: 'AGT Studio Pinterest API Sandbox integration test.',
       link: next.etsy_url,
       media_source: {
@@ -478,7 +485,7 @@ async function publishNext(queue, { force = false } = {}) {
       method: 'POST',
       body: JSON.stringify({
         board_id: next.board_id,
-        title: next.pin_title || next.etsy_title,
+        title: normalizePinTitle(next.pin_title || next.etsy_title),
         description: next.pin_description || next.etsy_title,
         link: next.etsy_url,
         media_source: {

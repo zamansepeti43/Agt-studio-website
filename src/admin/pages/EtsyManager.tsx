@@ -404,9 +404,9 @@ export default function EtsyManager() {
           <div id="etsy-listings" style={{ marginTop: 20, background: '#0d1117', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 24 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
               <h2 style={{ marginTop: 0, marginBottom: 0 }}>Aktif İlanlar</h2>
-              <button type="button" onClick={applyTargetedSeoOptimization} disabled={saving}>🎯 2 Ürünün SEO'sunu Uygula</button>
+              <button type="button" onClick={applyTargetedSeoOptimization} disabled={saving}>🎯 16 Üründe SEO Düzenlemesini Uygula</button>
             </div>
-            <p style={{ marginTop: 10, fontSize: 13, opacity: .75 }}>18 aktif ürünü performans, ilgi, fiyat ve SEO sinyalleriyle tek ekranda yönet. “Optimize Et” yalnızca öneriyi açar; Etsy’ye gerçek değişiklik yapmak için ayrıca onay gerekir.</p>
+            <p style={{ marginTop: 10, fontSize: 13, opacity: .75 }}>18 aktif ürünü tek ekranda yönet. Toplu SEO düğmesi 16 üründe başlık, 13 etiket ve açıklama girişini günceller; görseller, fiyatlar, kategoriler ve dijital dosyalar değişmez. 2 ürün, teslimat dosyası tutarsızlığı nedeniyle güvenli şekilde beklemede tutulur.</p>
             {!dataLoading && listings.length > 0 && <div style={{display:'flex',gap:10,flexWrap:'wrap',marginTop:14}}>
               <span style={{padding:'7px 10px',borderRadius:999,background:'#151b23',border:'1px solid #303846'}}>📦 {listings.length} ürün</span>
               <span style={{padding:'7px 10px',borderRadius:999,background:'#151b23',border:'1px solid #303846'}}>👁 {listings.reduce((n,l)=>n+Number(l.views||0),0)} görüntülenme</span>

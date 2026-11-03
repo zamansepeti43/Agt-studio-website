@@ -14,6 +14,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/settings': 'Site Ayarları',
   '/admin/etsy': 'Etsy Yönetimi',
   '/admin/etsy-intelligence': 'Etsy Intelligence',
+  '/admin/etsy-performance': 'Etsy Performans Merkezi',
   '/admin/pinterest': 'Pinterest Yönetimi',
 };
 

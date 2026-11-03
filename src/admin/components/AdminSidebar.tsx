@@ -15,6 +15,7 @@ const NAV_GROUPS = [
     { to: '/admin/portfolio', label: 'Portföy', icon: '🖼️' },
   ]},
   { label: 'Büyüme', items: [
+    { to: '/admin/etsy-performance', label: 'Etsy Performans', icon: '📈' },
     { to: '/admin/etsy-intelligence', label: 'Etsy Intelligence', icon: '🧠' },
     { to: '/admin/etsy', label: 'Etsy Yönetimi', icon: '🛍️' },
     { to: '/admin/pinterest', label: 'Pinterest Yönetimi', icon: '📌' },

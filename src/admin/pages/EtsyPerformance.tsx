@@ -253,7 +253,7 @@ export default function EtsyPerformance() {
                       <td style={{ padding: 10, borderBottom: '1px solid #202733' }}>{views ? ((favorites / views) * 100).toFixed(2) + '%' : '—'}</td>
                       <td style={{ padding: 10, borderBottom: '1px solid #202733' }}>{money(item)}</td>
                       <td style={{ padding: 10, borderBottom: '1px solid #202733' }}>{item.quantity ?? '—'}</td>
-                      <td style={{ padding: 10, borderBottom: '1px solid #202733' }}>{item.url ? <a href={item.url} target="_blank" rel="noreferrer">Etsy ↗</a> : '—'}</td>
+                      <td style={{ padding: 10, borderBottom: '1px solid #202733', whiteSpace: 'nowrap' }}><a href={'/admin/etsy?listing=' + item.listing_id}>SEO önerisi ↗</a>{item.url && <div style={{ marginTop: 5 }}><a href={item.url} target="_blank" rel="noreferrer">Etsy ilanı ↗</a></div>}</td>
                     </tr>;
                   })}
                   {ranked.length === 0 && <tr><td colSpan={7} style={{ padding: 16, opacity: .65 }}>Aktif ilan verisi bulunamadı.</td></tr>}

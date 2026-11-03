@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { supabase } from '../../lib/supabase';
 
 type Shop = {
   shop_id?: number;
@@ -24,6 +25,8 @@ type Listing = {
   quantity?: number;
   price?: { amount?: number; divisor?: number; currency_code?: string };
 };
+
+type SalesData = { available: boolean; reason?: string; message?: string; units_sold?: number; gross_revenue?: number; currency?: string; listing_sales?: Array<{ listing_id: number; title: string; orders: number; units: number; gross_revenue: number; currency?: string | null; last_sale_timestamp?: number | null }>; measurement_note?: string; truncated?: boolean; transaction_count_returned?: number; transaction_count_reported?: number | null };
 
 type DashboardData = {
   shop: Shop;
@@ -60,6 +63,9 @@ export default function EtsyPerformance() {
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
   const [lastUpdated, setLastUpdated] = useState('');
+  const [sales, setSales] = useState<SalesData | null>(null);
+  const [salesError, setSalesError] = useState('');
+  const [salesLoading, setSalesLoading] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -84,7 +90,27 @@ export default function EtsyPerformance() {
     }
   }, []);
 
-  useEffect(() => { void load(); }, [load]);
+  const loadSales = useCallback(async () => {
+    setSalesLoading(true);
+    setSalesError('');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('Yönetici oturumu bulunamadı. Lütfen yeniden giriş yap.');
+      const response = await fetch('/api/etsy/sales', {
+        headers: { Authorization: 'Bearer ' + session.access_token },
+        cache: 'no-store',
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || 'Etsy satış verileri alınamadı.');
+      setSales(payload);
+    } catch (cause) {
+      setSalesError(cause instanceof Error ? cause.message : 'Etsy satış verileri alınamadı.');
+    } finally {
+      setSalesLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { void load(); void loadSales(); }, [load, loadSales]);
 
   const listings = data?.listings.results || [];
   const totals = useMemo(() => {
@@ -234,6 +260,40 @@ export default function EtsyPerformance() {
                 </tbody>
               </table>
             </div>
+          </div>
+          <div style={{ ...panel, marginTop: 14 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+              <div><h2 style={{ margin: 0, fontSize: 18 }}>Gerçek satış ve ürün bazında gelir</h2><p style={{ margin: '5px 0 0', fontSize: 12, opacity: .65 }}>Etsy işlem kayıtlarından gelir; ilan sayaçlarından tahmin edilmez.</p></div>
+              <button type="button" onClick={() => void loadSales()} disabled={salesLoading}>↻ Satış verisini yenile</button>
+            </div>
+            {salesLoading && <p>İşlem kayıtları alınıyor...</p>}
+            {salesError && <div role="alert" style={{ marginTop: 12, color: '#fecaca' }}>{salesError}</div>}
+            {sales && !sales.available && <div style={{ marginTop: 12, padding: 14, borderRadius: 10, background: '#241d10', color: '#f4d28b' }}>
+              <strong>Ek Etsy izni gerekiyor</strong><p style={{ marginBottom: 8 }}>{sales.message}</p><a href="/api/etsy/auth">Etsy bağlantısını yeniden yetkilendir ↗</a><p style={{ fontSize: 11, marginBottom: 0 }}>Yetkilendirme sırasında satış verilerini okuma iznini (transactions_r) onayla. Bu işlemden sonra sayfayı yenile.</p>
+            </div>}
+            {sales?.available && <>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 12, marginTop: 14 }}>
+                {metric('İşlem kaydı', sales.transaction_count_reported ?? sales.transaction_count_returned ?? 0)}
+                {metric('Satılan adet', sales.units_sold ?? 0)}
+                {metric('Brüt satış tutarı', Number(sales.gross_revenue || 0).toFixed(2) + ' ' + (sales.currency || ''))}
+                {metric('Satış yapılan ilan', sales.listing_sales?.length ?? 0)}
+              </div>
+              {sales.truncated && <p style={{ color: '#f4d28b', fontSize: 12 }}>Kayıt sayısı güvenli sayfalama sınırını aştı; tüm işlemler alınamadı.</p>}
+              <div style={{ overflowX: 'auto', marginTop: 14 }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 650, fontSize: 13 }}>
+                  <thead><tr>{['Ürün', 'Sipariş satırı', 'Adet', 'Brüt tutar', 'Son satış'].map((heading) => <th key={heading} style={{ textAlign: 'left', padding: 10, borderBottom: '1px solid #303846' }}>{heading}</th>)}</tr></thead>
+                  <tbody>{(sales.listing_sales || []).map((item) => <tr key={item.listing_id}>
+                    <td style={{ padding: 10, borderBottom: '1px solid #202733' }}>{item.title}<div style={{ fontSize: 10, opacity: .5 }}>ID: {item.listing_id}</div></td>
+                    <td style={{ padding: 10, borderBottom: '1px solid #202733' }}>{item.orders}</td>
+                    <td style={{ padding: 10, borderBottom: '1px solid #202733' }}>{item.units}</td>
+                    <td style={{ padding: 10, borderBottom: '1px solid #202733' }}>{item.gross_revenue.toFixed(2)} {item.currency || sales.currency || ''}</td>
+                    <td style={{ padding: 10, borderBottom: '1px solid #202733' }}>{item.last_sale_timestamp ? new Date(item.last_sale_timestamp * 1000).toLocaleDateString('tr-TR') : '—'}</td>
+                  </tr>)}
+                  {(sales.listing_sales || []).length === 0 && <tr><td colSpan={5} style={{ padding: 14, opacity: .65 }}>Henüz işlem kaydı dönmedi.</td></tr>}</tbody>
+                </table>
+              </div>
+              <p style={{ marginBottom: 0, fontSize: 11, opacity: .55 }}>{sales.measurement_note}</p>
+            </>}
           </div>
           <div style={{ marginTop: 12, fontSize: 11, opacity: .5 }}>Rapor, Etsy'nin mevcut API bağlantısından alınan verileri gösterir. ChatGPT'ye aktarmak için üstteki rapor kopyalama düğmesini kullan.</div>
         </>

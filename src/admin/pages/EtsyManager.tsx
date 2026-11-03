@@ -21,6 +21,8 @@ type ListingOptimization = {
   current: { title: string; tags: string[]; description: string };
   proposed: { title: string; tags: string[]; description: string };
   reasons: string[];
+  hold?: boolean;
+  hold_reason?: string;
 };
 
 const fieldStyle = { width: '100%', boxSizing: 'border-box' as const, padding: '11px 12px', borderRadius: 10, border: '1px solid var(--admin-border, #e5e7eb)', background: '#0d1117', color: 'inherit' };
@@ -330,9 +332,10 @@ export default function EtsyManager() {
                 <div style={{padding:14,background:'#151b23',borderRadius:12}}><h3>Mevcut</h3><b>Başlık</b><p>{optimization.current.title}</p><b>Etiketler</b><p>{optimization.current.tags.join(' · ')}</p><b>Açıklama</b><div style={{whiteSpace:'pre-wrap',maxHeight:180,overflow:'auto',fontSize:12}}>{optimization.current.description || 'Boş'}</div></div>
                 <div style={{padding:14,background:'#102117',borderRadius:12}}><h3>Önerilen</h3><b>Başlık</b><p>{optimization.proposed.title}</p><b>Etiketler</b><p>{optimization.proposed.tags.join(' · ')}</p><b>Açıklama</b><div style={{whiteSpace:'pre-wrap',maxHeight:180,overflow:'auto',fontSize:12}}>{optimization.proposed.description}</div></div>
               </div>
+              {optimization.hold && <div role="alert" style={{marginTop:14,padding:12,borderRadius:10,background:'#2b1b13',border:'1px solid #9a5b35',color:'#f8d6bd'}}><strong>Bu ürün için değişiklik beklemede</strong><div style={{marginTop:5,fontSize:13}}>{optimization.hold_reason}</div></div>}
               <div style={{marginTop:14}}><b>🎯 Neden?</b><ul>{optimization.reasons.map(r=><li key={r}>{r}</li>)}</ul></div>
               {optimizationMessage && <p style={{color:'#22c55e',fontWeight:700}}>{optimizationMessage}</p>}
-              <button type="button" onClick={applyOptimization} disabled={optimizationApplying}>{optimizationApplying?'Etsy’ye uygulanıyor...':'🚀 Onayla ve Etsy’ye Uygula'}</button>
+              <button type="button" onClick={applyOptimization} disabled={optimizationApplying || Boolean(optimization.hold)}>{optimization.hold ? 'Dosya doğrulaması bekleniyor' : optimizationApplying ? 'Etsy’ye uygulanıyor...' : '🚀 Onayla ve Etsy’ye Uygula'}</button>
             </div>
           )}
           <div id="etsy-profile" style={{ marginTop: 20, background: '#0d1117', border: '1px solid var(--admin-border, #e5e7eb)', borderRadius: 16, padding: 24 }}>

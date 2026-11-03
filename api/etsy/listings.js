@@ -20,49 +20,368 @@ const SECTION_ALIASES = new Map([
 
 
 const SEO_PRESETS = {
-  4576174491: ["AI API Finder Basic Android App: 26+ AI API Providers",["ai api finder","ai api directory","ai api providers","android app","developer tools","ai tools directory","api discovery","ai software","programming tool","tech tools","api research","ai developer app","digital download"],"AI API Finder Basic is an Android app for discovering 26+ AI API providers in one organized directory."],
-  4576154195: ["AI API Finder Pro Android App: 26+ AI API Providers",["ai api finder","ai api directory","ai api providers","android app","developer tools","ai tools directory","api discovery","ai software","programming tool","tech tools","api research","ai developer app","digital download"],"AI API Finder Pro is an Android app that helps developers discover 26+ AI API providers in one organized directory."],
-  4576139109: ["No-Code Android APK Builder for Windows: ZIP to APK Tool",["apk builder","zip to apk","android app maker","no code android","apk creator","windows app","android builder","app package tool","developer tool","apk converter","windows software","app builder","digital download"],"This Windows desktop tool helps turn supported ZIP-based app projects into Android APK files."],
-  4576184560: ["Windows APK Builder: Convert ZIP Projects to Android APK",["apk builder","zip to apk","windows apk tool","android app maker","apk converter","no code android","apk creator","windows software","android package","app builder tool","developer tool","apk generator","digital download"],"Windows APK Builder helps convert supported ZIP app projects into Android APK packages from a desktop workflow."],
-  4573718071: ["Etsy Product Research Spreadsheet: Ideas & Competitor Analysis",["etsy research tool","etsy product ideas","product research","competitor analysis","etsy seller tool","digital ideas","etsy spreadsheet","product opportunity","etsy seo tool","seller research","etsy analytics","market research","excel template"],"Etsy Product Research Tool helps sellers organize product ideas, competitor research and opportunity analysis in a practical spreadsheet."],
-  4574820715: ["Barbershop Management Software: Appointments, Clients & Inventory",["barbershop software","barber management","barber booking","barber appointments","barber crm","barber inventory","salon software","client management","barber business","windows software","staff management","payment tracker","digital download"],"Manage barbershop appointments, customer records and inventory in one Windows application."],
-  4574114283: ["Bakery Pricing Calculator Spreadsheet: Recipe Costs & Profit",["bakery pricing","recipe cost sheet","bakery profit","cake pricing","food cost calculator","home bakery","bakery spreadsheet","recipe costing","cake costing","order tracker","baking business","pricing calculator","excel template"],"Bakery Pricing Calculator is an Excel spreadsheet for calculating recipe costs, selling prices and bakery profit."],
-  4575285227: ["Etsy Customer Reply Templates: 120 Buyer Response Scripts",["etsy reply templates","etsy seller support","buyer reply scripts","customer service","etsy messages","reply templates","chatgpt prompts","refund response","review response","etsy seller tool","customer support","excel template","digital download"],"This Etsy seller toolkit includes 120 buyer reply scenarios, reusable response scripts and ChatGPT prompts for common customer messages."],
-  4584002494: ["College Application Tracker Spreadsheet: University Deadlines",["college application","college tracker","application tracker","university planner","college spreadsheet","admission tracker","student planner","deadline tracker","college checklist","school planner","student spreadsheet","excel planner","digital download"],"College Application Tracker is a spreadsheet for organizing university applications, requirements, deadlines and application progress."],
-  4580566924: ["Travel Planner Spreadsheet: Itinerary, Budget & Packing List",["travel planner","trip planner","travel itinerary","vacation planner","travel budget","packing list","trip spreadsheet","vacation checklist","travel organizer","holiday planner","travel checklist","excel planner","digital download"],"Plan trip itineraries, budgets and packing lists with one editable travel planning spreadsheet."],
-  4573839919: ["Etsy Profit Calculator Spreadsheet: Fees, Pricing & Profit Tracker",["etsy fee calculator","etsy pricing","etsy profit tracker","etsy fees","profit tracker","pricing calculator","seller finance","etsy business tool","excel spreadsheet","etsy accounting","profit calculator","seller spreadsheet","digital download"],"Etsy Profit Calculator helps sellers estimate fees, plan product prices and track profit in an Excel spreadsheet."],
-  4580683019: ["Beauty Salon Management Software: Clients, Staff & Inventory",["salon management","beauty salon app","salon software","salon booking","client management","salon inventory","staff manager","beauty business","spa management","appointment app","windows software","salon crm","digital download"],"BeautyOS Pro is an offline Windows application for managing salon clients, staff, inventory and payments."],
-  4579223691: ["AI Product Photo Generator for Windows: E-Commerce Image Tool",["ai product photos","product photo ai","ai image generator","ecommerce photos","product photography","photo generator","windows software","etsy product photos","shopify photos","amazon photos","ai photo editor","listing images","digital download"],"AGT AI Product Photo Generator is a Windows desktop tool for creating product-focused visuals for e-commerce listings."],
-  4577542450: ["Etsy Product Idea Finder Android App: 259K Digital Product Ideas",["etsy product ideas","etsy idea finder","product idea tool","etsy seller tools","product research","etsy niche ideas","digital downloads","etsy business","product radar","etsy research app","android app","seller research","digital product list"],"Etsy Product Idea Finder helps sellers explore a catalog of 259,200 digital product concepts from an Android app."],
-  4579183270: ["AI Product Photo Generator for Etsy, Amazon & Shopify",["ai product photos","product photography","ai photo generator","etsy product photos","shopify photos","amazon photos","ecommerce visuals","product image ai","listing photos","ai image tool","product mockup","photo editor","digital download"],"AI Product Photo Generator helps online sellers create product-focused visuals for listings across Etsy, Amazon and Shopify."],
-  4574138529: ["Pressure Washing Business Spreadsheet: Quotes, Jobs & Profit",["pressure washing","pressure wash biz","job costing sheet","service business","quote calculator","job tracker","profit tracker","business spreadsheet","cleaning business","pricing calculator","income tracker","excel template","digital download"],"Organize customer jobs, estimates and profit calculations with this pressure washing business spreadsheet."],
-  4582064360: ["AGT LIFE Organizer App: Tasks, Goals & Reminders",["life organizer","daily task app","goal tracker","task manager","reminder app","personal planner","productivity app","habit planner","life planner","windows app","digital organizer","goal planner","digital download"],"AGT LIFE is a personal organizer for managing everyday tasks, personal goals and reminders in one digital workspace."],
-  4583609425: ["Moving Planner Spreadsheet: Moving Checklist & Box Inventory",["moving planner","moving checklist","relocation planner","moving spreadsheet","box inventory","packing checklist","moving organizer","house move list","moving budget","home relocation","excel template","packing planner","digital download"],"Moving Planner helps organize a move with checklists, box inventory and practical planning sheets."],
+  "4576154195": [
+    "AI API Finder Pro Android App: 26+ Providers & Live Updates",
+    [
+      "ai api finder",
+      "ai api directory",
+      "ai api providers",
+      "android app",
+      "ai developer tool",
+      "api discovery",
+      "api comparison",
+      "provider directory",
+      "live data updates",
+      "ai api research",
+      "developer app",
+      "ai software",
+      "tech tools"
+    ],
+    "AI API Finder Pro is an Android directory for discovering and comparing 26+ AI API providers, with live data refreshes for supported provider updates."
+  ],
+  "4576139109": [
+    "Android APK Builder App: ZIP to APK Without Coding",
+    [
+      "android app builder",
+      "zip to apk",
+      "html to apk",
+      "apk creator",
+      "no code app",
+      "android apk",
+      "custom app logo",
+      "custom app name",
+      "web to app",
+      "html app maker",
+      "apk converter",
+      "android tools",
+      "app builder"
+    ],
+    "AGT Studio Android APK Builder is an Android app that converts compatible ZIP projects containing an index.html or index.htm file into signed APK files, with app-name and logo options."
+  ],
+  "4573718071": [
+    "Etsy Product Research System: 83 Ideas, Validation & Profit Tools",
+    [
+      "etsy product ideas",
+      "etsy research tool",
+      "product research",
+      "competitor research",
+      "niche research",
+      "digital product",
+      "etsy seller tools",
+      "product validation",
+      "profit calculator",
+      "listing planner",
+      "opportunity score",
+      "market research",
+      "excel workbook"
+    ],
+    "Etsy Product Research System combines 83 researched product opportunities with competitor analysis, a 9-factor validation scorecard, profit estimates and listing-planning tools."
+  ],
+  "4574820715": [
+    "Barbershop Management Software for Windows: Appointments & Inventory",
+    [
+      "barbershop software",
+      "barber management",
+      "barber booking",
+      "barber appointments",
+      "barber crm",
+      "barber inventory",
+      "barber business",
+      "salon software",
+      "client management",
+      "windows software",
+      "staff manager",
+      "service manager",
+      "offline software"
+    ],
+    "BarberOS Pro is a Windows 10/11 desktop app for managing barbershop appointments, customers, barbers, services, inventory and reports with local data storage."
+  ],
+  "4574114283": [
+    "Bakery Pricing Calculator Excel: Recipe Costs & Profit Tracker",
+    [
+      "bakery pricing",
+      "recipe costing",
+      "recipe cost sheet",
+      "home bakery",
+      "cake pricing",
+      "food cost calc",
+      "bakery profit",
+      "order tracker",
+      "baking business",
+      "excel template",
+      "ingredient cost",
+      "profit margin",
+      "bakery spreadsheet"
+    ],
+    "Bakery Profit Command Center is an Excel workbook for ingredient and recipe costing, product pricing, profit-margin analysis and order tracking for home bakeries."
+  ],
+  "4576174491": [
+    "AI API Finder Basic Android App: 26+ AI API Providers",
+    [
+      "ai api finder",
+      "ai api directory",
+      "ai api providers",
+      "android app",
+      "ai developer tool",
+      "api discovery",
+      "api comparison",
+      "provider directory",
+      "api search tool",
+      "ai api research",
+      "developer app",
+      "ai software",
+      "tech tools"
+    ],
+    "AI API Finder Basic is an Android app for searching and comparing 26+ AI API providers from its included data snapshot; it does not include the Pro live-update system."
+  ],
+  "4576184560": [
+    "Windows APK Builder: Convert ZIP Projects to Android APK",
+    [
+      "windows apk tool",
+      "zip to apk",
+      "apk builder",
+      "apk creator",
+      "windows software",
+      "html to apk",
+      "app signing",
+      "custom app logo",
+      "custom app name",
+      "android app maker",
+      "no android studio",
+      "developer tool",
+      "app converter"
+    ],
+    "Windows APK Builder is a Windows desktop tool for converting compatible ZIP/HTML projects into Android APK packages, with app-name, logo and signing options."
+  ],
+  "4573839919": [
+    "Etsy Profit Tracker Excel Workbook: Fees, Pricing & Dashboard",
+    [
+      "etsy profit tracker",
+      "etsy fee calculator",
+      "etsy pricing tool",
+      "profit spreadsheet",
+      "profit margin",
+      "etsy seller tools",
+      "pricing calculator",
+      "etsy ads tracker",
+      "fee tracker",
+      "payout tracker",
+      "product profit",
+      "excel workbook",
+      "etsy business"
+    ],
+    "Etsy Profit Command Center is a 21-sheet Excel system for tracking sales, Etsy fees, advertising costs, product pricing, payout estimates and profit scenarios."
+  ],
+  "4574138529": [
+    "Pressure Washing Business Spreadsheet: Quotes, Jobs & Profit",
+    [
+      "pressure washing",
+      "power washing",
+      "job quote tool",
+      "quote calculator",
+      "job tracker",
+      "service business",
+      "job costing",
+      "profit tracker",
+      "pricing calculator",
+      "cleaning business",
+      "contractor tool",
+      "excel template",
+      "business spreadsheet"
+    ],
+    "Pressure Washing Profit Command Center is an Excel and Google Sheets system for estimating job prices, preparing quotes, tracking customers and jobs, and monitoring costs and profit."
+  ],
+  "4584002494": [
+    "College Application Tracker Spreadsheet: Deadlines & Scholarships",
+    [
+      "college tracker",
+      "college application",
+      "application planner",
+      "college admissions",
+      "deadline tracker",
+      "scholarship tracker",
+      "essay tracker",
+      "college comparison",
+      "university planner",
+      "student spreadsheet",
+      "college checklist",
+      "document tracker",
+      "cost comparison"
+    ],
+    "College Application Tracker is a 17-sheet Excel command center for researching colleges, tracking applications and deadlines, managing essays and recommendations, and comparing costs and scholarships."
+  ],
+  "4580683019": [
+    "Beauty Salon Management Software for Windows: Clients & Appointments",
+    [
+      "beauty salon app",
+      "salon management",
+      "salon software",
+      "salon appointments",
+      "client management",
+      "salon inventory",
+      "staff manager",
+      "beauty business",
+      "treatment tracker",
+      "salon payments",
+      "offline software",
+      "windows software",
+      "spa salon tool"
+    ],
+    "BeautyOS Pro is an offline Windows salon-management app with appointments, client records, treatments, packages, services, inventory, staff, payments and reports."
+  ],
+  "4579223691": [
+    "AI Product Photo Generator for Windows: E-Commerce Images",
+    [
+      "ai product photo",
+      "product photo ai",
+      "ecommerce images",
+      "windows software",
+      "product photography",
+      "ai image generator",
+      "etsy product photos",
+      "shopify product",
+      "amazon product photo",
+      "lifestyle product",
+      "image generator",
+      "photo editing tool",
+      "digital download"
+    ],
+    "AGT Product AI is a Windows desktop app that turns an uploaded product photo and a written prompt into e-commerce visuals using a connected AI provider or model."
+  ],
+  "4580566924": [
+    "Travel Planner Spreadsheet: Itinerary, Budget & Group Expenses",
+    [
+      "travel planner",
+      "travel spreadsheet",
+      "trip itinerary",
+      "trip budget",
+      "packing checklist",
+      "group expenses",
+      "travel reservations",
+      "currency helper",
+      "family travel",
+      "excel planner",
+      "google sheets",
+      "trip organizer",
+      "pre trip checklist"
+    ],
+    "AGT Studio Ultimate Travel Planner is a bilingual Excel and Google Sheets workbook for trip itineraries, budgets, shared expenses, packing, reservations and preparation tasks."
+  ],
+  "4579183270": [
+    "AI Product Photo Generator Android App: E-Commerce Images",
+    [
+      "ai product photo",
+      "product photo ai",
+      "android app",
+      "ecommerce images",
+      "product photography",
+      "ai image generator",
+      "etsy product photos",
+      "shopify product",
+      "amazon product photo",
+      "lifestyle product",
+      "image generator",
+      "product visuals",
+      "digital download"
+    ],
+    "AGT Product AI is an Android app for uploading a product photo, writing a prompt, choosing a supported AI provider or model, generating image variations, and saving results to History or Favorites."
+  ],
+  "4582064360": [
+    "AGT LIFE Android Organizer App: Tasks, Goals & Reminders",
+    [
+      "android organizer",
+      "life organizer",
+      "task manager app",
+      "goal tracker",
+      "reminder app",
+      "daily planner",
+      "productivity app",
+      "personal planner",
+      "life planner app",
+      "task planner",
+      "goal planner",
+      "android planner",
+      "digital organizer"
+    ],
+    "AGT LIFE is an Android personal-organizer app with task and goal tracking, reminders, Life Rescue planning and the İZCİ smart-tracking system."
+  ],
+  "4583609425": [
+    "Moving Planner Spreadsheet: Box Inventory & Missing Box Radar",
+    [
+      "moving planner",
+      "moving checklist",
+      "box inventory",
+      "packing tracker",
+      "moving spreadsheet",
+      "relocation planner",
+      "moving budget",
+      "moving day",
+      "unpacking tracker",
+      "excel planner",
+      "google sheets",
+      "box labels",
+      "home relocation"
+    ],
+    "Moving Command Center PRO is a bilingual Excel and Google Sheets moving system with box-status tracking, a Missing Box Radar, packing tasks, budget planning and a printable binder."
+  ]
+};
+
+const SEO_HOLDS = {
+  "4575285227": "BEKLEMEDE: İlan 120 Etsy müşteri yanıtı şablonu vaat ediyor; elimdeki benzer isimli yerel çalışma kitabı 2.169 genel yapay zekâ istemi içeriyor. İlanın Etsy'ye yüklenmiş asıl dosyası eşleştirilmeden bu ürünü değiştirmeyeceğim.",
+  "4577542450": "BEKLEMEDE: İlan Android Product Radar uygulaması olarak tanıtılıyor; elimdeki yerel Product-Radar-Setup.exe Windows kurulum dosyası ve eşleşen Android APK bulunamadı. Gerçek teslimat dosyası doğrulanmadan bu ürünü değiştirmeyeceğim."
 };
 
 function seoRecommendation(listing) {
-  const preset = SEO_PRESETS[Number(listing.listing_id)];
+  const id = Number(listing.listing_id);
   const currentTitle = String(listing.title || '').trim();
   const currentTags = Array.isArray(listing.tags) ? listing.tags.map(String) : [];
   const currentDescription = String(listing.description || '').trim();
+  const current = { title: currentTitle, tags: currentTags, description: currentDescription };
+  const holdReason = SEO_HOLDS[id];
+  if (holdReason) {
+    return {
+      listing_id: id,
+      current,
+      proposed: { ...current },
+      reasons: [holdReason],
+      hold: true,
+      hold_reason: holdReason,
+    };
+  }
+  const preset = SEO_PRESETS[id];
   const data = preset || [
     currentTitle.replace(/[|,:/()]+/g,' ').replace(/\s+/g,' ').trim().slice(0,140),
     [...new Set(currentTags.concat(currentTitle.split(/\s+/).filter(w => w.length >= 4)))].slice(0,13),
     currentTitle + '.',
   ];
-  const proposedDescription = currentDescription && currentDescription.startsWith(data[2])
+  let proposedDescription = currentDescription && currentDescription.startsWith(data[2])
     ? currentDescription
     : data[2] + (currentDescription ? '\n\n' + currentDescription : '');
+
+  if (id === 4579183270) {
+    proposedDescription = proposedDescription
+      .replace(/Simply type or speak what you want, connect your preferred AI model, and create product images designed for online stores, marketplaces and social media\./i,
+        'Upload a product photo, write a prompt, connect a supported AI provider or model, and generate product visuals for online stores and marketplaces.')
+      .replace(/🎙️ Type or Speak\s*\nDescribe what you want using text or voice\. No complicated design process required\./i,
+        '✍️ Write a Prompt\nDescribe the scene, background, lighting and visual style you want in a written prompt.')
+      .replace(/✨ Smart Editing\s*\nCustomize your product visuals, backgrounds, colors, text and presentation\./i,
+        '✨ Prompt-Based Visual Direction\nDescribe the background, lighting, colors and presentation you want in your written prompt.')
+      .replace(/Type it\. Speak it\. Create it\. Sell it\./i,
+        'Upload it. Describe it. Create it. Sell it.');
+  }
   return {
-    listing_id: Number(listing.listing_id),
-    current: { title: currentTitle, tags: currentTags, description: currentDescription },
+    listing_id: id,
+    current,
     proposed: { title: data[0], tags: data[1].slice(0,13), description: proposedDescription },
     reasons: [
-      'Başlık daha net ve ana satın alma niyetini öne çıkaracak şekilde sadeleştirildi.',
-      '13 etiket, ürünün gerçek kullanım amacı ve arama niyetine göre gruplanıyor.',
-      'Açıklamanın ilk paragrafında ürünün ne yaptığı ve kimin için olduğu daha hızlı anlaşılıyor.',
-      'Mevcut açıklamanın geri kalanı korunuyor; fiyat, görsel, kategori ve dosyalara dokunulmuyor.',
+      'Başlık sadeleştirildi; ürün türü ve ana arama niyeti başa alındı.',
+      '13 etiket, mevcut ilan içeriğinde açıkça anlatılan kullanım amacına göre seçildi; her etiket 20 karakteri aşmıyor.',
+      'Açıklamanın ilk paragrafı ürünün ne yaptığını daha hızlı anlatıyor; doğrulanmamış yeni özellik eklenmedi.',
+      'Görseller, fiyat, kategori ve dijital dosyalar değiştirilmez.',
+      'Türkçe karşılığı: ' + ({"4576154195":"26'dan fazla yapay zekâ API sağlayıcısını canlı güncellemelerle keşfetmeye ve karşılaştırmaya yarayan Android uygulaması.","4576139109":"İçinde index.html bulunan uyumlu ZIP projelerini uygulama adı ve logo seçeneğiyle imzalı APK dosyasına dönüştüren Android uygulaması.","4573718071":"83 araştırılmış ürün fırsatı, rakip analizi, 9 kriterli doğrulama puanlaması, kâr tahmini ve ilan planlama araçlarını birleştiren Etsy araştırma sistemi.","4574820715":"Randevu, müşteri, berber, hizmet, stok ve rapor yönetimini Windows bilgisayarda yerel olarak yapan berber dükkânı yazılımı.","4574114283":"Ev tipi fırın ve pasta işletmeleri için malzeme/reçete maliyeti, satış fiyatı, kâr marjı ve sipariş takibi sağlayan Excel çalışma kitabı.","4576174491":"26'dan fazla yapay zekâ API sağlayıcısını uygulamaya ekli sabit veri listesi üzerinden arayan ve karşılaştıran temel Android sürümü; Pro canlı güncellemeleri içermez.","4576184560":"Uyumlu ZIP/HTML projelerini uygulama adı, logo ve imzalama seçenekleriyle Android APK paketlerine dönüştüren Windows masaüstü aracı.","4573839919":"Satış, Etsy ücretleri, reklam maliyetleri, ürün fiyatlandırması, ödeme tahminleri ve kâr senaryolarını izleyen 21 sayfalı Excel sistemi.","4574138529":"Basınçlı yıkama işletmeleri için iş fiyatı ve teklif hazırlama, müşteri/iş takibi, maliyet ve kâr izleme sistemi.","4584002494":"Üniversite araştırması, başvuru ve son tarih takibi, kompozisyonlar, referanslar, maliyet ve burs karşılaştırması için 17 sayfalı Excel yönetim dosyası.","4580683019":"Randevu, müşteri kayıtları, bakım işlemleri, paketler, hizmetler, stok, personel, ödeme ve rapor modüllerine sahip çevrimdışı Windows salon yazılımı.","4579223691":"Yüklenen ürün fotoğrafını yazılı komut ve bağlı yapay zekâ sağlayıcısıyla e-ticaret görsellerine dönüştüren Windows masaüstü uygulaması.","4580566924":"Seyahat programı, bütçe, ortak harcamalar, bavul, rezervasyonlar ve hazırlık görevleri için Türkçe-İngilizce Excel ve Google Sheets dosyası.","4579183270":"Ürün fotoğrafı yükleme, yazılı komut girme, desteklenen yapay zekâ sağlayıcısı/modeli seçme, görsel varyasyonları üretme ve geçmiş/favorilere kaydetme özellikli Android uygulaması.","4582064360":"Görev ve hedef takibi, hatırlatıcılar, Life Rescue planlaması ve İZCİ akıllı takip sistemine sahip Android kişisel düzenleyici.","4583609425":"Koli durum takibi, kayıp koli radarı, paketleme görevleri, bütçe planı ve yazdırılabilir taşınma dosyası içeren Türkçe-İngilizce Excel/Google Sheets sistemi."}[id] || 'Mevcut ilan metni korunmuştur.'),
+      ...(id === 4579183270 ? ['Ürün dosyasında sesli komut bulunmadığı için sesle konuşma ve doğrudan görsel düzenleme iddiaları kaldırıldı.'] : []),
     ],
+    hold: false,
   };
 }
 
@@ -177,6 +496,7 @@ export default async function handler(req, res) {
       const listing = await etsyApiFetch('/listings/' + listingId + '?includes=Images');
       const recommendation = seoRecommendation(listing);
       if (req.method === 'GET') { res.setHeader('Cache-Control','no-store'); res.status(200).json(recommendation); return; }
+      if (recommendation.hold) { res.status(409).json({ error: recommendation.hold_reason }); return; }
       let body=req.body; if (typeof body === 'string') { try { body=JSON.parse(body); } catch { body={}; } }
       if (body?.action !== 'apply') { res.status(400).json({ error:'Uygulamak için action=apply gönderilmelidir.' }); return; }
       const proposed=body.proposed || recommendation.proposed;
@@ -184,6 +504,7 @@ export default async function handler(req, res) {
       const tags=Array.isArray(proposed.tags) ? proposed.tags.map(String).map(t=>t.trim()).filter(Boolean).slice(0,13) : [];
       const description=String(proposed.description||'').trim();
       if (!title || !tags.length) { res.status(400).json({ error:'Başlık ve etiket önerisi boş bırakılamaz.' }); return; }
+      if (tags.length !== 13 || new Set(tags).size !== 13) { res.status(400).json({ error:'Tam 13 farklı Etsy etiketi gönderilmelidir.' }); return; }
       if (tags.some(tag=>tag.length>20)) { res.status(400).json({ error:'Etsy etiketleri 20 karakteri aşamaz.' }); return; }
       await etsyApiFetch('/shops/'+shopId+'/listings/'+listingId,{method:'PATCH',headers:{'Content-Type':'application/x-www-form-urlencoded; charset=utf-8'},body:new URLSearchParams({title,tags:tags.join(','),description}).toString()});
       res.setHeader('Cache-Control','no-store');

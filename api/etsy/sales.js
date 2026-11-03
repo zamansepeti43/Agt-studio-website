@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   try {
     await requireAdminRequest(req);
     const { shopUserId, scope } = await getEtsyAccessToken();
-    const grantedScopes = String(scope || '').split(/\\s+/).filter(Boolean);
+    const grantedScopes = String(scope || '').split(/\s+/).filter(Boolean);
     if (!grantedScopes.includes('transactions_r')) {
       res.setHeader('Cache-Control', 'no-store');
       res.status(200).json({

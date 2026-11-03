@@ -96,7 +96,7 @@ export default function EtsyPerformance() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) throw new Error('Yönetici oturumu bulunamadı. Lütfen yeniden giriş yap.');
-      const response = await fetch('/api/etsy/sales', {
+      const response = await fetch('/api/etsy/listings?sales=1', {
         headers: { Authorization: 'Bearer ' + session.access_token },
         cache: 'no-store',
       });
